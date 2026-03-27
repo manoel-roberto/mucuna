@@ -1,0 +1,330 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Usuario {
+  id                    String                   @id @default(uuid())
+  nome                  String
+  cpf                   String                   @unique
+  email                 String                   @unique
+  senhaHash             String
+  perfil                PerfilUsuario            @default(CANDIDATO)
+  telefone              String?
+  criadoEm              DateTime                 @default(now())
+  convocacoesRealizadas ClassificacaoCandidato[] @relation("HabilitadorClassificacao")
+  classificacoes        ClassificacaoCandidato[] @relation("UsuarioClassificacao")
+  modelosCriados        ModeloFormulario[]
+  noticias              Noticia[]
+  registrosCriados      RegistroConvocacao[]
+}
+
+model Edital {
+  id                     String                   @id @default(uuid())
+  titulo                 String
+  descricao              String
+  ano                    Int
+  tipo                   String?
+  status                 StatusEdital             @default(RASCUNHO)
+  inicioInscricoes       DateTime?
+  fimInscricoes          DateTime?
+  prazoEnvioDocumentos   DateTime?
+  criadoEm               DateTime                 @default(now())
+  autorizacaoDOE         String?
+  certameId              String?
+  dataDOEHomologacao     DateTime?
+  dataDOEProrrogacao     DateTime?
+  dataLimiteProrrogacao  DateTime?
+  dataValidadeOriginal   DateTime?
+  dataValidadeProrrogada DateTime?
+  numCOPE                String?
+  numProcessoSEI         String?
+  observacaoValidade     String?
+  portariaHomologacao    String?
+  portariaProrrogacao    String?
+  regimeId               String?
+  percentualNegros       Int                      @default(20)
+  percentualPCD          Int                      @default(5)
+  classificacoes         ClassificacaoCandidato[]
+  certame                Certame?                 @relation(fields: [certameId], references: [id])
+  regime                 Regime?                  @relation(fields: [regimeId], references: [id])
+  formularios            EditalFormulario[]
+  vagas                  VagaEdital[]
+}
+
+model Certame {
+  id       String   @id @default(uuid())
+  nome     String   @unique
+  criadoEm DateTime @default(now())
+  editais  Edital[]
+}
+
+model Carreira {
+  id             String                   @id @default(uuid())
+  nome           String                   @unique
+  criadoEm       DateTime                 @default(now())
+  classificacoes ClassificacaoCandidato[]
+  vagas          VagaEdital[]
+}
+
+model Nivel {
+  id             String                   @id @default(uuid())
+  nome           String                   @unique
+  criadoEm       DateTime                 @default(now())
+  classificacoes ClassificacaoCandidato[]
+  vagas          VagaEdital[]
+}
+
+model Regime {
+  id       String   @id @default(uuid())
+  nome     String   @unique
+  criadoEm DateTime @default(now())
+  editais  Edital[]
+}
+
+model ModalidadeConcorrencia {
+  id             String                   @id @default(uuid())
+  nome           String                   @unique
+  descricao      String?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  classificacoes ClassificacaoCandidato[]
+  vagas          VagaEdital[]
+}
+
+model ClassificacaoCandidato {
+  id                  String                  @id @default(uuid())
+  editalId            String
+  usuarioId           String?
+  nomeCandidato       String
+  cpfCandidato        String
+  posicao             Int?
+  statusConvocacao    StatusConvocacao        @default(NAO_CONVOCADO)
+  prazoEnvio          DateTime?
+  habilitadoEm        DateTime?
+  habilitadoPorId     String?
+  areaAtuacaoId       String?
+  cargoId             String?
+  createdAt           DateTime                @default(now())
+  numeroInscricao     String
+  updatedAt           DateTime                @updatedAt
+  modalidadeId        String?
+  situacao            SituacaoClassificacao   @default(CADASTRO_RESERVA)
+  carreiraId          String?
+  nivelId             String?
+  posicaoConvocacao   Int?
+  modeloFormularioId  String?
+  celularCandidato    String?
+  emailCandidato      String?
+  enderecoCandidato   String?
+  telefoneCandidato   String?
+  concorrenciaAmpla   Boolean                 @default(true)
+  concorrenciaNegro   Boolean                 @default(false)
+  concorrenciaPCD     Boolean                 @default(false)
+  nota                Float?
+  posicaoAmpla        Int                     @default(0)
+  posicaoNegro        Int?
+  posicaoPCD          Int?
+  dadosConfirmados    Boolean                 @default(false)
+  areaAtuacao         AreaAtuacao?            @relation(fields: [areaAtuacaoId], references: [id])
+  cargo               Cargo?                  @relation(fields: [cargoId], references: [id])
+  carreira            Carreira?               @relation(fields: [carreiraId], references: [id])
+  edital              Edital                  @relation(fields: [editalId], references: [id], onDelete: Cascade)
+  habilitadoPor       Usuario?                @relation("HabilitadorClassificacao", fields: [habilitadoPorId], references: [id])
+  modalidade          ModalidadeConcorrencia? @relation(fields: [modalidadeId], references: [id])
+  modeloFormulario    ModeloFormulario?       @relation(fields: [modeloFormularioId], references: [id])
+  nivel               Nivel?                  @relation(fields: [nivelId], references: [id])
+  usuario             Usuario?                @relation("UsuarioClassificacao", fields: [usuarioId], references: [id])
+  envios              Envio[]
+  registrosConvocacao RegistroConvocacao[]
+
+  @@unique([editalId, cpfCandidato])
+  @@unique([editalId, numeroInscricao])
+}
+
+model Cargo {
+  id             String                   @id @default(uuid())
+  nome           String                   @unique
+  descricao      String?
+  criadoEm       DateTime                 @default(now())
+  areas          AreaAtuacao[]
+  classificacoes ClassificacaoCandidato[]
+  vagas          VagaEdital[]
+}
+
+model AreaAtuacao {
+  id             String                   @id @default(uuid())
+  nome           String
+  cargoId        String
+  criadoEm       DateTime                 @default(now())
+  cargo          Cargo                    @relation(fields: [cargoId], references: [id])
+  classificacoes ClassificacaoCandidato[]
+  vagas          VagaEdital[]
+
+  @@unique([nome, cargoId])
+}
+
+model ModeloFormulario {
+  id             String                   @id @default(uuid())
+  nome           String
+  descricao      String?
+  esquemaJSON    Json
+  criadoPorId    String
+  criadoEm       DateTime                 @default(now())
+  classificacoes ClassificacaoCandidato[]
+  editais        EditalFormulario[]
+  envios         Envio[]
+  criadoPor      Usuario                  @relation(fields: [criadoPorId], references: [id])
+  vagas          VagaEdital[]
+}
+
+model EditalFormulario {
+  id                 String           @id @default(uuid())
+  editalId           String
+  modeloFormularioId String
+  obrigatorio        Boolean          @default(true)
+  edital             Edital           @relation(fields: [editalId], references: [id], onDelete: Cascade)
+  modeloFormulario   ModeloFormulario @relation(fields: [modeloFormularioId], references: [id], onDelete: Cascade)
+
+  @@unique([editalId, modeloFormularioId])
+}
+
+model VagaEdital {
+  id                 String                  @id @default(uuid())
+  editalId           String
+  cargoId            String
+  areaAtuacaoId      String?
+  quantidadeVagas    Int                     @default(0)
+  criadoEm           DateTime                @default(now())
+  carreiraId         String?
+  modalidadeId       String?
+  nivelId            String?
+  modeloFormularioId String?
+  areaAtuacao        AreaAtuacao?            @relation(fields: [areaAtuacaoId], references: [id])
+  cargo              Cargo                   @relation(fields: [cargoId], references: [id])
+  carreira           Carreira?               @relation(fields: [carreiraId], references: [id])
+  edital             Edital                  @relation(fields: [editalId], references: [id], onDelete: Cascade)
+  modalidade         ModalidadeConcorrencia? @relation(fields: [modalidadeId], references: [id])
+  modeloFormulario   ModeloFormulario?       @relation(fields: [modeloFormularioId], references: [id])
+  nivel              Nivel?                  @relation(fields: [nivelId], references: [id])
+
+  @@unique([editalId, cargoId, areaAtuacaoId, carreiraId, nivelId, modalidadeId])
+}
+
+model Envio {
+  id                       String                 @id @default(uuid())
+  classificacaoCandidatoId String
+  modeloFormularioId       String
+  respostasJSON            Json
+  enviadoEm                DateTime               @default(now())
+  finalizado               Boolean                @default(false)
+  statusAvaliacao          StatusAvaliacao        @default(PENDENTE)
+  mensagemAvaliacao        String?
+  itensAvaliacaoJSON       Json?
+  arquivos                 ArquivoUpload[]
+  classificacao            ClassificacaoCandidato @relation(fields: [classificacaoCandidatoId], references: [id], onDelete: Cascade)
+  modeloFormulario         ModeloFormulario       @relation(fields: [modeloFormularioId], references: [id])
+}
+
+model ArquivoUpload {
+  id                   String   @id @default(uuid())
+  envioId              String
+  campoChave           String
+  nomeOriginal         String
+  caminhoArmazenamento String
+  tamanhoBytes         Int
+  tipoMime             String
+  enviadoEm            DateTime @default(now())
+  envio                Envio    @relation(fields: [envioId], references: [id], onDelete: Cascade)
+}
+
+model Noticia {
+  id            String    @id @default(uuid())
+  titulo        String
+  corpo         String
+  urlImagemCapa String?
+  publicadoEm   DateTime?
+  status        String    @default("RASCUNHO")
+  autorId       String
+  autor         Usuario   @relation(fields: [autorId], references: [id])
+}
+
+model PaginaConteudo {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  titulo       String
+  corpo        String
+  atualizadoEm DateTime @updatedAt
+}
+
+model RegistroConvocacao {
+  id                       String                   @id @default(uuid())
+  classificacaoCandidatoId String
+  dataConvocacao           DateTime                 @default(now())
+  meioUtilizado            String
+  prazoDocumentacao        DateTime
+  status                   StatusRegistroConvocacao @default(AGUARDANDO_RESPOSTA)
+  observacoes              String?
+  criadoPorId              String?
+  criadoEm                 DateTime                 @default(now())
+  atualizadoEm             DateTime                 @updatedAt
+  classificacao            ClassificacaoCandidato   @relation(fields: [classificacaoCandidatoId], references: [id], onDelete: Cascade)
+  criadoPor                Usuario?                 @relation(fields: [criadoPorId], references: [id])
+}
+
+model TipoEdital {
+  id   String @id @default(uuid())
+  nome String @unique
+}
+
+enum PerfilUsuario {
+  ADMINISTRADOR
+  OPERADOR
+  CANDIDATO
+}
+
+enum StatusEdital {
+  RASCUNHO
+  ATIVO
+  ENCERRADO
+}
+
+enum StatusConvocacao {
+  NAO_CONVOCADO
+  CONVOCADO
+  DOCUMENTOS_ENVIADOS
+  APROVADO
+  REPROVADO
+  EM_AVALIACAO
+  DESISTENTE
+  EFETIVADO
+  AGUARDANDO_CONVOCACAO
+  PRAZO_EXPIRADO
+  SEM_RESPOSTA
+  AGUARDANDO_DOCUMENTACAO
+  DOCUMENTACAO_PENDENTE
+  AGENDAMENTO_APRESENTACAO
+}
+
+enum StatusRegistroConvocacao {
+  AGUARDANDO_RESPOSTA
+  DOCUMENTACAO_RECEBIDA
+  PRAZO_EXPIRADO
+  DESISTENCIA
+  SEM_RESPOSTA
+  MUDANCA_FASE
+}
+
+enum StatusAvaliacao {
+  PENDENTE
+  APROVADO
+  REJEITADO
+}
+
+enum SituacaoClassificacao {
+  APROVADO_CONVOCAVEL
+  CADASTRO_RESERVA
+}

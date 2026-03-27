@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-usuario}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-senha}
+      POSTGRES_DB: ${POSTGRES_DB:-uefs_docmanager}
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-usuario}:${POSTGRES_PASSWORD:-senha}@db:5432/${POSTGRES_DB:-uefs_docmanager}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-prodSecret12345}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-prodRefresh12345}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@uefs.br}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-SenhaForte123!}
+      MAX_FILE_SIZE_MB: 10
+    depends_on:
+      - db
+    volumes:
+      - uploads_prod:/app/apps/api/uploads
+    command: sh -c "npx prisma migrate deploy && npm run start:prod"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: always
+    ports:
+      - "80:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:3000
+    depends_on:
+      - api
+
+volumes:
+  pgdata_prod:
+  uploads_prod:

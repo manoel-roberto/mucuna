@@ -1,0 +1,17 @@
+{
+  "name": "forrofile",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspaces --if-present"
+  },
+  "dependencies": {
+    "@nestjs/serve-static": "^5.0.4",
+    "@types/uuid": "^10.0.0"
+  }
+}
