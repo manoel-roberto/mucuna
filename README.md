@@ -29,14 +29,14 @@ Para configurar seu ambiente de desenvolvimento do zero, siga o nosso **[Guia de
 
 Interessado em ajudar? Leia o **[Guia de Contribuição](./CONTRIBUTING.md)** para entender os padrões de código e o fluxo de trabalho.
 
-## 🚢 Como Executar em Produção
+## 🚢 Como Executar em Produção (Custo Zero)
 
-Fornecemos Dockerfiles *multi-stage* otimizados e um orquestrador específico para ambiente de produção (rodando o NextJS Standalone).
+Para colocar o sistema no ar gratuitamente em poucos minutos, siga o nosso **[Guia de Deploy Custo Zero (DEPLOY.md)](./DEPLOY.md)**.
 
-```bash
-docker compose -f docker-compose.prod.yml build
-docker compose -f docker-compose.prod.yml up -d
-```
+### Resumo das Plataformas:
+- **Banco**: Supabase (Postgres)
+- **API**: Render (Node Service)
+- **Web**: Vercel (Next.js)
 O banco de dados irá rodar automaticamente a migração inicial e a Seed de administrador.
 
 ## 🛠 Comandos Úteis
