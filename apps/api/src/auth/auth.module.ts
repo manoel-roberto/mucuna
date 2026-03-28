@@ -6,6 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
+import { PermissionsGuard } from './guards/permissions.guard';
+
 @Module({
   imports: [
     PrismaModule,
@@ -15,7 +17,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '1h') as any },
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, PermissionsGuard],
   controllers: [AuthController],
+  exports: [AuthService, PermissionsGuard],
 })
 export class AuthModule {}

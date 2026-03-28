@@ -11,7 +11,10 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.prisma.usuario.findUnique({ where: { email } });
+    const user = await this.prisma.usuario.findUnique({ 
+      where: { email },
+      include: { role: true }
+    });
     if (
       user &&
       user.senhaHash &&
@@ -24,14 +27,15 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id, perfil: user.perfil };
+    const payload = { email: user.email, sub: user.id, roleId: user.roleId };
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         email: user.email,
         name: user.nome,
-        role: user.perfil,
+        roleId: user.roleId,
+        roleName: user.role?.nome,
       },
     };
   }
@@ -67,13 +71,15 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const roleCandidato = await this.prisma.role.findUnique({ where: { nome: 'Candidato' } });
+    
     const user = await this.prisma.usuario.create({
       data: {
         nome: name,
         email,
         cpf: cleanCpf,
         senhaHash: hashedPassword,
-        perfil: 'CANDIDATO',
+        roleId: roleCandidato?.id,
       },
     });
 

@@ -9,20 +9,69 @@ const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  // Criar Usuário Administrador Padrão
+  // 1. Criar Permissões Iniciais
+  console.log('Provisionando Permissões...');
+  const permissionsList = [
+    { slug: 'EDITAIS_GERENCIAR', descricao: 'Gerenciar editais e vagas' },
+    { slug: 'CANDIDATOS_AVALIAR', descricao: 'Avaliar documentos de candidatos' },
+    { slug: 'CANDIDATOS_IMPORTAR', descricao: 'Importar planilhas de candidatos' },
+    { slug: 'USUARIOS_GERENCIAR', descricao: 'Gerenciar usuários e perfis' },
+    { slug: 'CONFIGURACOES_SISTEMA', descricao: 'Alterar configurações globais' },
+    { slug: 'PORTAL_CANDIDATO_ACESSO', descricao: 'Acessar área do candidato' },
+  ];
+
+  for (const p of permissionsList) {
+    await prisma.permission.upsert({
+      where: { slug: p.slug },
+      update: { descricao: p.descricao },
+      create: { slug: p.slug, descricao: p.descricao },
+    });
+  }
+  console.log('✅ Permissões provisionadas.');
+
+  // 2. Criar Perfis (Roles)
+  console.log('Provisionando Perfis (Roles)...');
+  const roles = [
+    { nome: 'Administrador', descricao: 'Acesso total ao sistema' },
+    { nome: 'Operador', descricao: 'Gestão de editais e candidatos' },
+    { nome: 'Candidato', descricao: 'Acesso ao portal do candidato' },
+  ];
+
+  const roleEntities: Record<string, any> = {};
+  for (const r of roles) {
+    roleEntities[r.nome] = await prisma.role.upsert({
+      where: { nome: r.nome },
+      update: { descricao: r.descricao },
+      create: { nome: r.nome, descricao: r.descricao },
+    });
+  }
+  console.log('✅ Perfis provisionados.');
+
+  // 3. Vincular Permissões ao Administrador
+  console.log('Vinculando permissões ao Administrador...');
+  const allPermissions = await prisma.permission.findMany();
+  for (const p of allPermissions) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: roleEntities['Administrador'].id, permissionId: p.id } },
+      update: {},
+      create: { roleId: roleEntities['Administrador'].id, permissionId: p.id },
+    });
+  }
+  console.log('✅ Permissões vinculadas ao Admin.');
+
+  // 4. Criar Usuário Administrador Padrão
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@uefs.br';
   const adminPassword = process.env.ADMIN_PASSWORD || 'SenhaForte123!';
   const adminCpf = (process.env.ADMIN_CPF || '00000000000').replace(/\D/g, '');
   const adminNome = process.env.ADMIN_NAME || 'Administrador UEFS';
-  
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
-  console.log(`Provisionando admin: ${adminEmail}...`);
+  console.log(`Provisionando usuário admin: ${adminEmail}...`);
   await prisma.usuario.upsert({
     where: { email: adminEmail },
     update: { 
       senhaHash: hashedPassword, 
-      perfil: 'ADMINISTRADOR',
+      roleId: roleEntities['Administrador'].id,
       cpf: adminCpf,
       nome: adminNome
     },
@@ -31,15 +80,15 @@ async function main() {
       email: adminEmail,
       cpf: adminCpf,
       senhaHash: hashedPassword,
-      perfil: 'ADMINISTRADOR',
+      roleId: roleEntities['Administrador'].id,
     },
   });
-  console.log('✅ Admin provisionado.');
+  console.log('✅ Usuário Admin pronto.');
 
-  // Criar Modelo de Formulário Demo
-  console.log('Provisionando Modelo de Formulário...');
+  // 5. Criar Modelo de Formulário Demo
+  console.log('Provisionando Modelo de Formulário Demo...');
   const modelo = await prisma.modeloFormulario.upsert({
-    where: { id: 'd2d14f4e-1234-4321-a1b2-c3d4e5f6a7b8' }, // ID fixo para consistência
+    where: { id: 'd2d14f4e-1234-4321-a1b2-c3d4e5f6a7b8' },
     update: {},
     create: {
       id: 'd2d14f4e-1234-4321-a1b2-c3d4e5f6a7b8',
@@ -51,15 +100,17 @@ async function main() {
           { name: 'diploma', label: 'Diploma', type: 'file', required: true }
         ]
       },
-      criadoPorId: (await prisma.usuario.findFirst({ where: { perfil: 'ADMINISTRADOR' } }))?.id || '',
+      criadoPorId: (await prisma.usuario.findFirst({ 
+        where: { role: { nome: 'Administrador' } } 
+      }))?.id || '',
     },
   });
   console.log('✅ Modelo de Formulário pronto.');
 
-  // Criar Edital Demo
+  // 6. Criar Edital Demo
   console.log('Provisionando Edital Demo...');
   const edital = await prisma.edital.upsert({
-    where: { id: '7e2d7cd0-eb43-40f0-811a-845c1af5a341' }, // Mantendo o ID que o usuário já usava
+    where: { id: '7e2d7cd0-eb43-40f0-811a-845c1af5a341' },
     update: { status: 'ATIVO' },
     create: {
       id: '7e2d7cd0-eb43-40f0-811a-845c1af5a341',
@@ -69,51 +120,15 @@ async function main() {
       status: 'ATIVO',
     },
   });
-  console.log('✅ Edital Demo pronto.');
 
-  // Vincular Formulário ao Edital
   await prisma.editalFormulario.upsert({
     where: { editalId_modeloFormularioId: { editalId: edital.id, modeloFormularioId: modelo.id } },
     update: {},
     create: { editalId: edital.id, modeloFormularioId: modelo.id, obrigatorio: true },
   });
-
-  const all = await prisma.classificacaoCandidato.findMany({ 
-    include: { modalidade: true } 
-  });
+  console.log('✅ Edital Demo pronto.');
   
-  console.log(`Checking ${all.length} candidates for migration via SEED...`);
-  let count = 0;
-
-  for (const c of all) {
-    const data: any = {};
-    
-    if ((c.posicaoAmpla === 0 || c.posicaoAmpla === null) && (c.posicao ?? 0) > 0) {
-      data.posicaoAmpla = c.posicao;
-    }
-    
-    if (!c.concorrenciaAmpla && !c.concorrenciaNegro && !c.concorrenciaPCD) {
-      data.concorrenciaAmpla = true; 
-      if (c.modalidade?.nome.includes('Negros')) {
-         data.concorrenciaNegro = true;
-         if (!c.posicaoNegro) data.posicaoNegro = c.posicao;
-      }
-      if (c.modalidade?.nome.includes('PCD')) {
-         data.concorrenciaPCD = true;
-         if (!c.posicaoPCD) data.posicaoPCD = c.posicao;
-      }
-    }
-    
-    if (Object.keys(data).length > 0) {
-      await prisma.classificacaoCandidato.update({ 
-        where: { id: c.id }, 
-        data 
-      });
-      count++;
-    }
-  }
-  
-  console.log(`Migration SEED finished. ${count} records updated.`);
+  console.log('🏁 Seed finalizado com sucesso.');
 }
 
 main()
