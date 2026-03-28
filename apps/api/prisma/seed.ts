@@ -12,19 +12,28 @@ async function main() {
   // 1. Criar Permissões Iniciais
   console.log('Provisionando Permissões...');
   const permissionsList = [
-    { slug: 'EDITAIS_GERENCIAR', descricao: 'Gerenciar editais e vagas' },
-    { slug: 'CANDIDATOS_AVALIAR', descricao: 'Avaliar documentos de candidatos' },
-    { slug: 'CANDIDATOS_IMPORTAR', descricao: 'Importar planilhas de candidatos' },
-    { slug: 'USUARIOS_GERENCIAR', descricao: 'Gerenciar usuários e perfis' },
-    { slug: 'CONFIGURACOES_SISTEMA', descricao: 'Alterar configurações globais' },
-    { slug: 'PORTAL_CANDIDATO_ACESSO', descricao: 'Acessar área do candidato' },
+    { slug: 'EDITAIS_GERENCIAR', nome: 'Gerenciar Editais', categoria: 'Editais', descricao: 'Criar e editar editais e vagas' },
+    { slug: 'CANDIDATOS_AVALIAR', nome: 'Avaliar Documentos', categoria: 'Candidatos', descricao: 'Analisar e aprovar envios de candidatos' },
+    { slug: 'CANDIDATOS_IMPORTAR', nome: 'Importar Candidatos', categoria: 'Candidatos', descricao: 'Subir planilhas de classificação' },
+    { slug: 'USUARIOS_GERENCIAR', nome: 'Gerenciar Usuários', categoria: 'Sistema', descricao: 'Controle de acesso e equipe' },
+    { slug: 'CONFIGURACOES_SISTEMA', nome: 'Configurações Globais', categoria: 'Sistema', descricao: 'Ajustes finos da plataforma' },
+    { slug: 'PORTAL_CANDIDATO_ACESSO', nome: 'Acesso Portal', categoria: 'Portal', descricao: 'Permissão básica de candidato' },
   ];
 
   for (const p of permissionsList) {
     await prisma.permission.upsert({
       where: { slug: p.slug },
-      update: { descricao: p.descricao },
-      create: { slug: p.slug, descricao: p.descricao },
+      update: { 
+        nome: p.nome,
+        categoria: p.categoria,
+        descricao: p.descricao 
+      },
+      create: { 
+        slug: p.slug, 
+        nome: p.nome,
+        categoria: p.categoria,
+        descricao: p.descricao 
+      },
     });
   }
   console.log('✅ Permissões provisionadas.');

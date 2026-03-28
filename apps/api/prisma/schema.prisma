@@ -293,7 +293,9 @@ model Role {
 model Permission {
   id        String           @id @default(uuid())
   slug      String           @unique // ex: 'EDITAIS_CRIAR'
+  nome      String?
   descricao String?
+  categoria String?          @default("Geral")
   roles     RolePermission[]
 }
 
