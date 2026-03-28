@@ -2,30 +2,61 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api';
 
+interface Role {
+  id: string;
+  nome: string;
+  descricao?: string;
+}
+
 interface Usuario {
   id: string;
   nome: string;
   email: string;
   cpf: string;
-  perfil: 'ADMINISTRADOR' | 'OPERADOR' | 'CANDIDATO';
+  roleId: string;
+  role: {
+    nome: string;
+  };
   criadoEm: string;
 }
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     cpf: '',
-    perfil: 'OPERADOR',
+    roleId: '',
   });
+
+  const fetchRoles = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/roles`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Filtra para remover 'Candidato' da lista de perfis atribuíveis aqui (opcional)
+        const staffRoles = data.filter((r: Role) => r.nome !== 'Candidato');
+        setRoles(staffRoles);
+        if (staffRoles.length > 0) {
+          setFormData(prev => ({ ...prev, roleId: staffRoles[0].id }));
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar perfis', err);
+    }
+  };
 
   const fetchUsuarios = async () => {
     try {
       const token = localStorage.getItem('token');
-      // Busca todos para filtrar no frontend quem é equipe
       const res = await fetch(`${API_URL}/usuarios`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -33,8 +64,8 @@ export default function UsuariosPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Filtra apenas ADMINISTRADOR e OPERADOR para esta tela
-        const equipe = data.filter((u: Usuario) => u.perfil === 'ADMINISTRADOR' || u.perfil === 'OPERADOR');
+        // Filtra para mostrar apenas quem não é Candidato (equipe)
+        const equipe = data.filter((u: Usuario) => u.role?.nome !== 'Candidato');
         setUsuarios(equipe);
       } else {
         const errorData = await res.json().catch(() => ({}));
@@ -48,6 +79,7 @@ export default function UsuariosPage() {
   };
 
   useEffect(() => {
+    fetchRoles();
     fetchUsuarios();
   }, []);
 
@@ -66,7 +98,7 @@ export default function UsuariosPage() {
 
       if (res.ok) {
         setShowModal(false);
-        setFormData({ nome: '', email: '', cpf: '', perfil: 'OPERADOR' });
+        setFormData({ nome: '', email: '', cpf: '', roleId: roles[0]?.id || '' });
         fetchUsuarios();
         alert('Usuário cadastrado com sucesso!');
       } else {
@@ -131,10 +163,10 @@ export default function UsuariosPage() {
                 </td>
                 <td className="p-4">
                   <span className={`px-2 py-1 rounded text-xs font-bold ${
-                    u.perfil === 'ADMINISTRADOR' ? 'bg-purple-100 text-purple-700' :
-                    u.perfil === 'OPERADOR' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
+                    u.role?.nome === 'Administrador' ? 'bg-purple-100 text-purple-700' :
+                    u.role?.nome === 'Operador' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
                   }`}>
-                    {u.perfil}
+                    {u.role?.nome || 'Sem Perfil'}
                   </span>
                 </td>
                 <td className="p-4 text-right">
@@ -188,12 +220,14 @@ export default function UsuariosPage() {
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Perfil / Permissão</label>
                 <select 
-                  value={formData.perfil}
-                  onChange={e => setFormData({...formData, perfil: e.target.value as any})}
+                  value={formData.roleId}
+                  onChange={e => setFormData({...formData, roleId: e.target.value})}
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="OPERADOR">OPERADOR (Funcionário Padrão)</option>
-                  <option value="ADMINISTRADOR">ADMINISTRADOR (Gestor)</option>
+                  <option value="" disabled>Selecione um perfil</option>
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>{role.nome}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex gap-4 pt-4">
