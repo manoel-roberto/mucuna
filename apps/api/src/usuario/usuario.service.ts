@@ -46,6 +46,28 @@ export class UsuarioService {
     });
   }
 
+  async update(id: string, data: { nome?: string; email?: string; cpf?: string; senha?: string; roleId?: string }) {
+    const updateData: any = { ...data };
+    
+    if (data.senha) {
+      updateData.senhaHash = await bcrypt.hash(data.senha, 10);
+      delete updateData.senha;
+    }
+
+    return this.prisma.usuario.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cpf: true,
+        roleId: true,
+        role: { select: { nome: true } }
+      }
+    });
+  }
+
   async remove(id: string) {
     return this.prisma.usuario.delete({ where: { id } });
   }

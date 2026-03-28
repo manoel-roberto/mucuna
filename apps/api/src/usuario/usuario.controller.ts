@@ -21,6 +21,12 @@ export class UsuarioController {
     return this.usuarioService.create(data);
   }
 
+  @Patch(':id')
+  @Permissions('USUARIOS_GERENCIAR')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.usuarioService.update(id, data);
+  }
+
   @Delete(':id')
   @Permissions('USUARIOS_GERENCIAR')
   remove(@Param('id') id: string) {
