@@ -37,6 +37,10 @@ Para colocar o sistema no ar gratuitamente em poucos minutos, siga o nosso **[Gu
 - **Banco**: Supabase (Postgres)
 - **API**: Render (Node Service)
 - **Web**: Vercel (Next.js)
+### Outras Opções de Deploy:
+- **[Deploy Custo Zero (Supabase + Render + Vercel)](./DEPLOY.md)**
+- **[Deploy em Servidor Próprio (VPS/Bare Metal)](./DEPLOY_PROPRIO.md)**
+
 O banco de dados irá rodar automaticamente a migração inicial e a Seed de administrador.
 
 ## 🛠 Comandos Úteis
