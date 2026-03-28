@@ -35,12 +35,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   }
 
   async onModuleInit() {
+    console.log('[Database] [V3-DIAGNOSTICO] Testando conexão via adaptador...');
     try {
-      console.log('[Database] Testando conexão via adaptador...');
+      // Teste de conexão simples
       await this.$queryRaw`SELECT 1`;
-      console.log('[Database] Conexão via adaptador estabelecida com sucesso.');
+      console.log('[Database] [V3-DIAGNOSTICO] Conexão via adaptador estabelecida com sucesso.');
     } catch (error) {
-      console.error('[Database] Falha na conexão via adaptador (SSL/Pool):', error.message);
+      console.error('[Database] [V3-DIAGNOSTICO] Falha na conexão via adaptador (SSL/Pool):', error.message || error);
+      // Não lançamos erro aqui para não travar o boot se o banco estiver instável, 
+      // mas logamos tudo para diagnóstico
     }
   }
 }
