@@ -10,13 +10,13 @@ export class FormulariosController {
   constructor(private readonly formulariosService: FormulariosService) {}
 
   @Get()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('FORMULARIOS_LISTAR')
   findAll() {
     return this.formulariosService.findAll();
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('FORMULARIOS_CRIAR')
   create(@Body() data: any, @Req() req: any) {
     return this.formulariosService.create(data, req.user.id);
   }
@@ -27,19 +27,19 @@ export class FormulariosController {
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('FORMULARIOS_EDITAR')
   update(@Param('id') id: string, @Body() data: any) {
     return this.formulariosService.update(id, data);
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('FORMULARIOS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.formulariosService.remove(id);
   }
 
   @Post('vincular-edital')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('FORMULARIOS_EDITAR')
   vincular(@Body() data: { editalId: string; modeloId: string; obrigatorio?: boolean }) {
     return this.formulariosService.vincularAoEdital(data.editalId, data.modeloId, data.obrigatorio);
   }

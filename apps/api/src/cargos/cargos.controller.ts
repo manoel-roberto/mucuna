@@ -10,43 +10,43 @@ export class CargosController {
   constructor(private readonly cargosService: CargosService) {}
 
   @Get()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_LISTAR')
   findAll() {
     return this.cargosService.findAll();
   }
 
   @Get(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_LISTAR')
   findOne(@Param('id') id: string) {
     return this.cargosService.findOne(id);
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_CRIAR')
   create(@Body() data: { nome: string; descricao?: string }) {
     return this.cargosService.create(data);
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_EDITAR')
   update(@Param('id') id: string, @Body() data: { nome?: string; descricao?: string }) {
     return this.cargosService.update(id, data);
   }
 
   @Delete('bulk')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_EXCLUIR')
   removeBulk(@Body() body: { ids: string[] }) {
     return this.cargosService.removeBulk(body.ids);
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.cargosService.remove(id);
   }
 
   @Post('importar')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARGOS_CRIAR')
   importar(@Body() body: { items: { cargoNome: string; areaNome: string }[] }) {
     return this.cargosService.importarLote(body.items);
   }

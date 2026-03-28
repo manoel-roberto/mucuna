@@ -10,31 +10,31 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get()
-  @Permissions('USUARIOS_GERENCIAR')
+  @Permissions('PERFIS_LISTAR')
   findAll() {
     return this.rolesService.findAll();
   }
 
   @Get('permissions')
-  @Permissions('USUARIOS_GERENCIAR')
+  @Permissions('PERFIS_LISTAR')
   findAllPermissions() {
     return this.rolesService.findAllPermissions();
   }
 
   @Post()
-  @Permissions('USUARIOS_GERENCIAR')
+  @Permissions('PERFIS_CRIAR')
   create(@Body() data: { nome: string; descricao?: string; permissionIds: string[] }) {
     return this.rolesService.create(data);
   }
 
   @Patch(':id')
-  @Permissions('USUARIOS_GERENCIAR')
+  @Permissions('PERFIS_EDITAR')
   update(@Param('id') id: string, @Body() data: { nome?: string; descricao?: string; permissionIds?: string[] }) {
     return this.rolesService.update(id, data);
   }
 
   @Delete(':id')
-  @Permissions('USUARIOS_GERENCIAR')
+  @Permissions('PERFIS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.rolesService.remove(id);
   }

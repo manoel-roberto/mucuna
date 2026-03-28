@@ -24,6 +24,10 @@ export class CertamesService implements OnModuleInit {
     return this.prisma.certame.create({ data });
   }
 
+  update(id: string, data: { nome: string }) {
+    return this.prisma.certame.update({ where: { id }, data });
+  }
+
   remove(id: string) {
     return this.prisma.certame.delete({ where: { id } });
   }

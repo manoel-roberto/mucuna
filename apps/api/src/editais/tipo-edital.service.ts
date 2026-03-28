@@ -17,6 +17,10 @@ export class TipoEditalService {
     });
   }
 
+  async update(id: string, data: { nome: string }) {
+    return this.prisma.tipoEdital.update({ where: { id }, data });
+  }
+
   async remove(id: string) {
     return this.prisma.tipoEdital.delete({ where: { id } });
   }

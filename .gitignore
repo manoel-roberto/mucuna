@@ -3,3 +3,6 @@ node_modules/
 dist/
 .DS_Store
 *.log
+__pycache__/
+*.pyc
+.agent/.shared/ui-ux-pro-max/scripts/__pycache__/

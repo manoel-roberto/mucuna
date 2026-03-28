@@ -10,24 +10,25 @@ export default class ModalidadesConcorrenciaController {
   constructor(private readonly modalidadesConcorrenciaService: ModalidadesConcorrenciaService) {}
 
   @Get()
+  @Permissions('MODALIDADES_LISTAR')
   findAll() {
     return this.modalidadesConcorrenciaService.findAll();
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('MODALIDADES_CRIAR')
   create(@Body() data: { nome: string; descricao?: string }) {
     return this.modalidadesConcorrenciaService.create(data);
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('MODALIDADES_EDITAR')
   update(@Param('id') id: string, @Body() data: { nome?: string; descricao?: string }) {
     return this.modalidadesConcorrenciaService.update(id, data);
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('MODALIDADES_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.modalidadesConcorrenciaService.remove(id);
   }

@@ -13,7 +13,15 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.prisma.usuario.findUnique({ 
       where: { email },
-      include: { role: true }
+      include: { 
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true }
+            }
+          }
+        } 
+      }
     });
     if (
       user &&
@@ -28,14 +36,17 @@ export class AuthService {
 
   async login(user: any) {
     const payload = { email: user.email, sub: user.id, roleId: user.roleId };
+    const permissions = user.role?.permissions.map((p: any) => p.permission.slug) || [];
+    
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         email: user.email,
-        name: user.nome,
+        nome: user.nome,
         roleId: user.roleId,
         roleName: user.role?.nome,
+        permissions: permissions,
       },
     };
   }

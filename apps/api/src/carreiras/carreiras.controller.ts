@@ -10,24 +10,25 @@ export class CarreirasController {
   constructor(private readonly carreirasService: CarreirasService) {}
 
   @Get()
+  @Permissions('CARREIRAS_LISTAR')
   findAll() {
     return this.carreirasService.findAll();
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARREIRAS_CRIAR')
   create(@Body() data: { nome: string }) {
     return this.carreirasService.create(data);
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARREIRAS_EDITAR')
   update(@Param('id') id: string, @Body() data: { nome: string }) {
     return this.carreirasService.update(id, data);
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('CARREIRAS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.carreirasService.remove(id);
   }

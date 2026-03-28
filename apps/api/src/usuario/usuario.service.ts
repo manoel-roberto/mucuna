@@ -6,9 +6,39 @@ import * as bcrypt from 'bcrypt';
 export class UsuarioService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(roleId?: string) {
+  async findOne(id: string) {
+    return this.prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cpf: true,
+        roleId: true,
+        role: { 
+          select: { 
+            nome: true,
+            permissions: {
+              select: {
+                permission: {
+                  select: { slug: true }
+                }
+              }
+            }
+          } 
+        },
+        criadoEm: true,
+      },
+    });
+  }
+
+  async findAll(roleId?: string, roleName?: string) {
+    const where: any = {};
+    if (roleId) where.roleId = roleId;
+    if (roleName) where.role = { nome: { equals: roleName, mode: 'insensitive' } };
+
     return this.prisma.usuario.findMany({
-      where: roleId ? { roleId } : {},
+      where,
       select: {
         id: true,
         nome: true,
@@ -47,11 +77,14 @@ export class UsuarioService {
   }
 
   async update(id: string, data: { nome?: string; email?: string; cpf?: string; senha?: string; roleId?: string }) {
-    const updateData: any = { ...data };
+    const { senha, ...rest } = data;
+    const updateData: any = { ...rest };
     
-    if (data.senha) {
-      updateData.senhaHash = await bcrypt.hash(data.senha, 10);
-      delete updateData.senha;
+    // Remover campos que venham como undefined ou null para não sobrescrever o banco
+    Object.keys(updateData).forEach(key => (updateData[key] === undefined || updateData[key] === null) && delete updateData[key]);
+    
+    if (senha) {
+      updateData.senhaHash = await bcrypt.hash(senha, 10);
     }
 
     return this.prisma.usuario.update({

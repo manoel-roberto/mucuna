@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -12,10 +14,90 @@ async function main() {
   // 1. Criar Permissões Iniciais
   console.log('Provisionando Permissões...');
   const permissionsList = [
-    { slug: 'EDITAIS_GERENCIAR', nome: 'Gerenciar Editais', categoria: 'Editais', descricao: 'Criar e editar editais e vagas' },
-    { slug: 'CANDIDATOS_AVALIAR', nome: 'Avaliar Documentos', categoria: 'Candidatos', descricao: 'Analisar e aprovar envios de candidatos' },
-    { slug: 'CANDIDATOS_IMPORTAR', nome: 'Importar Candidatos', categoria: 'Candidatos', descricao: 'Subir planilhas de classificação' },
-    { slug: 'USUARIOS_GERENCIAR', nome: 'Gerenciar Usuários', categoria: 'Sistema', descricao: 'Controle de acesso e equipe' },
+    // Editais
+    { slug: 'EDITAIS_LISTAR', nome: 'Consultar Editais', categoria: 'Editais', descricao: 'Ver a lista e detalhes de editais' },
+    { slug: 'EDITAIS_CRIAR', nome: 'Criar Edital', categoria: 'Editais', descricao: 'Lançar novos editais no sistema' },
+    { slug: 'EDITAIS_EDITAR', nome: 'Editar Edital', categoria: 'Editais', descricao: 'Modificar dados de editais' },
+    { slug: 'EDITAIS_EXCLUIR', nome: 'Excluir Edital', categoria: 'Editais', descricao: 'Remover editais (se permitido)' },
+    
+    // Formulários e Questionários
+    { slug: 'FORMULARIOS_LISTAR', nome: 'Consultar Questionários', categoria: 'Questionários', descricao: 'Ver modelos de questionário' },
+    { slug: 'FORMULARIOS_CRIAR', nome: 'Criar Questionário', categoria: 'Questionários', descricao: 'Adicionar modelos de questionário' },
+    { slug: 'FORMULARIOS_EDITAR', nome: 'Editar Questionário', categoria: 'Questionários', descricao: 'Alterar modelos de questionário' },
+    { slug: 'FORMULARIOS_EXCLUIR', nome: 'Excluir Questionário', categoria: 'Questionários', descricao: 'Remover modelos de questionário' },
+
+    // Carreiras, Cargos, Níveis e Áreas
+    { slug: 'CARREIRAS_LISTAR', nome: 'Consultar Carreiras', categoria: 'Carreiras', descricao: 'Ver a lista de carreiras' },
+    { slug: 'CARREIRAS_CRIAR', nome: 'Criar Carreira', categoria: 'Carreiras', descricao: 'Adicionar novas carreiras' },
+    { slug: 'CARREIRAS_EDITAR', nome: 'Editar Carreira', categoria: 'Carreiras', descricao: 'Modificar carreiras existentes' },
+    { slug: 'CARREIRAS_EXCLUIR', nome: 'Excluir Carreira', categoria: 'Carreiras', descricao: 'Remover carreiras' },
+
+    { slug: 'CARGOS_LISTAR', nome: 'Consultar Cargos', categoria: 'Cargos', descricao: 'Ver a lista de cargos' },
+    { slug: 'CARGOS_CRIAR', nome: 'Criar Cargo', categoria: 'Cargos', descricao: 'Adicionar novos cargos' },
+    { slug: 'CARGOS_EDITAR', nome: 'Editar Cargo', categoria: 'Cargos', descricao: 'Modificar cargos existentes' },
+    { slug: 'CARGOS_EXCLUIR', nome: 'Excluir Cargo', categoria: 'Cargos', descricao: 'Remover cargos' },
+
+    { slug: 'NIVEIS_LISTAR', nome: 'Consultar Níveis', categoria: 'Níveis', descricao: 'Ver a lista de níveis' },
+    { slug: 'NIVEIS_CRIAR', nome: 'Criar Nível', categoria: 'Níveis', descricao: 'Adicionar novos níveis' },
+    { slug: 'NIVEIS_EDITAR', nome: 'Editar Nível', categoria: 'Níveis', descricao: 'Modificar níveis existentes' },
+    { slug: 'NIVEIS_EXCLUIR', nome: 'Excluir Nível', categoria: 'Níveis', descricao: 'Remover níveis' },
+
+    { slug: 'AREAS_LISTAR', nome: 'Consultar Áreas', categoria: 'Áreas de Atuação', descricao: 'Ver a lista de áreas de atuação' },
+    { slug: 'AREAS_CRIAR', nome: 'Criar Área', categoria: 'Áreas de Atuação', descricao: 'Adicionar novas áreas' },
+    { slug: 'AREAS_EDITAR', nome: 'Editar Área', categoria: 'Áreas de Atuação', descricao: 'Modificar áreas existentes' },
+    { slug: 'AREAS_EXCLUIR', nome: 'Excluir Área', categoria: 'Áreas de Atuação', descricao: 'Remover áreas' },
+
+    // Candidatos e Avaliações
+    { slug: 'CANDIDATOS_LISTAR', nome: 'Consultar Candidatos', categoria: 'Candidatos', descricao: 'Ver a base de candidatos' },
+    { slug: 'CANDIDATOS_AVALIAR', nome: 'Avaliar Documentos', categoria: 'Candidatos', descricao: 'Analisar e aprovar envios' },
+    { slug: 'CANDIDATOS_IMPORTAR', nome: 'Importar Planilhas', categoria: 'Candidatos', descricao: 'Subir dados de classificação' },
+    
+    // Usuários e Acesso
+    { slug: 'USUARIOS_LISTAR', nome: 'Consultar Usuários', categoria: 'Usuários', descricao: 'Ver a equipe do sistema' },
+    { slug: 'USUARIOS_CRIAR', nome: 'Criar Usuário', categoria: 'Usuários', descricao: 'Adicionar membros à equipe' },
+    { slug: 'USUARIOS_EDITAR', nome: 'Editar Usuário', categoria: 'Usuários', descricao: 'Alterar dados da equipe' },
+    { slug: 'USUARIOS_EXCLUIR', nome: 'Excluir Usuário', categoria: 'Usuários', descricao: 'Remover membros da equipe' },
+    
+    // Perfis (Roles)
+    { slug: 'PERFIS_LISTAR', nome: 'Consultar Perfis', categoria: 'Perfis de Acesso', descricao: 'Ver perfis de acesso' },
+    { slug: 'PERFIS_CRIAR', nome: 'Criar Perfil', categoria: 'Perfis de Acesso', descricao: 'Criar novos perfis de permissão' },
+    { slug: 'PERFIS_EDITAR', nome: 'Editar Perfil', categoria: 'Perfis de Acesso', descricao: 'Modificar permissões de perfis' },
+    { slug: 'PERFIS_EXCLUIR', nome: 'Excluir Perfil', categoria: 'Perfis de Acesso', descricao: 'Remover perfis de acesso' },
+
+    // Certames e Tipos
+    { slug: 'CERTAMES_LISTAR', nome: 'Consultar Certames', categoria: 'Certames', descricao: 'Ver tipos de certame' },
+    { slug: 'CERTAMES_CRIAR', nome: 'Criar Certame', categoria: 'Certames', descricao: 'Adicionar tipos de certame' },
+    { slug: 'CERTAMES_EDITAR', nome: 'Editar Certame', categoria: 'Certames', descricao: 'Modificar tipos de certame' },
+    { slug: 'CERTAMES_EXCLUIR', nome: 'Excluir Certame', categoria: 'Certames', descricao: 'Remover tipos de certame' },
+
+    // Vagas e Distribuição
+    { slug: 'VAGAS_LISTAR', nome: 'Consultar Vagas', categoria: 'Vagas', descricao: 'Ver distribuição de vagas' },
+    { slug: 'VAGAS_CRIAR', nome: 'Criar Vaga', categoria: 'Vagas', descricao: 'Adicionar nova configuração de vagas' },
+    { slug: 'VAGAS_EDITAR', nome: 'Editar Vaga', categoria: 'Vagas', descricao: 'Modificar configuração de vagas' },
+    { slug: 'VAGAS_EXCLUIR', nome: 'Excluir Vaga', categoria: 'Vagas', descricao: 'Remover configuração de vagas' },
+
+    // Tipos, Modalidades e Regimes
+    { slug: 'TIPOS_EDITAL_LISTAR', nome: 'Consultar Tipos de Edital', categoria: 'Tipos de Edital', descricao: 'Ver tipos de edital' },
+    { slug: 'TIPOS_EDITAL_CRIAR', nome: 'Criar Tipo de Edital', categoria: 'Tipos de Edital', descricao: 'Adicionar tipos de edital' },
+    { slug: 'TIPOS_EDITAL_EDITAR', nome: 'Editar Tipo de Edital', categoria: 'Tipos de Edital', descricao: 'Modificar tipos de edital' },
+    { slug: 'TIPOS_EDITAL_EXCLUIR', nome: 'Excluir Tipo de Edital', categoria: 'Tipos de Edital', descricao: 'Remover tipos de edital' },
+
+    { slug: 'MODALIDADES_LISTAR', nome: 'Consultar Modalidades', categoria: 'Modalidades', descricao: 'Ver modalidades de concorrência' },
+    { slug: 'MODALIDADES_CRIAR', nome: 'Criar Modalidade', categoria: 'Modalidades', descricao: 'Adicionar novas modalidades' },
+    { slug: 'MODALIDADES_EDITAR', nome: 'Editar Modalidade', categoria: 'Modalidades', descricao: 'Alterar modalidades existentes' },
+    { slug: 'MODALIDADES_EXCLUIR', nome: 'Excluir Modalidade', categoria: 'Modalidades', descricao: 'Remover modalidades' },
+
+    { slug: 'REGIMES_LISTAR', nome: 'Consultar Regimes', categoria: 'Regimes', descricao: 'Ver regimes de trabalho (ex: 40h)' },
+    { slug: 'REGIMES_CRIAR', nome: 'Criar Regime', categoria: 'Regimes', descricao: 'Adicionar novos regimes' },
+    { slug: 'REGIMES_EDITAR', nome: 'Editar Regime', categoria: 'Regimes', descricao: 'Modificar regimes existentes' },
+    { slug: 'REGIMES_EXCLUIR', nome: 'Excluir Regime', categoria: 'Regimes', descricao: 'Remover regimes' },
+
+    // Notícias e Avisos
+    { slug: 'NOTICIAS_LISTAR', nome: 'Consultar Notícias', categoria: 'Sistema', descricao: 'Ver avisos e notícias' },
+    { slug: 'NOTICIAS_CRIAR', nome: 'Criar Notícia', categoria: 'Sistema', descricao: 'Publicar novos avisos' },
+    { slug: 'NOTICIAS_EDITAR', nome: 'Editar Notícia', categoria: 'Sistema', descricao: 'Alterar notícias publicadas' },
+    { slug: 'NOTICIAS_EXCLUIR', nome: 'Excluir Notícia', categoria: 'Sistema', descricao: 'Remover avisos do sistema' },
+
     { slug: 'CONFIGURACOES_SISTEMA', nome: 'Configurações Globais', categoria: 'Sistema', descricao: 'Ajustes finos da plataforma' },
     { slug: 'PORTAL_CANDIDATO_ACESSO', nome: 'Acesso Portal', categoria: 'Portal', descricao: 'Permissão básica de candidato' },
   ];

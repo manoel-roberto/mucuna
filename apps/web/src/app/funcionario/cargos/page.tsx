@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api';
 import Link from 'next/link';
+import PermissionGuard from '@/components/PermissionGuard';
 
 interface Cargo {
   id: string;
@@ -227,7 +228,8 @@ export default function CargosPage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <PermissionGuard requiredPermission="CARGOS_LISTAR">
+      <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Cargos e Funções</h1>
@@ -458,5 +460,6 @@ export default function CargosPage() {
         </div>
       )}
     </div>
+    </PermissionGuard>
   );
 }

@@ -10,24 +10,25 @@ export class NiveisController {
   constructor(private readonly niveisService: NiveisService) {}
 
   @Get()
+  @Permissions('NIVEIS_LISTAR')
   findAll() {
     return this.niveisService.findAll();
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('NIVEIS_CRIAR')
   create(@Body() data: { nome: string }) {
     return this.niveisService.create(data);
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('NIVEIS_EDITAR')
   update(@Param('id') id: string, @Body() data: { nome: string }) {
     return this.niveisService.update(id, data);
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('NIVEIS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.niveisService.remove(id);
   }

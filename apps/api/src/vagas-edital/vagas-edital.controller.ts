@@ -10,49 +10,49 @@ export class VagasEditalController {
   constructor(private readonly vagasEditalService: VagasEditalService) {}
 
   @Get('edital/:editalId')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_LISTAR')
   findAllByEdital(@Param('editalId') editalId: string) {
     return this.vagasEditalService.findAllByEdital(editalId);
   }
 
   @Post('edital/:editalId/aplicar-sugestoes')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_EDITAR')
   aplicarSugestoes(@Param('editalId') editalId: string) {
     return this.vagasEditalService.aplicarSugestoes(editalId);
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_CRIAR')
   create(@Body() data: { editalId: string; cargoId: string; areaAtuacaoId?: string; carreiraId?: string; nivelId?: string; modalidadeId?: string; quantidadeVagas: number }) {
     return this.vagasEditalService.create(data);
   }
 
   @Post('bulk')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_CRIAR')
   createBulk(@Body() data: any) {
     return this.vagasEditalService.createBulk(data);
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_EDITAR')
   update(@Param('id') id: string, @Body() data: { cargoId?: string; areaAtuacaoId?: string; carreiraId?: string; nivelId?: string; modalidadeId?: string; quantidadeVagas?: number }) {
     return this.vagasEditalService.update(id, data);
   }
 
   @Post('bulk-delete')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_EXCLUIR')
   bulkDelete(@Body() data: { editalId: string; ids: string[] }) {
     return this.vagasEditalService.deleteBulk(data.editalId, data.ids);
   }
 
   @Post('bulk-delete-groups')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_EXCLUIR')
   bulkDeleteGroups(@Body() data: { editalId: string; ids: string[] }) {
     return this.vagasEditalService.deleteBulkGroups(data.editalId, data.ids);
   }
 
   @Delete('posicao')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_EXCLUIR')
   removeByPosition(
     @Body() data: { 
       editalId: string; 
@@ -72,7 +72,7 @@ export class VagasEditalController {
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('VAGAS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.vagasEditalService.remove(id);
   }

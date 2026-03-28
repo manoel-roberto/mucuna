@@ -24,6 +24,10 @@ export class RegimesService implements OnModuleInit {
     return this.prisma.regime.create({ data });
   }
 
+  update(id: string, data: { nome: string }) {
+    return this.prisma.regime.update({ where: { id }, data });
+  }
+
   remove(id: string) {
     return this.prisma.regime.delete({ where: { id } });
   }

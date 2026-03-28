@@ -10,37 +10,37 @@ export class AreasAtuacaoController {
   constructor(private readonly areasAtuacaoService: AreasAtuacaoService) {}
 
   @Get()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('AREAS_LISTAR')
   findAll(@Query('cargoId') cargoId?: string) {
     return this.areasAtuacaoService.findAll(cargoId);
   }
 
   @Get(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('AREAS_LISTAR')
   findOne(@Param('id') id: string) {
     return this.areasAtuacaoService.findOne(id);
   }
 
   @Post()
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('AREAS_CRIAR')
   create(@Body() data: { nome: string; cargoId: string }) {
     return this.areasAtuacaoService.create(data);
   }
 
   @Patch(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('AREAS_EDITAR')
   update(@Param('id') id: string, @Body() data: { nome?: string; cargoId?: string }) {
     return this.areasAtuacaoService.update(id, data);
   }
 
   @Delete('bulk')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('AREAS_EXCLUIR')
   removeBulk(@Body() body: { ids: string[] }) {
     return this.areasAtuacaoService.removeBulk(body.ids);
   }
 
   @Delete(':id')
-  @Permissions('EDITAIS_GERENCIAR')
+  @Permissions('AREAS_EXCLUIR')
   remove(@Param('id') id: string) {
     return this.areasAtuacaoService.remove(id);
   }

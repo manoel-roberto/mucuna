@@ -46,6 +46,11 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('Usuário sem perfil atribuído');
     }
 
+    // Admins have total access
+    if (userWithPermissions.role.nome === 'Administrador') {
+      return true;
+    }
+
     const userPermissions = userWithPermissions.role.permissions.map(
       (rp) => rp.permission.slug,
     );

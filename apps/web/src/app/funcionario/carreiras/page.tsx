@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api';
+import PermissionGuard from '@/components/PermissionGuard';
 
 export default function CarreirasPage() {
   const [carreiras, setCarreiras] = useState<any[]>([]);
@@ -67,7 +68,8 @@ export default function CarreirasPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <PermissionGuard requiredPermission="CARREIRAS_LISTAR">
+      <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestão de Carreiras</h1>
@@ -151,5 +153,6 @@ export default function CarreirasPage() {
         </div>
       )}
     </div>
+    </PermissionGuard>
   );
 }

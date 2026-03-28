@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/api';
+import PermissionGuard from '@/components/PermissionGuard';
 
 interface Area {
   id: string;
@@ -313,8 +314,10 @@ function AreasContent() {
 
 export default function AreasAtuacaoPage() {
   return (
-    <Suspense fallback={<div className="p-20 text-center font-black animate-pulse text-slate-300">Inicializando módulo de áreas...</div>}>
-      <AreasContent />
-    </Suspense>
+    <PermissionGuard requiredPermission="AREAS_LISTAR">
+      <Suspense fallback={<div className="p-20 text-center font-black animate-pulse text-slate-300">Inicializando módulo de áreas...</div>}>
+        <AreasContent />
+      </Suspense>
+    </PermissionGuard>
   );
 }
