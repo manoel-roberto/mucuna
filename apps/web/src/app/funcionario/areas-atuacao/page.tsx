@@ -23,6 +23,7 @@ function AreasContent() {
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
+    nome: '',
     cargoId: '',
   });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
