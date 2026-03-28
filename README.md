@@ -1,4 +1,4 @@
-# Mucunã (antigo forrofile)
+# Mucunã
 
 Sistema de Gestão Documentacional para a Universidade Estadual de Feira de Santana. Desenvolvido para digitalizar a convocação e o envio/análise de documentações obrigatórias de candidatos aprovados em editais e processos seletivos.
 
