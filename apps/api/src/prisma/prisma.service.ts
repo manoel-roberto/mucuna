@@ -35,15 +35,22 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   }
 
   async onModuleInit() {
-    console.log('[Database] [V3-DIAGNOSTICO] Testando conexão via adaptador...');
+    const url = process.env.DATABASE_URL || '';
+    const maskedUrl = url.replace(/:([^:@]+)@/, ':***@');
+    const host = url.split('@')[1]?.split(':')[0] || 'Desconhecido';
+    const port = url.split(':').pop()?.split('/')[0] || '5432';
+
+    console.log(`[Database] [V4-DIAGNOSTICO] Iniciando conexão...`);
+    console.log(`[Database] [V4-DIAGNOSTICO] Host: ${host}`);
+    console.log(`[Database] [V4-DIAGNOSTICO] Porta: ${port}`);
+    console.log(`[Database] [V4-DIAGNOSTICO] URL (mask): ${maskedUrl}`);
+
     try {
       // Teste de conexão simples
       await this.$queryRaw`SELECT 1`;
-      console.log('[Database] [V3-DIAGNOSTICO] Conexão via adaptador estabelecida com sucesso.');
+      console.log('[Database] [V4-DIAGNOSTICO] Sucesso: Conexão estabelecida.');
     } catch (error) {
-      console.error('[Database] [V3-DIAGNOSTICO] Falha na conexão via adaptador (SSL/Pool):', error.message || error);
-      // Não lançamos erro aqui para não travar o boot se o banco estiver instável, 
-      // mas logamos tudo para diagnóstico
+      console.error('[Database] [V4-DIAGNOSTICO] Falha Fatal na Conexão:', error.message || error);
     }
   }
 }
