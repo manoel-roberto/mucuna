@@ -6,14 +6,11 @@ import * as pg from 'pg';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    super();
     const url = process.env.DATABASE_URL;
 
     const pool = new pg.Pool({
       connectionString: url,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
@@ -24,8 +21,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     });
 
     const adapter = new PrismaPg(pool);
-    // @ts-ignore
-    this.$adapter = adapter;
+    super({ adapter });
   }
 
   async onModuleInit() {
