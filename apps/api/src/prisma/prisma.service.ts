@@ -6,6 +6,10 @@ import * as pg from 'pg';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
+    const url = process.env.DATABASE_URL || '';
+    const maskedUrl = url.replace(/:([^:@]+)@/, ':***@');
+    console.log(`[Database] Tentando conectar ao Host: ${url.split('@')[1]?.split(':')[0] || 'Desconhecido'} na Porta: ${url.split(':').pop()?.split('/')[0] || 'Desconhecida'}`);
+
     const pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: {
