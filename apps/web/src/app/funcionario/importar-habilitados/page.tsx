@@ -67,6 +67,7 @@ export default function ImportarHabilitadosPage() {
     const idxEmail = getIndex(['EMAIL', 'E-MAIL']);
     const idxTelefone = getIndex(['TELEFONE', 'TELEFONE FIXO']);
     const idxCelular = getIndex(['CELULAR']);
+    const idxNivel = getIndex(['NIVEL', 'NÍVEL']);
     const idxEndereco = getIndex(['ENDERECO', 'ENDEREÇO']);
 
     const parsed = dataLines.map((line) => {
