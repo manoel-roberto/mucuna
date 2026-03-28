@@ -1,52 +1,46 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { AreasAtuacaoService } from './areas-atuacao.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { PerfilUsuario } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('areas-atuacao')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AreasAtuacaoController {
   constructor(private readonly areasAtuacaoService: AreasAtuacaoService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR, PerfilUsuario.OPERADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   findAll(@Query('cargoId') cargoId?: string) {
     return this.areasAtuacaoService.findAll(cargoId);
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR, PerfilUsuario.OPERADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   findOne(@Param('id') id: string) {
     return this.areasAtuacaoService.findOne(id);
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   create(@Body() data: { nome: string; cargoId: string }) {
     return this.areasAtuacaoService.create(data);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   update(@Param('id') id: string, @Body() data: { nome?: string; cargoId?: string }) {
     return this.areasAtuacaoService.update(id, data);
   }
 
   @Delete('bulk')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   removeBulk(@Body() body: { ids: string[] }) {
     return this.areasAtuacaoService.removeBulk(body.ids);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   remove(@Param('id') id: string) {
     return this.areasAtuacaoService.remove(id);
   }

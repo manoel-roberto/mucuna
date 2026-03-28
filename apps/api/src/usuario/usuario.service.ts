@@ -1,28 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { PerfilUsuario } from '@prisma/client';
 
 @Injectable()
 export class UsuarioService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(perfil?: PerfilUsuario) {
+  async findAll(roleId?: string) {
     return this.prisma.usuario.findMany({
-      where: perfil ? { perfil } : {},
+      where: roleId ? { roleId } : {},
       select: {
         id: true,
         nome: true,
         email: true,
         cpf: true,
-        perfil: true,
+        roleId: true,
+        role: {
+          select: { nome: true }
+        },
         criadoEm: true,
       },
       orderBy: { criadoEm: 'desc' },
     });
   }
 
-  async create(data: { nome: string; email: string; cpf: string; senha?: string; perfil: PerfilUsuario }) {
+  async create(data: { nome: string; email: string; cpf: string; senha?: string; roleId: string }) {
     const password = data.senha || 'Senha123!';
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -32,9 +34,15 @@ export class UsuarioService {
         email: data.email,
         cpf: data.cpf,
         senhaHash: hashedPassword,
-        perfil: data.perfil,
+        roleId: data.roleId,
       },
-      select: { id: true, nome: true, email: true, perfil: true },
+      select: { 
+        id: true, 
+        nome: true, 
+        email: true, 
+        roleId: true,
+        role: { select: { nome: true } }
+      },
     });
   }
 

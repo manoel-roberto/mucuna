@@ -2,23 +2,23 @@ import { Controller, Get, Post, Put, Patch, Delete, Body, Param, UseGuards, Requ
 import { StatusConvocacao } from '@prisma/client';
 import { ConvocacoesService } from './convocacoes.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { PerfilUsuario } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { StatusRegistroConvocacao } from '@prisma/client';
 
 @Controller('editais/:editalId/convocacoes')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(PerfilUsuario.ADMINISTRADOR, PerfilUsuario.OPERADOR)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ConvocacoesController {
   constructor(private readonly convocacoesService: ConvocacoesService) {}
 
   @Get()
+  @Permissions('CANDIDATOS_AVALIAR')
   async getConvocacoesAtivas(@Param('editalId') editalId: string) {
     return this.convocacoesService.findAllAtivos(editalId);
   }
 
   @Post('marcar')
+  @Permissions('CANDIDATOS_AVALIAR')
   async marcarParaConvocacao(
     @Param('editalId') editalId: string,
     @Body('candidatosIds') candidatosIds: string[]
@@ -27,6 +27,7 @@ export class ConvocacoesController {
   }
 
   @Post(':candidatoId/registro')
+  @Permissions('CANDIDATOS_AVALIAR')
   async adicionarRegistro(
     @Param('candidatoId') candidatoId: string,
     @Body() data: { meioUtilizado: string; prazoDocumentacao: string; observacoes?: string },
@@ -39,11 +40,12 @@ export class ConvocacoesController {
         prazoDocumentacao: new Date(data.prazoDocumentacao),
         observacoes: data.observacoes
       },
-      req.user.userId
+      req.user.id
     );
   }
 
   @Put('registros/:registroId/status')
+  @Permissions('CANDIDATOS_AVALIAR')
   async atualizarStatusRegistro(
     @Param('registroId') registroId: string,
     @Body('status') status: StatusRegistroConvocacao
@@ -52,6 +54,7 @@ export class ConvocacoesController {
   }
 
   @Patch(':candidatoId/mover')
+  @Permissions('CANDIDATOS_AVALIAR')
   async moverNoKanban(
     @Param('candidatoId') candidatoId: string,
     @Body('status') status: StatusConvocacao,
@@ -62,13 +65,14 @@ export class ConvocacoesController {
     return this.convocacoesService.moverNoKanban(
       candidatoId, 
       status, 
-      req.user.userId, 
+      req.user.id, 
       observacao, 
       prazo ? new Date(prazo) : undefined
     );
   }
 
   @Delete(':candidatoId/remover')
+  @Permissions('CANDIDATOS_AVALIAR')
   async removerDaConvocacao(
     @Param('editalId') editalId: string,
     @Param('candidatoId') candidatoId: string
@@ -77,6 +81,7 @@ export class ConvocacoesController {
   }
 
   @Patch(':candidatoId/formulario')
+  @Permissions('CANDIDATOS_AVALIAR')
   async vincularFormulario(@Param('candidatoId') candidatoId: string, @Body('modeloFormularioId') modeloFormularioId: string) {
     return this.convocacoesService.vincularModeloFormulario(candidatoId, modeloFormularioId);
   }

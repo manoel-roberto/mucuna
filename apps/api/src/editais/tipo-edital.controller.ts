@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Delete, Param, UseGuards } from '@nestjs/common';
 import { TipoEditalService } from './tipo-edital.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { PerfilUsuario } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('tipos-edital')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TipoEditalController {
   constructor(private readonly tipoEditalService: TipoEditalService) {}
 
@@ -15,15 +15,13 @@ export class TipoEditalController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   create(@Body() data: { nome: string }) {
     return this.tipoEditalService.create(data);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   remove(@Param('id') id: string) {
     return this.tipoEditalService.remove(id);
   }

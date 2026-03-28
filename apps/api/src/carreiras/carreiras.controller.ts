@@ -1,12 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Delete, Param, UseGuards } from '@nestjs/common';
 import { CarreirasService } from './carreiras.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { PerfilUsuario } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('carreiras')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class CarreirasController {
   constructor(private readonly carreirasService: CarreirasService) {}
 
@@ -16,19 +15,19 @@ export class CarreirasController {
   }
 
   @Post()
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   create(@Body() data: { nome: string }) {
     return this.carreirasService.create(data);
   }
 
   @Patch(':id')
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   update(@Param('id') id: string, @Body() data: { nome: string }) {
     return this.carreirasService.update(id, data);
   }
 
   @Delete(':id')
-  @Roles(PerfilUsuario.ADMINISTRADOR)
+  @Permissions('EDITAIS_GERENCIAR')
   remove(@Param('id') id: string) {
     return this.carreirasService.remove(id);
   }
