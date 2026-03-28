@@ -43,3 +43,7 @@ O banco de dados irá rodar automaticamente a migração inicial e a Seed de adm
 
 - `npm run dev --workspace=web`: Executar apenas o frontend web.
 - `cd apps/api && npx prisma studio`: Explorar o banco de dados visualmente no modo dev.
+
+## ⚖️ Licença
+
+Este projeto está licenciado sob a **MIT License**. Veja o arquivo [LICENSE](./LICENSE) para mais detalhes. Créditos ao autor original: **Manoel Roberto**.
