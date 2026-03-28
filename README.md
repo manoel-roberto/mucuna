@@ -16,13 +16,18 @@ O projeto é um monorepo e inclui:
 
 ## 🐳 Como Executar Localmente (Desenvolvimento)
 
-1. Clone o repositório e renomei `.env.example` para `.env`.
-2. Configure as variáveis de ambiente (E-mail, DB, Credentials).
-3. Instale as dependências: `npm install`
-4. Execute o Docker Compose:
-```bash
-docker compose up
-```
+Para configurar seu ambiente de desenvolvimento do zero, siga o nosso **[Guia de Contribuição (CONTRIBUTING.md)](./CONTRIBUTING.md)**.
+
+### Resumo Rápido:
+1.  Configure o `.env` (baseado no `.env.example`).
+2.  Instale as dependências: `npm install`
+3.  Suba o banco: `docker compose up -d postgres`
+4.  Gere o Prisma: `npx prisma generate --schema=apps/api/prisma/schema.prisma`
+5.  Inicie: `npm run dev` (em terminais separados para api e web).
+
+## 🤝 Contribuição
+
+Interessado em ajudar? Leia o **[Guia de Contribuição](./CONTRIBUTING.md)** para entender os padrões de código e o fluxo de trabalho.
 
 ## 🚢 Como Executar em Produção
 
