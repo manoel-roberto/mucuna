@@ -51,7 +51,11 @@ function ConstrutorContent() {
           const data = await res.json();
           setFormTitle(data.nome);
           setDescription(data.descricao || '');
-          setFields(data.esquemaJSON.fields || []);
+          const normalizedFields = (data.esquemaJSON.fields || []).map((f: any) => ({
+            ...f,
+            id: f.id || Math.random().toString(36).substr(2, 9)
+          }));
+          setFields(normalizedFields);
           // Se estiver vinculado a algum edital, poderíamos marcar aqui, 
           // mas por simplicidade vamos permitir revincular.
         }

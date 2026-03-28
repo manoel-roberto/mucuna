@@ -88,7 +88,7 @@ export default function EditaisPage() {
       const headers = { 'Authorization': `Bearer ${token}` };
       
       const [resE, resT, resC, resR] = await Promise.all([
-        fetch(`${API_URL}/editais`),
+        fetch(`${API_URL}/editais`, { headers }),
         fetch(`${API_URL}/modalidades-concorrencia`, { headers }),
         fetch(`${API_URL}/certames`, { headers }),
         fetch(`${API_URL}/regimes`, { headers })
