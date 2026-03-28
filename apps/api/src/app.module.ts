@@ -24,6 +24,7 @@ import { PortalCandidatoModule } from './portal-candidato/portal-candidato.modul
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ConvocacoesModule } from './convocacoes/convocacoes.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ConvocacoesModule } from './convocacoes/convocacoes.module';
     ConvocacaoModule,
     PortalCandidatoModule,
     ConvocacoesModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],

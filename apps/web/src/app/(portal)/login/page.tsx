@@ -29,7 +29,8 @@ export default function LoginPage() {
         localStorage.setItem('token', data.access_token);
         
         // Redirecionamento baseado no perfil real retornado pela API
-        if (data.user.role === 'ADMINISTRADOR' || data.user.role === 'OPERADOR') {
+        const role = data.user.roleName;
+        if (role === 'Administrador' || role === 'Operador') {
           router.push('/funcionario/dashboard');
         } else {
           router.push('/candidato/dashboard');
