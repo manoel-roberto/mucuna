@@ -1,5 +1,5 @@
 {
-  "name": "forrofile",
+  "name": "mucuna",
   "private": true,
   "workspaces": [
     "apps/*",

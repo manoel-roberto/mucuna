@@ -9,8 +9,11 @@ const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const email = 'admin@uefs.br';
-  const password = 'SenhaForte123!';
+  const email = process.env.ADMIN_EMAIL || 'admin@uefs.br';
+  const password = process.env.ADMIN_PASSWORD || 'SenhaForte123!';
+  const cpf = (process.env.ADMIN_CPF || '00000000000').replace(/\D/g, '');
+  const nome = process.env.ADMIN_NAME || 'Administrador UEFS';
+
   const hashedPassword = await bcrypt.hash(password, 10);
 
   console.log(`Verificando/Criando usuário admin: ${email}...`);
@@ -20,11 +23,13 @@ async function main() {
     update: {
       senhaHash: hashedPassword,
       perfil: 'ADMINISTRADOR',
+      cpf: cpf,
+      nome: nome
     },
     create: {
-      nome: 'Administrador UEFS',
+      nome: nome,
       email,
-      cpf: '000.000.000-00',
+      cpf: cpf,
       senhaHash: hashedPassword,
       perfil: 'ADMINISTRADOR',
     },

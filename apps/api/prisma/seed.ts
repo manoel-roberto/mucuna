@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -9,18 +10,26 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Criar Usuário Administrador Padrão
-  const adminEmail = 'admin@uefs.br';
-  const adminPassword = 'SenhaForte123!';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@uefs.br';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'SenhaForte123!';
+  const adminCpf = (process.env.ADMIN_CPF || '00000000000').replace(/\D/g, '');
+  const adminNome = process.env.ADMIN_NAME || 'Administrador UEFS';
+  
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   console.log(`Provisionando admin: ${adminEmail}...`);
   await prisma.usuario.upsert({
     where: { email: adminEmail },
-    update: { senhaHash: hashedPassword, perfil: 'ADMINISTRADOR' },
+    update: { 
+      senhaHash: hashedPassword, 
+      perfil: 'ADMINISTRADOR',
+      cpf: adminCpf,
+      nome: adminNome
+    },
     create: {
-      nome: 'Administrador UEFS',
+      nome: adminNome,
       email: adminEmail,
-      cpf: '000.000.000-00',
+      cpf: adminCpf,
       senhaHash: hashedPassword,
       perfil: 'ADMINISTRADOR',
     },
