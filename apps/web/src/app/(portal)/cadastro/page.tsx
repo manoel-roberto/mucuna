@@ -111,7 +111,7 @@ export default function CadastroPage() {
           <div className="text-center space-y-6">
             <div className="inline-flex items-center gap-3 px-6 py-2 bg-primary-mucuna/5 border border-primary-mucuna/10 rounded-2xl backdrop-blur-xl mx-auto">
               <div className="w-2 h-2 bg-accent-mucuna rounded-full animate-pulse shadow-[0_0_10px_rgba(176,125,78,0.8)]" />
-              <span className="text-[10px] font-black text-primary-mucuna uppercase tracking-[0.4em]">Nova Matriz de Identidade</span>
+              <span className="text-xs font-black text-primary-mucuna uppercase tracking-[0.4em]">Nova Matriz de Identidade</span>
             </div>
             <h2 className="text-6xl font-black text-primary-mucuna font-display uppercase tracking-tighter leading-none italic">
               Criar <span className="text-accent-mucuna not-italic">Registro.</span>
@@ -123,7 +123,7 @@ export default function CadastroPage() {
 
           <form onSubmit={handleRegister} className="space-y-10">
             <div className="space-y-4 group">
-              <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="edital">Edital de Convocação</label>
+              <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="edital">Edital de Convocação</label>
               <div className="relative">
                 <select
                   id="edital"
@@ -145,7 +145,7 @@ export default function CadastroPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4 group md:col-span-2">
-                <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="name">Nome Completo</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="name">Nome Completo</label>
                 <input 
                   id="name" type="text" required value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -155,7 +155,7 @@ export default function CadastroPage() {
               </div>
 
               <div className="space-y-4 group">
-                <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="email">E-mail</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="email">E-mail</label>
                 <input 
                   id="email" type="email" required value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -165,7 +165,7 @@ export default function CadastroPage() {
               </div>
 
               <div className="space-y-4 group">
-                <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="cpf">CPF</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="cpf">CPF</label>
                 <input 
                   id="cpf" type="text" required value={cpf}
                   onChange={(e) => setCpf(e.target.value)}
@@ -175,7 +175,7 @@ export default function CadastroPage() {
               </div>
 
               <div className="space-y-4 group md:col-span-2">
-                <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="inscricao">Número de Inscrição</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="inscricao">Número de Inscrição</label>
                 <input 
                   id="inscricao" type="text" required value={numeroInscricao}
                   onChange={(e) => setNumeroInscricao(e.target.value)}
@@ -187,7 +187,7 @@ export default function CadastroPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-primary-mucuna/5 pt-12">
               <div className="space-y-4 group">
-                <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="password">Senha</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="password">Senha</label>
                 <input 
                   id="password" type="password" required value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -196,7 +196,7 @@ export default function CadastroPage() {
                 />
               </div>
               <div className="space-y-4 group">
-                <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="confirmPassword">Confirmar</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] ml-6 transition-colors group-focus-within:text-accent-mucuna italic" htmlFor="confirmPassword">Confirmar</label>
                 <input 
                   id="confirmPassword" type="password" required value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -219,8 +219,8 @@ export default function CadastroPage() {
 
           <div className="text-center">
             <Link href="/login" className="inline-flex items-center gap-4 group">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 group-hover:text-primary-mucuna transition-colors">Já possui credenciais?</span>
-              <div className="px-6 py-2 bg-white border border-primary-mucuna/5 rounded-full text-[10px] font-black uppercase tracking-[.2em] text-accent-mucuna shadow-xl shadow-primary-mucuna/5 group-hover:bg-accent-mucuna group-hover:text-white transition-all italic">Autenticar Agora</div>
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 group-hover:text-primary-mucuna transition-colors">Já possui credenciais?</span>
+              <div className="px-6 py-2 bg-white border border-primary-mucuna/5 rounded-full text-xs font-black uppercase tracking-[.2em] text-accent-mucuna shadow-xl shadow-primary-mucuna/5 group-hover:bg-accent-mucuna group-hover:text-white transition-all italic">Autenticar Agora</div>
             </Link>
           </div>
         </div>

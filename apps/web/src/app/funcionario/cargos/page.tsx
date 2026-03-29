@@ -440,7 +440,7 @@ export default function CargosPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2">Nomenclatura do Cargo</label>
+            <label className="text-sm font-black text-primary-mucuna/60 uppercase tracking-widest ml-1">Nome do Cargo</label>
             <input 
               type="text" required 
               value={formData.nome}

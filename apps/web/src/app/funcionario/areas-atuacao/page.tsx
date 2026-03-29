@@ -215,9 +215,9 @@ function AreasContent() {
                   />
                 </div>
               </th>
-              <th className="px-10 py-8 text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.3em]">Nome da Especialização</th>
-              <th className="px-10 py-8 text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.3em]">Cargo Vinculado</th>
-              <th className="px-10 py-8 text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.3em] text-right">Controle</th>
+              <th className="px-10 py-8 text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em]">Nome da Especialização</th>
+              <th className="px-10 py-8 text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em]">Cargo Vinculado</th>
+              <th className="px-10 py-8 text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] text-right">Controle</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-primary-mucuna/5">
@@ -243,7 +243,7 @@ function AreasContent() {
                     <span className="text-primary-mucuna font-black text-xl italic tracking-tighter uppercase group-hover:text-accent-mucuna transition-colors">{area.nome}</span>
                   </td>
                   <td className="px-10 py-8">
-                    <span className="px-4 py-2 bg-surface-mucuna text-primary-mucuna/60 rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary-mucuna/5 shadow-inner italic">
+                    <span className="px-4 py-2 bg-surface-mucuna text-primary-mucuna/60 rounded-xl text-xs font-black uppercase tracking-widest border border-primary-mucuna/5 shadow-inner italic">
                       {area.cargo?.nome}
                     </span>
                   </td>
@@ -273,7 +273,7 @@ function AreasContent() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-1">
-            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-1">Cargo Vinculado</label>
+            <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-1">Cargo Vinculado</label>
             <div className="relative">
               <select
                 required
@@ -291,7 +291,7 @@ function AreasContent() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-1">Nome da Área / Formação</label>
+            <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-1">Nome da Área / Formação</label>
             <input 
               type="text" required 
               value={formData.nome}

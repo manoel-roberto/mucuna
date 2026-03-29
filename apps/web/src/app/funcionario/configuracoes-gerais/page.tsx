@@ -98,7 +98,7 @@ export default function ConfiguracoesGeraisPage() {
           <section className="bg-white/70 backdrop-blur-xl p-10 rounded-[56px] border border-white shadow-2xl shadow-primary-mucuna/5 relative overflow-hidden">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-surface-mucuna rounded-full opacity-50" />
             
-            <h2 className="relative z-10 flex items-center gap-3 text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.3em] mb-12 italic">
+            <h2 className="relative z-10 flex items-center gap-3 text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.3em] mb-12 italic">
               <svg className="w-4 h-4 text-accent-mucuna" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               Cotas Institucionais
             </h2>

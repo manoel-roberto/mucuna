@@ -132,7 +132,7 @@ export default function CarreirasPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-1">
-            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest ml-1">Nome da Carreira</label>
+            <label className="text-sm font-black text-primary-mucuna/60 uppercase tracking-widest ml-1">Nome da Carreira</label>
             <input 
               type="text" 
               required 

@@ -399,14 +399,14 @@ export default function EditaisPage() {
                   <div className="flex flex-col gap-6">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
-                        <span className="block text-[9px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] mb-1">Inscrições</span>
+                        <span className="block text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.2em] mb-1">Inscrições</span>
                         <span className={`block text-sm font-black uppercase ${isExpired ? 'text-rose-500' : 'text-primary-mucuna'}`}>
                           {edital.fimInscricoes ? new Date(edital.fimInscricoes).toLocaleDateString('pt-BR') : 'PENDENTE'}
                         </span>
                       </div>
                       {edital.dataValidadeOriginal && (
                         <div className="flex-1 border-l border-primary-mucuna/10 pl-4">
-                          <span className="block text-[9px] font-black text-accent-mucuna uppercase tracking-[0.2em] mb-1">Validade</span>
+                          <span className="block text-xs font-black text-accent-mucuna uppercase tracking-[0.2em] mb-1">Validade</span>
                           <span className="block text-sm font-black text-primary-mucuna uppercase">
                             {new Date(edital.dataValidadeProrrogada || edital.dataValidadeOriginal).toLocaleDateString('pt-BR')}
                           </span>
@@ -489,7 +489,7 @@ export default function EditaisPage() {
       >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
           <div className="col-span-full space-y-2 group">
-            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Título Identificador</label>
+            <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Título Identificador</label>
             <input 
               type="text" required 
               value={formData.titulo}
@@ -499,7 +499,7 @@ export default function EditaisPage() {
             />
           </div>
           <div className="col-span-full space-y-2 group">
-            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Descrição Síntese</label>
+            <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Descrição Síntese</label>
             <textarea 
               required rows={2}
               value={formData.descricao}
@@ -518,7 +518,7 @@ export default function EditaisPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2 group">
                 <div className="flex justify-between items-center pr-2">
-                   <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Certame / Evento</label>
+                   <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Certame / Evento</label>
                    <button type="button" onClick={() => setShowConfigModal('certame')} className="text-accent-mucuna hover:scale-110 transition-transform">
                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
                    </button>
@@ -539,7 +539,7 @@ export default function EditaisPage() {
               </div>
               <div className="space-y-2 group">
                 <div className="flex justify-between items-center pr-2">
-                   <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Regime de Trabalho</label>
+                   <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Regime de Trabalho</label>
                    <button type="button" onClick={() => setShowConfigModal('regime')} className="text-accent-mucuna hover:scale-110 transition-transform">
                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
                    </button>
@@ -569,7 +569,7 @@ export default function EditaisPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="space-y-2 group">
-                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº Processo SEI</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº Processo SEI</label>
                 <input 
                   type="text" value={formData.numProcessoSEI}
                   onChange={e => setFormData({...formData, numProcessoSEI: e.target.value})}
@@ -577,7 +577,7 @@ export default function EditaisPage() {
                 />
               </div>
               <div className="space-y-2 group">
-                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº COPE</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº COPE</label>
                 <input 
                   type="text" value={formData.numCOPE}
                   onChange={e => setFormData({...formData, numCOPE: e.target.value})}
@@ -585,7 +585,7 @@ export default function EditaisPage() {
                 />
               </div>
               <div className="space-y-2 group">
-                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Ano Ciclo</label>
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Ano Ciclo</label>
                 <input 
                   type="number" required 
                   value={formData.ano}

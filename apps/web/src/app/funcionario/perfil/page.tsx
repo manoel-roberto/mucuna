@@ -129,19 +129,19 @@ export default function PerfilPage() {
         
         <form onSubmit={handleSubmit} className="relative z-10 space-y-12">
           {error && (
-            <div className="p-6 bg-rose-50/50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-[24px] animate-in slide-in-from-top-2 italic">
+            <div className="p-6 bg-rose-50/50 border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest rounded-[24px] animate-in slide-in-from-top-2 italic">
               ⚠️ {error}
             </div>
           )}
           {success && (
-            <div className="p-6 bg-emerald-50/50 border border-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-[24px] animate-in slide-in-from-top-2 italic">
+            <div className="p-6 bg-emerald-50/50 border border-emerald-100 text-emerald-600 text-xs font-black uppercase tracking-widest rounded-[24px] animate-in slide-in-from-top-2 italic">
               ✨ {success}
             </div>
           )}
 
           <div className="grid grid-cols-1 gap-10">
             <div className="space-y-4 group">
-              <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Identificação Completa</label>
+              <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Identificação Completa</label>
               <input 
                 type="text" required
                 value={formData.nome}
@@ -182,7 +182,7 @@ export default function PerfilPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-4 group">
-                  <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Nova Credencial</label>
+                  <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Nova Credencial</label>
                   <input 
                     type="password"
                     autoComplete="new-password"
