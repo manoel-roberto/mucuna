@@ -105,7 +105,7 @@ export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }:
                 <div className="w-full md:w-64 space-y-4 pt-6 md:pt-0">
                   <div className="grid grid-cols-2 gap-2">
                     <button 
-                      onClick={() => handleUpdateItem(field.id, 'APROVADO')}
+                      onClick={() => handleUpdateItem(responseKey, 'APROVADO')}
                       className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
                         avaliacao.status === 'APROVADO' 
                         ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-200' 
@@ -115,7 +115,7 @@ export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }:
                       Aprovar
                     </button>
                     <button 
-                      onClick={() => handleUpdateItem(field.id, 'REJEITADO')}
+                      onClick={() => handleUpdateItem(responseKey, 'REJEITADO')}
                       className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
                         avaliacao.status === 'REJEITADO' 
                         ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-200' 
@@ -130,7 +130,7 @@ export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }:
                     <textarea 
                       placeholder="Explique a inconsistência..."
                       value={avaliacao.feedback || ''}
-                      onChange={(e) => handleUpdateItem(field.id, 'REJEITADO', e.target.value)}
+                      onChange={(e) => handleUpdateItem(responseKey, 'REJEITADO', e.target.value)}
                       className="w-full h-24 p-4 bg-white border-2 border-rose-100 rounded-2xl outline-none focus:border-rose-500 font-bold text-xs text-slate-700 resize-none animate-in fade-in slide-in-from-top-2 duration-300"
                     />
                   )}
