@@ -56,10 +56,11 @@ export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }:
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="grid gap-6">
-        {esquema?.fields?.map((field: any) => {
-          const valor = envio.respostasJSON?.[field.id];
-          const arquivo = envio.arquivos?.find((a: any) => a.campoChave === field.id);
-          const avaliacao = avaliacoesItens[field.id] || { status: 'PENDENTE', feedback: '' };
+        {esquema?.fields?.map((field: any, index: number) => {
+          const responseKey = field.id || `field-${index}`;
+          const valor = envio.respostasJSON?.[responseKey];
+          const arquivo = envio.arquivos?.find((a: any) => a.campoChave === responseKey);
+          const avaliacao = avaliacoesItens[responseKey] || { status: 'PENDENTE', feedback: '' };
 
           return (
             <div key={field.id} className={`p-6 rounded-[28px] border-2 transition-all ${
