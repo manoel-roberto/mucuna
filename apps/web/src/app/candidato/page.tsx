@@ -68,9 +68,23 @@ export default function CandidatoPage() {
       const formData = new FormData();
       formData.append('classificacaoId', selectedClas.id);
       formData.append('modeloId', selectedForm.modeloFormularioId);
-      formData.append('respostas', JSON.stringify(formResponses));
+      // Limpar respostas de possíveis chaves inválidas (ex: "undefined" do bug anterior)
+      const cleanResponses: Record<string, string> = {};
+      Object.entries(formResponses).forEach(([key, val]) => {
+        if (key !== 'undefined' && key !== 'null' && key !== '') {
+          cleanResponses[key] = val;
+        }
+      });
+
+      formData.append('respostas', JSON.stringify(cleanResponses));
       
-      // Adicionar arquivos
+      // Informar campos cujos arquivos foram removidos pelo usuário
+      const removidos = Object.keys(removedFields).filter(k => removedFields[k]);
+      if (removidos.length > 0) {
+        formData.append('removidos', JSON.stringify(removidos));
+      }
+      
+      // Adicionar novos arquivos
       Object.entries(formFiles).forEach(([fieldId, file]) => {
         formData.append('arquivos', file, `${fieldId}.pdf`);
       });
@@ -200,7 +214,17 @@ export default function CandidatoPage() {
     // Buscar rascunho existente
     const envioExistente = (clas.envios || []).find((e: any) => e.modeloFormularioId === form.modeloFormularioId);
     if (envioExistente) {
-      setFormResponses(envioExistente.respostasJSON || {});
+      // Normalizar respostas antigas para as novas chaves
+      const normalizedResponses: Record<string, string> = {};
+      const fields = form.modeloFormulario?.esquemaJSON?.fields || [];
+      
+      fields.forEach((field: any, index: number) => {
+        const responseKey = field.id || `field-${index}`;
+        // Tenta pegar pelo ID ou pelo index se o ID for nulo
+        normalizedResponses[responseKey] = envioExistente.respostasJSON?.[field.id] || envioExistente.respostasJSON?.[responseKey] || '';
+      });
+      
+      setFormResponses(normalizedResponses);
     } else {
       setFormResponses({});
     }
