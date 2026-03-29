@@ -180,10 +180,10 @@ export default function CadastroPage() {
                     onChange={(e) => setEditalId(e.target.value)}
                     className="w-full px-8 py-6 bg-white border border-primary-mucuna/5 text-primary-mucuna rounded-[32px] focus:ring-8 focus:ring-accent-mucuna/5 focus:border-accent-mucuna/40 outline-none font-black text-[11px] transition-all appearance-none cursor-pointer shadow-3xl shadow-primary-mucuna/5 uppercase tracking-widest"
                   >
-                    {editais.map(e => (
+                    {Array.isArray(editais) && editais.map(e => (
                       <option key={e.id} value={e.id}>{e.titulo} ({e.ano})</option>
                     ))}
-                    {editais.length === 0 && <option value="">Nenhum processo em curso</option>}
+                    {(!Array.isArray(editais) || editais.length === 0) && <option value="">Nenhum processo em curso</option>}
                   </select>
                   <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7"/></svg>
