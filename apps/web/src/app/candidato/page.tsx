@@ -654,14 +654,19 @@ export default function CandidatoPage() {
                             </div>
                           </div>
                         ) : (
-                          <input 
-                            type={field.type === 'DATE' ? 'date' : field.type === 'NUMBER' ? 'number' : 'text'}
-                            value={formResponses[field.id] || ''}
-                            disabled={isFinalizado}
-                            onChange={(e) => setFormResponses(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            className="w-full px-8 py-5 bg-white border border-primary-mucuna/5 rounded-3xl outline-none focus:border-accent-mucuna/30 focus:shadow-xl focus:shadow-accent-mucuna/5 transition-all font-bold text-primary-mucuna placeholder:text-slate-200 disabled:bg-slate-50 disabled:text-slate-400 shadow-sm"
-                            placeholder={`Inserir ${field.label.toLowerCase()}...`}
-                          />
+                          {(() => {
+                            const responseKey = field.id || `field-${index}`;
+                            return (
+                              <input 
+                                type={field.type === 'DATE' ? 'date' : field.type === 'NUMBER' ? 'number' : 'text'}
+                                value={formResponses[responseKey] || ''}
+                                disabled={isFinalizado}
+                                onChange={(e) => setFormResponses(prev => ({ ...prev, [responseKey]: e.target.value }))}
+                                className="w-full px-8 py-5 bg-white border border-primary-mucuna/5 rounded-3xl outline-none focus:border-accent-mucuna/30 focus:shadow-xl focus:shadow-accent-mucuna/5 transition-all font-bold text-primary-mucuna placeholder:text-slate-200 disabled:bg-slate-50 disabled:text-slate-400 shadow-sm"
+                                placeholder={`Inserir ${field.label.toLowerCase()}...`}
+                              />
+                            )
+                          })()}
                         )}
                       </div>
                     );
