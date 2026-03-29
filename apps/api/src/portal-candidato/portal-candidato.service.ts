@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -86,24 +86,36 @@ export class PortalCandidatoService {
       },
     });
 
-    if (existente?.finalizado && existente.statusAvaliacao !== 'REJEITADO') {
-      throw new Error(
-        'Este formulário já foi finalizado e não pode mais ser editado.',
+    // 2. Verifica permissão de edição (Trava de segurança)
+    const classificacao = await this.prisma.classificacaoCandidato.findUnique({
+      where: { id: classificacaoId },
+    });
+
+    const isLocked = existente?.finalizado && 
+                     existente.statusAvaliacao !== 'REJEITADO' && 
+                     classificacao?.statusConvocacao !== 'DOCUMENTACAO_PENDENTE';
+
+    if (isLocked) {
+      throw new HttpException(
+        'Este formulário já foi consolidado e está em fase de análise. A edição foi suspensa por segurança.',
+        HttpStatus.FORBIDDEN,
       );
     }
 
     // 2. Usar Transação para Upsert Manual
     return this.prisma.$transaction(async (tx) => {
       if (existente) {
-        // Se houver novos arquivos, deletamos os antigos dos mesmos campos antes de criar novos
-        if (arquivos.length > 0) {
-          const novosCamposComArquivo = arquivos.map(
-            (a) => a.originalname.split('.')[0],
-          );
+        // Se houver novos arquivos OU campos removidos, deletamos os registros antigos
+        const camposParaDeletar = [
+          ...arquivos.map((a) => a.originalname.split('.')[0]),
+          ...(respostas['removidosCampo'] || []), // Se vier na estrutra de respostas
+        ];
+        
+        if (camposParaDeletar.length > 0) {
           await tx.arquivoUpload.deleteMany({
             where: {
               envioId: existente.id,
-              campoChave: { in: novosCamposComArquivo },
+              campoChave: { in: camposParaDeletar },
             },
           });
         }

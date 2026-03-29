@@ -69,20 +69,20 @@ export default function CandidatoPage() {
       formData.append('classificacaoId', selectedClas.id);
       formData.append('modeloId', selectedForm.modeloFormularioId);
       // Limpar respostas de possíveis chaves inválidas (ex: "undefined" do bug anterior)
-      const cleanResponses: Record<string, string> = {};
+      const cleanResponses: Record<string, any> = {};
       Object.entries(formResponses).forEach(([key, val]) => {
         if (key !== 'undefined' && key !== 'null' && key !== '') {
           cleanResponses[key] = val;
         }
       });
-
-      formData.append('respostas', JSON.stringify(cleanResponses));
       
-      // Informar campos cujos arquivos foram removidos pelo usuário
+      // Informar campos cujos arquivos foram removidos pelo usuário (dentro do JSON de respostas)
       const removidos = Object.keys(removedFields).filter(k => removedFields[k]);
       if (removidos.length > 0) {
-        formData.append('removidos', JSON.stringify(removidos));
+        cleanResponses['removidosCampo'] = removidos;
       }
+
+      formData.append('respostas', JSON.stringify(cleanResponses));
       
       // Adicionar novos arquivos
       Object.entries(formFiles).forEach(([fieldId, file]) => {
