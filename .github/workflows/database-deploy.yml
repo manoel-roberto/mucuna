@@ -26,6 +26,10 @@ jobs:
         run: npm ci
         # Usando npm ci no root por causa da estrutura de workspaces do Turborepo
 
+      - name: Generate Prisma Client
+        working-directory: apps/api
+        run: npx prisma generate
+
       - name: Run Prisma Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
