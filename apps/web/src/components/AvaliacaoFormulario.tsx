@@ -63,7 +63,7 @@ export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }:
           const avaliacao = avaliacoesItens[responseKey] || { status: 'PENDENTE', feedback: '' };
 
           return (
-            <div key={field.id} className={`p-6 rounded-[28px] border-2 transition-all ${
+            <div key={responseKey} className={`p-6 rounded-[28px] border-2 transition-all ${
               avaliacao.status === 'APROVADO' ? 'bg-emerald-50/50 border-emerald-100' :
               avaliacao.status === 'REJEITADO' ? 'bg-rose-50/50 border-rose-100' :
               'bg-slate-50 border-slate-100'
