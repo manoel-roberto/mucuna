@@ -1,3 +1,4 @@
+// v1.0.1 - Automação de Deploy Ativada
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +22,7 @@ model Usuario {
   modelosCriados        ModeloFormulario[]
   noticias              Noticia[]
   registrosCriados      RegistroConvocacao[]
+  vagasEditaisLogs      VagaEditalLog[]
 }
 
 model Edital {
@@ -49,6 +51,7 @@ model Edital {
   regimeId               String?
   percentualNegros       Int                      @default(20)
   percentualPCD          Int                      @default(5)
+  baseLegal              String?                  @db.Text
   classificacoes         ClassificacaoCandidato[]
   certame                Certame?                 @relation(fields: [certameId], references: [id])
   regime                 Regime?                  @relation(fields: [regimeId], references: [id])
@@ -198,21 +201,49 @@ model VagaEdital {
   editalId           String
   cargoId            String
   areaAtuacaoId      String?
-  quantidadeVagas    Int                     @default(0)
-  criadoEm           DateTime                @default(now())
   carreiraId         String?
-  modalidadeId       String?
   nivelId            String?
+  
+  // Quantidades Reais (Preenchidas pelo usuário)
+  vagasAC            Int                     @default(0)
+  vagasNEG           Int                     @default(0)
+  vagasPCD           Int                     @default(0)
+  totalGeral         Int                     @default(0) // Soma de AC + NEG + PCD
+  
+  // Metas Legislativas (Calculadas pelo sistema para referência)
+  vagasNEGEsperadas  Int                     @default(0)
+  vagasPCDEsperadas  Int                     @default(0)
+  
   modeloFormularioId String?
+  criadoEm           DateTime                @default(now())
+  
   areaAtuacao        AreaAtuacao?            @relation(fields: [areaAtuacaoId], references: [id])
   cargo              Cargo                   @relation(fields: [cargoId], references: [id])
   carreira           Carreira?               @relation(fields: [carreiraId], references: [id])
   edital             Edital                  @relation(fields: [editalId], references: [id], onDelete: Cascade)
-  modalidade         ModalidadeConcorrencia? @relation(fields: [modalidadeId], references: [id])
   modeloFormulario   ModeloFormulario?       @relation(fields: [modeloFormularioId], references: [id])
   nivel              Nivel?                  @relation(fields: [nivelId], references: [id])
+  
+  logs               VagaEditalLog[]
 
-  @@unique([editalId, cargoId, areaAtuacaoId, carreiraId, nivelId, modalidadeId])
+  // Removido modalidadeId pois agora AC, NEG e PCD estão na mesma linha
+  // Legado (opcional para evitar quebra imediata de tipos em outros lugares se necessário)
+  modalidadeId       String?
+  modalidade         ModalidadeConcorrencia? @relation(fields: [modalidadeId], references: [id])
+  quantidadeVagas    Int                     @default(0) // Legado
+
+  @@unique([editalId, cargoId, areaAtuacaoId, carreiraId, nivelId])
+}
+
+model VagaEditalLog {
+  id            String     @id @default(uuid())
+  vagaEditalId  String
+  usuarioId     String
+  justificativa String
+  detalhes      String?    @db.Text
+  data          DateTime   @default(now())
+  vagaEdital    VagaEdital @relation(fields: [vagaEditalId], references: [id], onDelete: Cascade)
+  usuario       Usuario    @relation(fields: [usuarioId], references: [id])
 }
 
 model Envio {
@@ -349,4 +380,12 @@ enum StatusAvaliacao {
 enum SituacaoClassificacao {
   APROVADO_CONVOCAVEL
   CADASTRO_RESERVA
+}
+
+model ConfiguracaoSistema {
+  id                      String   @id @default("singleton")
+  percentualNegrosPadrao  Float    @default(20)
+  percentualPCDPadrao     Float    @default(5)
+  baseLegalTexto          String   @db.Text
+  atualizadoEm            DateTime @updatedAt
 }
