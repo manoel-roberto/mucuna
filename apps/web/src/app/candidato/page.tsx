@@ -526,8 +526,8 @@ export default function CandidatoPage() {
       {/* VISUALIZAÇÃO DO FORMULÁRIO (Simplificada para este exemplo) */}
       {selectedForm && (() => {
         const envio = (selectedClas.envios || []).find((e: any) => e.modeloFormularioId === selectedForm.modeloFormularioId);
-        const isFinalizado = envio?.finalizado && envio?.statusAvaliacao !== 'REJEITADO';
-        const isRejeitado = envio?.statusAvaliacao === 'REJEITADO';
+        const isFinalizado = (envio?.finalizado && envio?.statusAvaliacao !== 'REJEITADO' && selectedClas.statusConvocacao !== 'DOCUMENTACAO_PENDENTE') || selectedClas.statusConvocacao === 'EFETIVADO';
+        const isRejeitado = envio?.statusAvaliacao === 'REJEITADO' || selectedClas.statusConvocacao === 'DOCUMENTACAO_PENDENTE';
 
         return (
           <div className="fixed inset-0 bg-primary-mucuna/40 backdrop-blur-md z-[100] flex items-center justify-center p-6 animate-in fade-in duration-500">
