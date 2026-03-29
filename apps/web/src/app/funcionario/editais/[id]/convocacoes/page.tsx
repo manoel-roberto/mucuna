@@ -509,6 +509,8 @@ export default function ControleConvocacaoPage() {
                   <AvaliacaoFormulario 
                     envio={selectedCandidato.envios[0]} 
                     esquema={selectedCandidato.modeloFormulario?.esquemaJSON}
+                    editalId={editalId}
+                    candidatoId={selectedCandidato.id}
                     onSave={fetchData}
                     onClose={() => setViewAvaliacao(false)}
                   />

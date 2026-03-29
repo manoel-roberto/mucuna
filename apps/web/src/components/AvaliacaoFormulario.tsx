@@ -5,11 +5,20 @@ import { API_URL } from '@/lib/api';
 interface AvaliacaoFormularioProps {
   envio: any;
   esquema: any;
+  editalId?: string;
+  candidatoId?: string;
   onSave?: () => void;
   onClose?: () => void;
 }
 
-export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }: AvaliacaoFormularioProps) {
+export default function AvaliacaoFormulario({ 
+  envio, 
+  esquema, 
+  editalId,
+  candidatoId,
+  onSave, 
+  onClose 
+}: AvaliacaoFormularioProps) {
   const [avaliacoesItens, setAvaliacoesItens] = useState<any>(envio.itensAvaliacaoJSON || {});
   const [mensagemGeral, setMensagemGeral] = useState(envio.mensagemAvaliacao || '');
   const [statusGeral, setStatusGeral] = useState(envio.statusAvaliacao || 'PENDENTE');
@@ -44,6 +53,23 @@ export default function AvaliacaoFormulario({ envio, esquema, onSave, onClose }:
       }
       
       if (!res.ok) throw new Error('Erro ao salvar avaliação');
+
+      // Automação: Mover no Kanban se finalizar for true
+      if (finalizar && editalId && candidatoId) {
+        const finalStatus = statusGeral === 'APROVADO' ? 'AGENDAMENTO_APRESENTACAO' : 'DOCUMENTACAO_PENDENTE';
+        await fetch(`${API_URL}/editais/${editalId}/convocacoes/${candidatoId}/mover`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ 
+            status: finalStatus, 
+            observacao: `Avaliação finalizada: ${statusGeral}` 
+          })
+        });
+      }
+
       if (onSave) onSave();
       if (finalizar && onClose) onClose();
     } catch (err: any) {

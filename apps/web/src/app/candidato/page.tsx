@@ -24,7 +24,17 @@ export default function CandidatoPage() {
 
   useEffect(() => {
     fetchClassificacoes();
-  }, []);
+    
+    // Polling de 30 segundos para feedback em tempo real
+    const interval = setInterval(() => {
+      // Só atualiza se não estiver enviando ou com formulário aberto para evitar conflitos
+      if (!submitting && !selectedForm) {
+        fetchClassificacoes();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [submitting, selectedForm]);
 
   const handleSubmitForm = async (finalizar: boolean = false) => {
     if (!selectedForm || !selectedClas) return;
