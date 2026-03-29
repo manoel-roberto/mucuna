@@ -34,14 +34,17 @@ export default function CandidatoPage() {
       const fields = selectedForm.modeloFormulario?.esquemaJSON?.fields || [];
       const envioExistente = (selectedClas.envios || []).find((e: any) => e.modeloFormularioId === selectedForm.modeloFormularioId);
       
-      for (const field of fields) {
+      for (let i = 0; i < fields.length; i++) {
+        const field = fields[i];
+        const responseKey = field.id || `field-${i}`;
+        
         if (field.required) {
-          const jaTemArquivo = envioExistente?.arquivos?.some((a: any) => a.campoChave === field.id);
-          if (field.type === 'FILE' && !formFiles[field.id] && !jaTemArquivo) {
+          const jaTemArquivo = envioExistente?.arquivos?.some((a: any) => a.campoChave === responseKey);
+          if (field.type === 'FILE' && !formFiles[responseKey] && !jaTemArquivo) {
             alert(`O campo "${field.label}" é obrigatório.`);
             return;
           }
-          if (field.type !== 'FILE' && !formResponses[field.id]) {
+          if (field.type !== 'FILE' && !formResponses[responseKey]) {
             alert(`O campo "${field.label}" é obrigatório.`);
             return;
           }
