@@ -576,18 +576,19 @@ export default function CandidatoPage() {
 
                 <div className="space-y-10 text-left">
                   {selectedForm.modeloFormulario?.esquemaJSON?.fields?.map((field: any, index: number) => {
-                    const jaTemArquivo = envio?.arquivos?.find((a: any) => a.campoChave === field.id) && !removedFields[field.id];
+                    const responseKey = field.id || `field-${index}`;
+                    const jaTemArquivo = envio?.arquivos?.find((a: any) => a.campoChave === responseKey) && !removedFields[responseKey];
                     
                     return (
-                      <div key={field.id || `field-${index}`} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                      <div key={responseKey} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
                         <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[.3em] pl-4">
                           {field.label} {field.required && <span className="text-rose-500">*</span>}
                         </label>
                         
-                        {envio?.itensAvaliacaoJSON?.[field.id]?.status === 'REJEITADO' && (
+                        {envio?.itensAvaliacaoJSON?.[responseKey]?.status === 'REJEITADO' && (
                           <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-3xl animate-in shake duration-700">
                             <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-relaxed italic">
-                              ⚠️ REVISAR: {envio.itensAvaliacaoJSON[field.id].feedback || 'Conformidade não validada.'}
+                              ⚠️ REVISAR: {envio.itensAvaliacaoJSON[responseKey].feedback || 'Conformidade não validada.'}
                             </p>
                           </div>
                         )}
@@ -601,48 +602,48 @@ export default function CandidatoPage() {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  setFormFiles(prev => ({ ...prev, [field.id]: file }));
+                                  setFormFiles(prev => ({ ...prev, [responseKey]: file }));
                                 }
                               }}
                               className="hidden"
-                              id={`file-${field.id}`}
+                              id={`file-${responseKey}`}
                             />
                             <div className="flex gap-3">
                               <label 
-                                htmlFor={isFinalizado ? undefined : `file-${field.id}`}
+                                htmlFor={isFinalizado ? undefined : `file-${responseKey}`}
                                 className={`flex-1 px-8 py-5 rounded-3xl border-2 border-dashed flex items-center justify-between transition-all ${
                                   isFinalizado ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-default' :
-                                  formFiles[field.id] || jaTemArquivo
+                                  formFiles[responseKey] || jaTemArquivo
                                     ? 'border-support-mucuna/40 bg-support-mucuna/5 text-support-mucuna shadow-inner' 
                                     : 'border-primary-mucuna/5 bg-white text-slate-300 hover:border-accent-mucuna/30 cursor-pointer shadow-sm'
                                 }`}
                               >
                                 <div className="flex flex-col truncate pr-4">
                                   <span className="text-xs font-bold truncate tracking-tight">
-                                    {formFiles[field.id] ? formFiles[field.id].name : jaTemArquivo ? 'Documento em Custódia ✓' : 'Anexar Comprovante PDF...'}
+                                    {formFiles[responseKey] ? formFiles[responseKey].name : jaTemArquivo ? 'Documento em Custódia ✓' : 'Anexar Comprovante PDF...'}
                                   </span>
-                                  {jaTemArquivo && !formFiles[field.id] && (
+                                  {jaTemArquivo && !formFiles[responseKey] && (
                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {jaTemArquivo.nomeOriginal}</span>
                                   )}
-                                  {formFiles[field.id] && (
+                                  {formFiles[responseKey] && (
                                     <span className="text-[9px] font-black text-support-mucuna uppercase tracking-widest mt-1">Upload Preparado</span>
                                   )}
                                 </div>
-                                {!isFinalizado && !formFiles[field.id] && !jaTemArquivo && (
+                                {!isFinalizado && !formFiles[responseKey] && !jaTemArquivo && (
                                   <svg className="w-6 h-6 flex-shrink-0 opacity-20 group-hover/file:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                 )}
                               </label>
 
-                              {(formFiles[field.id] || (jaTemArquivo && !isFinalizado)) && (
+                              {(formFiles[responseKey] || (jaTemArquivo && !isFinalizado)) && (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (formFiles[field.id]) {
+                                    if (formFiles[responseKey]) {
                                       const newFiles = { ...formFiles };
-                                      delete newFiles[field.id];
+                                      delete newFiles[responseKey];
                                       setFormFiles(newFiles);
                                     } else {
-                                      setRemovedFields(prev => ({ ...prev, [field.id]: true }));
+                                      setRemovedFields(prev => ({ ...prev, [responseKey]: true }));
                                     }
                                   }}
                                   className="w-16 bg-rose-500/10 text-rose-600 rounded-3xl border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center active:scale-90"
@@ -654,19 +655,14 @@ export default function CandidatoPage() {
                             </div>
                           </div>
                         ) : (
-                          {(() => {
-                            const responseKey = field.id || `field-${index}`;
-                            return (
-                              <input 
-                                type={field.type === 'DATE' ? 'date' : field.type === 'NUMBER' ? 'number' : 'text'}
-                                value={formResponses[responseKey] || ''}
-                                disabled={isFinalizado}
-                                onChange={(e) => setFormResponses(prev => ({ ...prev, [responseKey]: e.target.value }))}
-                                className="w-full px-8 py-5 bg-white border border-primary-mucuna/5 rounded-3xl outline-none focus:border-accent-mucuna/30 focus:shadow-xl focus:shadow-accent-mucuna/5 transition-all font-bold text-primary-mucuna placeholder:text-slate-200 disabled:bg-slate-50 disabled:text-slate-400 shadow-sm"
-                                placeholder={`Inserir ${field.label.toLowerCase()}...`}
-                              />
-                            )
-                          })()}
+                          <input 
+                            type={field.type === 'DATE' ? 'date' : field.type === 'NUMBER' ? 'number' : 'text'}
+                            value={formResponses[responseKey] || ''}
+                            disabled={isFinalizado}
+                            onChange={(e) => setFormResponses(prev => ({ ...prev, [responseKey]: e.target.value }))}
+                            className="w-full px-8 py-5 bg-white border border-primary-mucuna/5 rounded-3xl outline-none focus:border-accent-mucuna/30 focus:shadow-xl focus:shadow-accent-mucuna/5 transition-all font-bold text-primary-mucuna placeholder:text-slate-200 disabled:bg-slate-50 disabled:text-slate-400 shadow-sm"
+                            placeholder={`Inserir ${field.label.toLowerCase()}...`}
+                          />
                         )}
                       </div>
                     );
