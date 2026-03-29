@@ -207,7 +207,7 @@ export default function CandidatoPage() {
             <div className="w-10 h-10 bg-primary-mucuna rounded-xl animate-pulse"></div>
           </div>
         </div>
-        <p className="mt-8 text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.4em] animate-pulse">Sincronizando Ecossistema...</p>
+        <p className="mt-8 text-xs font-black text-primary-mucuna/60 uppercase tracking-[0.4em] animate-pulse">Sincronizando Ecossistema...</p>
       </div>
     );
   }
@@ -575,12 +575,12 @@ export default function CandidatoPage() {
                 )}
 
                 <div className="space-y-10 text-left">
-                  {selectedForm.modeloFormulario?.esquemaJSON?.fields?.map((field: any) => {
+                  {selectedForm.modeloFormulario?.esquemaJSON?.fields?.map((field: any, index: number) => {
                     const jaTemArquivo = envio?.arquivos?.find((a: any) => a.campoChave === field.id) && !removedFields[field.id];
                     
                     return (
-                      <div key={field.id} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[.3em] pl-4">
+                      <div key={field.id || `field-${index}`} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                        <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-[.3em] pl-4">
                           {field.label} {field.required && <span className="text-rose-500">*</span>}
                         </label>
                         
@@ -673,7 +673,7 @@ export default function CandidatoPage() {
                 <button 
                   onClick={() => setSelectedForm(null)}
                   disabled={submitting}
-                  className="flex-1 py-5 bg-white border border-primary-mucuna/10 text-primary-mucuna/40 font-black rounded-3xl hover:bg-slate-50 transition-all uppercase tracking-[0.2em] text-[10px] active:scale-95"
+                  className="flex-1 py-5 bg-white border border-primary-mucuna/10 text-primary-mucuna/60 font-black rounded-3xl hover:bg-slate-50 transition-all uppercase tracking-[0.2em] text-xs active:scale-95"
                 >
                   {isFinalizado ? 'Fechar Visualização' : 'Abortar'}
                 </button>
@@ -682,7 +682,7 @@ export default function CandidatoPage() {
                     <button 
                       onClick={() => handleSubmitForm(false)}
                       disabled={submitting}
-                      className="flex-1 py-5 bg-white border-2 border-support-mucuna text-support-mucuna font-black rounded-3xl hover:bg-support-mucuna hover:text-white transition-all uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-support-mucuna/5 active:scale-95"
+                      className="flex-1 py-5 bg-white border-2 border-support-mucuna text-support-mucuna font-black rounded-3xl hover:bg-support-mucuna hover:text-white transition-all uppercase tracking-[0.2em] text-xs shadow-2xl shadow-support-mucuna/5 active:scale-95"
                     >
                       {submitting ? 'Gravando...' : 'Salvar Rascunho'}
                     </button>
@@ -693,7 +693,7 @@ export default function CandidatoPage() {
                         }
                       }}
                       disabled={submitting}
-                      className="flex-[2] py-5 bg-primary-mucuna text-accent-mucuna font-black rounded-3xl hover:bg-black transition-all uppercase tracking-[0.2em] text-[10px] shadow-3xl shadow-primary-mucuna/20 disabled:bg-slate-300 active:scale-95 italic"
+                      className="flex-[2] py-5 bg-primary-mucuna text-accent-mucuna font-black rounded-3xl hover:bg-black transition-all uppercase tracking-[0.2em] text-xs shadow-3xl shadow-primary-mucuna/20 disabled:bg-slate-300 active:scale-95 italic"
                     >
                       {submitting ? 'Disparando...' : 'Finalizar Entrega Persistente'}
                     </button>
