@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api';
 import Link from 'next/link';
 import PermissionGuard from '@/components/PermissionGuard';
+import Modal from '@/components/Modal';
 
 interface TipoEdital {
   id: string;
@@ -350,10 +351,10 @@ export default function EditaisPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
+        {loading && (
           <div className="col-span-full py-12 text-center text-slate-400 font-medium">Sincronizando editais...</div>
-        ) : (
-          editais.map((edital) => {
+        )}
+        {!loading && editais.map((edital) => {
             const isExpired = edital.fimInscricoes && new Date(edital.fimInscricoes) < new Date();
             return (
               <div key={edital.id} className="bg-white/70 backdrop-blur-xl rounded-[48px] p-8 shadow-2xl shadow-primary-mucuna/5 border border-white hover:shadow-primary-mucuna/10 transition-all relative group flex flex-col justify-between overflow-hidden hover:-translate-y-1">
@@ -433,380 +434,352 @@ export default function EditaisPage() {
                 </div>
               </div>
             );
-          })
-        )}
+          })}
       </div>
 
-      {showConfigModal && (
-        <div className="fixed inset-0 bg-primary-mucuna/40 backdrop-blur-xl flex items-center justify-center p-4 z-[120] animate-in fade-in duration-500">
-          <div className="bg-white/90 backdrop-blur-2xl rounded-[56px] shadow-2xl shadow-primary-mucuna/20 max-w-md w-full p-10 space-y-8 animate-in zoom-in-95 duration-500 border border-white">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <div className="w-12 h-1 bg-accent-mucuna rounded-full opacity-50 mb-4" />
-                <h2 className="text-2xl font-black text-primary-mucuna uppercase tracking-tighter italic">Gerenciar <span className="text-accent-mucuna not-italic leading-none">{showConfigModal === 'certame' ? 'Certames' : showConfigModal === 'tipo' ? 'Modalidades' : 'Itens'}</span></h2>
-                <p className="text-sm text-slate-400 font-black uppercase tracking-[0.3em]">Estrutura do Ecossistema</p>
+      <Modal 
+        isOpen={!!showConfigModal} 
+        onClose={() => setShowConfigModal(null)}
+        title={`Gerenciar ${showConfigModal === 'certame' ? 'Certames' : showConfigModal === 'tipo' ? 'Modalidades' : 'Itens'}`}
+        subtitle="Estrutura do Ecossistema"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-8">
+          <div className="flex gap-3">
+            <input 
+              type="text" placeholder={`Novo ${showConfigModal}...`}
+              value={newItemName}
+              onChange={e => setNewItemName(e.target.value)}
+              className="flex-1 px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-2xl outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-sm text-primary-mucuna shadow-inner"
+            />
+            <button onClick={handleAddItem} className="bg-primary-mucuna text-white p-4 rounded-2xl hover:bg-secondary-mucuna transition-all shadow-lg shadow-primary-mucuna/10">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/></svg>
+            </button>
+          </div>
+
+          <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            {(showConfigModal === 'tipo' ? tipos : 
+              showConfigModal === 'certame' ? certames : []
+            ).map((t: any) => (
+              <div key={t.id} className="flex items-center justify-between p-4 bg-surface-mucuna/30 rounded-2xl group hover:bg-white transition-all border border-transparent hover:border-primary-mucuna/5">
+                <span className="font-black text-primary-mucuna text-sm uppercase tracking-tight">{t.nome}</span>
+                <button 
+                  onClick={() => handleRemoveItem(t.id)}
+                  className="p-1 text-primary-mucuna/10 hover:text-rose-600 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
               </div>
-              <button onClick={() => setShowConfigModal(null)} className="p-2 text-primary-mucuna/20 hover:text-primary-mucuna transition-all">
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
- 
-            <div className="flex gap-3">
-              <input 
-                type="text" placeholder={`Novo ${showConfigModal}...`}
-                value={newItemName}
-                onChange={e => setNewItemName(e.target.value)}
-                className="flex-1 px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-2xl outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-sm text-primary-mucuna shadow-inner"
-              />
-              <button onClick={handleAddItem} className="bg-primary-mucuna text-white p-4 rounded-2xl hover:bg-secondary-mucuna transition-all shadow-lg shadow-primary-mucuna/10">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/></svg>
-              </button>
-            </div>
- 
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {(showConfigModal === 'tipo' ? tipos : 
-                showConfigModal === 'certame' ? certames : []
-              ).map((t: any) => (
-                <div key={t.id} className="flex items-center justify-between p-4 bg-surface-mucuna/30 rounded-2xl group hover:bg-white transition-all border border-transparent hover:border-primary-mucuna/5">
-                  <span className="font-black text-primary-mucuna text-sm uppercase tracking-tight">{t.nome}</span>
-                  <button 
-                    onClick={() => handleRemoveItem(t.id)}
-                    className="p-1 text-primary-mucuna/10 hover:text-rose-600 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  </button>
-                </div>
-              ))}
-              {(showConfigModal === 'tipo' ? tipos : 
-                showConfigModal === 'certame' ? certames : []
-              ).length === 0 && (
-                <div className="p-12 text-center text-sm text-slate-300 font-black uppercase tracking-widest italic">Nenhum registro orgânico.</div>
-              )}
-            </div>
+            ))}
+            {(showConfigModal === 'tipo' ? tipos : 
+              showConfigModal === 'certame' ? certames : []
+            ).length === 0 && (
+              <div className="p-12 text-center text-sm text-slate-300 font-black uppercase tracking-widest italic">Nenhum registro orgânico.</div>
+            )}
           </div>
         </div>
-      )}
+      </Modal>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-primary-mucuna/40 backdrop-blur-xl flex items-center justify-center p-4 z-[100] animate-in fade-in duration-500">
-          <div className="bg-white/90 backdrop-blur-2xl rounded-[56px] shadow-2xl shadow-primary-mucuna/20 max-w-4xl w-full p-12 space-y-10 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-500 border border-white custom-scrollbar-thick">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <div className="w-20 h-1.5 bg-accent-mucuna rounded-full opacity-50 mb-4" />
-                <h2 className="text-4xl font-black text-primary-mucuna font-display uppercase tracking-tighter italic leading-none">{editMode ? 'Editar' : 'Novo'} <span className="text-accent-mucuna not-italic">Edital.</span></h2>
-                <p className="text-sm text-slate-400 font-black uppercase tracking-[0.3em]">Configuração Estratégica de Processo</p>
-              </div>
-              <button onClick={() => setShowModal(false)} className="p-2 text-primary-mucuna/20 hover:text-primary-mucuna transition-all">
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
+      <Modal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)}
+        title={`${editMode ? 'Editar' : 'Novo'} Edital`}
+        subtitle="Configuração Estratégica de Processo"
+        maxWidth="max-w-4xl"
+      >
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+          <div className="col-span-full space-y-2 group">
+            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Título Identificador</label>
+            <input 
+              type="text" required 
+              value={formData.titulo}
+              onChange={e => setFormData({...formData, titulo: e.target.value})}
+              className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner uppercase tracking-tight italic"
+              placeholder="Ex: Monitoria Geral / Reda / Concurso"
+            />
+          </div>
+          <div className="col-span-full space-y-2 group">
+            <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Descrição Síntese</label>
+            <textarea 
+              required rows={2}
+              value={formData.descricao}
+              onChange={e => setFormData({...formData, descricao: e.target.value})}
+              className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner resize-none italic"
+              placeholder="Resumo das normas e diretrizes administrativas..."
+            />
+          </div>
+
+          {/* Seção 1: Classificação */}
+          <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">01. Classificação Certame</span>
+              <div className="h-px flex-1 bg-primary-mucuna/5" />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2 group">
+                <div className="flex justify-between items-center pr-2">
+                   <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Certame / Evento</label>
+                   <button type="button" onClick={() => setShowConfigModal('certame')} className="text-accent-mucuna hover:scale-110 transition-transform">
+                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
+                   </button>
+                </div>
+                <div className="relative">
+                  <select 
+                    value={formData.certameId}
+                    onChange={e => setFormData({...formData, certameId: e.target.value})}
+                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer"
+                  >
+                    <option value="">Selecione...</option>
+                    {certames.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 group">
+                <div className="flex justify-between items-center pr-2">
+                   <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Regime de Trabalho</label>
+                   <button type="button" onClick={() => setShowConfigModal('regime')} className="text-accent-mucuna hover:scale-110 transition-transform">
+                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
+                   </button>
+                </div>
+                <div className="relative">
+                  <select 
+                    value={formData.regimeId}
+                    onChange={e => setFormData({...formData, regimeId: e.target.value})}
+                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer"
+                  >
+                    <option value="">Selecione...</option>
+                    {regimes.map(r => <option key={r.id} value={r.id}>{r.nome}</option>)}
+                  </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-              <div className="col-span-full space-y-2 group">
-                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Título Identificador</label>
+          {/* Seção 2: Administrativos */}
+          <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">02. Atos e Processos</span>
+              <div className="h-px flex-1 bg-primary-mucuna/5" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº Processo SEI</label>
                 <input 
-                  type="text" required 
-                  value={formData.titulo}
-                  onChange={e => setFormData({...formData, titulo: e.target.value})}
-                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner uppercase tracking-tight italic"
-                  placeholder="Ex: Monitoria Geral / Reda / Concurso"
+                  type="text" value={formData.numProcessoSEI}
+                  onChange={e => setFormData({...formData, numProcessoSEI: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
                 />
               </div>
-              <div className="col-span-full space-y-2 group">
-                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Descrição Síntese</label>
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº COPE</label>
+                <input 
+                  type="text" value={formData.numCOPE}
+                  onChange={e => setFormData({...formData, numCOPE: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Ano Ciclo</label>
+                <input 
+                  type="number" required 
+                  value={formData.ano}
+                  onChange={e => setFormData({...formData, ano: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 col-span-full bg-surface-mucuna/20 p-8 rounded-[32px] border border-primary-mucuna/5">
+            <div className="space-y-2 group">
+              <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Portaria Homologação</label>
+              <input 
+                type="text" value={formData.portariaHomologacao}
+                onChange={e => setFormData({...formData, portariaHomologacao: e.target.value})}
+                className="w-full px-8 py-4 bg-white border border-transparent rounded-[20px] outline-none focus:border-accent-mucuna transition-all font-bold text-primary-mucuna"
+              />
+            </div>
+            <div className="space-y-2 group">
+              <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">D.O.E. Homologação</label>
+              <input 
+                type="date" value={formData.dataDOEHomologacao}
+                onChange={e => setFormData({...formData, dataDOEHomologacao: e.target.value})}
+                className="w-full px-8 py-4 bg-white border border-transparent rounded-[20px] outline-none focus:border-accent-mucuna transition-all font-black text-primary-mucuna"
+              />
+            </div>
+          </div>
+
+          {/* Seção 3: Ciclo Temporal */}
+          <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">03. Janelas Temporais</span>
+              <div className="h-px flex-1 bg-primary-mucuna/5" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               <div className="space-y-2 group">
+                 <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Abertura Inscrições</label>
+                 <input 
+                   type="date" 
+                   value={formData.inicioInscricoes}
+                   onChange={e => setFormData({...formData, inicioInscricoes: e.target.value})}
+                   className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                 />
+               </div>
+               <div className="space-y-2 group">
+                 <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Encerramento</label>
+                 <input 
+                   type="date" 
+                   value={formData.fimInscricoes}
+                   onChange={e => setFormData({...formData, fimInscricoes: e.target.value})}
+                   className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                 />
+               </div>
+               <div className="space-y-2 group">
+                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Envio de Documentos</label>
+                  <input 
+                    type="date" 
+                    value={formData.prazoEnvioDocumentos}
+                    onChange={e => setFormData({...formData, prazoEnvioDocumentos: e.target.value})}
+                    className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                  />
+                </div>
+            </div>
+          </div>
+
+          {/* Seção 4: Parâmetros de Cotas */}
+          <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">04. Parâmetros de Cotas e Base Legal</span>
+              <div className="h-px flex-1 bg-primary-mucuna/5" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2 group">
+                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Negros (%)</label>
+                    <input 
+                      type="number" min="0" max="100"
+                      value={formData.percentualNegros}
+                      onChange={e => setFormData({...formData, percentualNegros: parseInt(e.target.value) || 0})}
+                      className="w-full px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna"
+                    />
+                  </div>
+                  <div className="space-y-2 group">
+                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">PCD (%)</label>
+                    <input 
+                      type="number" min="0" max="100"
+                      value={formData.percentualPCD}
+                      onChange={e => setFormData({...formData, percentualPCD: parseInt(e.target.value) || 0})}
+                      className="w-full px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna"
+                    />
+                  </div>
+                </div>
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100/50">
+                   <p className="text-[9px] text-amber-700 font-bold leading-relaxed">
+                     <span className="block mb-1 font-black uppercase tracking-tighter">Nota:</span>
+                     Estes valores sobrescrevem a configuração global para este edital específico. Alterar aqui afetará o cálculo de vagas na tela de classificação.
+                   </p>
+                </div>
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Texto Base Legal</label>
                 <textarea 
-                  required rows={2}
-                  value={formData.descricao}
-                  onChange={e => setFormData({...formData, descricao: e.target.value})}
-                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner resize-none italic"
-                  placeholder="Resumo das normas e diretrizes administrativas..."
+                  rows={5}
+                  value={formData.baseLegal}
+                  onChange={e => setFormData({...formData, baseLegal: e.target.value})}
+                  className="w-full px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-sm text-primary-mucuna shadow-inner resize-none italic"
+                  placeholder="Transcrição da base legal para este edital..."
                 />
               </div>
+            </div>
+          </div>
 
-              {/* Seção 1: Classificação */}
-              <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">01. Classificação Certame</span>
-                  <div className="h-px flex-1 bg-primary-mucuna/5" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2 group">
-                    <div className="flex justify-between items-center pr-2">
-                       <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Certame / Evento</label>
-                       <button type="button" onClick={() => setShowConfigModal('certame')} className="text-accent-mucuna hover:scale-110 transition-transform">
-                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
-                       </button>
-                    </div>
-                    <div className="relative">
-                      <select 
-                        value={formData.certameId}
-                        onChange={e => setFormData({...formData, certameId: e.target.value})}
-                        className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer"
-                      >
-                        <option value="">Selecione...</option>
-                        {certames.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                      </select>
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2 group">
-                    <div className="flex justify-between items-center pr-2">
-                       <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Regime de Trabalho</label>
-                       <button type="button" onClick={() => setShowConfigModal('regime')} className="text-accent-mucuna hover:scale-110 transition-transform">
-                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
-                       </button>
-                    </div>
-                    <div className="relative">
-                      <select 
-                        value={formData.regimeId}
-                        onChange={e => setFormData({...formData, regimeId: e.target.value})}
-                        className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer"
-                      >
-                        <option value="">Selecione...</option>
-                        {regimes.map(r => <option key={r.id} value={r.id}>{r.nome}</option>)}
-                      </select>
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Seção 2: Administrativos */}
-              <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">02. Atos e Processos</span>
-                  <div className="h-px flex-1 bg-primary-mucuna/5" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  <div className="space-y-2 group">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº Processo SEI</label>
-                    <input 
-                      type="text" value={formData.numProcessoSEI}
-                      onChange={e => setFormData({...formData, numProcessoSEI: e.target.value})}
-                      className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
-                    />
-                  </div>
-                  <div className="space-y-2 group">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº COPE</label>
-                    <input 
-                      type="text" value={formData.numCOPE}
-                      onChange={e => setFormData({...formData, numCOPE: e.target.value})}
-                      className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
-                    />
-                  </div>
-                  <div className="space-y-2 group">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Ano Ciclo</label>
-                    <input 
-                      type="number" required 
-                      value={formData.ano}
-                      onChange={e => setFormData({...formData, ano: e.target.value})}
-                      className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 col-span-full bg-surface-mucuna/20 p-8 rounded-[32px] border border-primary-mucuna/5">
-                <div className="space-y-2 group">
-                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Portaria Homologação</label>
-                  <input 
-                    type="text" value={formData.portariaHomologacao}
-                    onChange={e => setFormData({...formData, portariaHomologacao: e.target.value})}
-                    className="w-full px-8 py-4 bg-white border border-transparent rounded-[20px] outline-none focus:border-accent-mucuna transition-all font-bold text-primary-mucuna"
-                  />
-                </div>
-                <div className="space-y-2 group">
-                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">D.O.E. Homologação</label>
-                  <input 
-                    type="date" value={formData.dataDOEHomologacao}
-                    onChange={e => setFormData({...formData, dataDOEHomologacao: e.target.value})}
-                    className="w-full px-8 py-4 bg-white border border-transparent rounded-[20px] outline-none focus:border-accent-mucuna transition-all font-black text-primary-mucuna"
-                  />
-                </div>
-              </div>
-
-              {/* Seção 3: Ciclo Temporal */}
-              <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">03. Janelas Temporais</span>
-                  <div className="h-px flex-1 bg-primary-mucuna/5" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                   <div className="space-y-2 group">
-                     <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Abertura Inscrições</label>
-                     <input 
-                       type="date" 
-                       value={formData.inicioInscricoes}
-                       onChange={e => setFormData({...formData, inicioInscricoes: e.target.value})}
-                       className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
-                     />
-                   </div>
-                   <div className="space-y-2 group">
-                     <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Encerramento</label>
-                     <input 
-                       type="date" 
-                       value={formData.fimInscricoes}
-                       onChange={e => setFormData({...formData, fimInscricoes: e.target.value})}
-                       className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
-                     />
-                   </div>
-                   <div className="space-y-2 group">
-                      <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Envio de Documentos</label>
-                      <input 
-                        type="date" 
-                        value={formData.prazoEnvioDocumentos}
-                        onChange={e => setFormData({...formData, prazoEnvioDocumentos: e.target.value})}
-                        className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
-                      />
-                    </div>
-                </div>
-              </div>
-
-              {/* Seção 4: Parâmetros de Cotas */}
-              <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">04. Parâmetros de Cotas e Base Legal</span>
-                  <div className="h-px flex-1 bg-primary-mucuna/5" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2 group">
-                        <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Negros (%)</label>
-                        <input 
-                          type="number" min="0" max="100"
-                          value={formData.percentualNegros}
-                          onChange={e => setFormData({...formData, percentualNegros: parseInt(e.target.value) || 0})}
-                          className="w-full px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna"
-                        />
-                      </div>
-                      <div className="space-y-2 group">
-                        <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">PCD (%)</label>
-                        <input 
-                          type="number" min="0" max="100"
-                          value={formData.percentualPCD}
-                          onChange={e => setFormData({...formData, percentualPCD: parseInt(e.target.value) || 0})}
-                          className="w-full px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna"
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100/50">
-                       <p className="text-[9px] text-amber-700 font-bold leading-relaxed">
-                         <span className="block mb-1 font-black uppercase tracking-tighter">Nota:</span>
-                         Estes valores sobrescrevem a configuração global para este edital específico. Alterar aqui afetará o cálculo de vagas na tela de classificação.
-                       </p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 group">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Texto Base Legal</label>
-                    <textarea 
-                      rows={5}
-                      value={formData.baseLegal}
-                      onChange={e => setFormData({...formData, baseLegal: e.target.value})}
-                      className="w-full px-6 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-sm text-primary-mucuna shadow-inner resize-none italic"
-                      placeholder="Transcrição da base legal para este edital..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Seção 5: Status e Publicação */}
-              <div className="col-span-full border-t border-primary-mucuna/10 pt-10 flex flex-col md:flex-row gap-8 items-center">
-                 <div className="flex-1 w-full space-y-2">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-4">Estágio de Publicação</label>
-                    <div className="flex bg-surface-mucuna p-1.5 rounded-[24px] shadow-inner">
-                      {['RASCUNHO', 'ATIVO', 'ENCERRADO'].map(s => (
-                        <button
-                          key={s} type="button"
-                          onClick={() => setFormData({...formData, status: s as any})}
-                          className={`flex-1 py-3 text-sm font-black rounded-[18px] transition-all tracking-widest ${
-                            formData.status === s ? 'bg-white text-primary-mucuna shadow-xl shadow-primary-mucuna/5 scale-100' : 'text-primary-mucuna/30 hover:text-primary-mucuna/60 scale-95'
-                          }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                 </div>
-                 <div className="flex flex-row gap-4 w-full md:w-auto self-end">
-                    <button type="button" onClick={() => setShowModal(false)} className="px-8 py-5 text-primary-mucuna/40 font-black uppercase text-sm tracking-widest hover:text-primary-mucuna transition-all">Cancelar</button>
-                    <button type="submit" className="group relative px-12 py-5 bg-primary-mucuna text-white font-black uppercase text-[11px] tracking-[.3em] rounded-[24px] hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/30 hover:-translate-y-1">
-                      <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
-                      <span className="relative z-10">{editMode ? 'Salvar Configurações' : 'Orquestrar Edital'}</span>
+          {/* Seção 5: Status e Publicação */}
+          <div className="col-span-full border-t border-primary-mucuna/10 pt-10 flex flex-col md:flex-row gap-8 items-center">
+             <div className="flex-1 w-full space-y-2">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-4">Estágio de Publicação</label>
+                <div className="flex bg-surface-mucuna p-1.5 rounded-[24px] shadow-inner">
+                  {['RASCUNHO', 'ATIVO', 'ENCERRADO'].map(s => (
+                    <button
+                      key={s} type="button"
+                      onClick={() => setFormData({...formData, status: s as any})}
+                      className={`flex-1 py-3 text-sm font-black rounded-[18px] transition-all tracking-widest ${
+                        formData.status === s ? 'bg-white text-primary-mucuna shadow-xl shadow-primary-mucuna/5 scale-100' : 'text-primary-mucuna/30 hover:text-primary-mucuna/60 scale-95'
+                      }`}
+                    >
+                      {s}
                     </button>
-                 </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showFormulariosModal && activeEditalForForms && (
-        <div className="fixed inset-0 bg-primary-mucuna/40 backdrop-blur-xl flex items-center justify-center p-4 z-[110] animate-in fade-in duration-500">
-          <div className="bg-white/90 backdrop-blur-2xl rounded-[56px] shadow-2xl shadow-primary-mucuna/20 max-w-2xl w-full p-12 space-y-10 animate-in zoom-in-95 duration-500 border border-white">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <div className="w-16 h-1.5 bg-accent-mucuna rounded-full opacity-50 mb-4" />
-                <h2 className="text-2xl font-black text-primary-mucuna font-display uppercase tracking-tighter italic">Vincular <span className="text-accent-mucuna not-italic">Formulários.</span></h2>
-                <p className="text-sm text-slate-400 font-black uppercase tracking-[0.3em]">
-                  Edital: {activeEditalForForms.titulo}
-                </p>
-              </div>
-              <button onClick={() => setShowFormulariosModal(false)} className="p-2 text-primary-mucuna/20 hover:text-primary-mucuna transition-all">
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar-thick">
-              {availableModelos.map(modelo => {
-                const isSelected = editalFormularios.includes(modelo.id);
-                return (
-                  <button 
-                    key={modelo.id}
-                    onClick={() => toggleFormulario(modelo.id)}
-                    className={`flex items-center gap-6 p-6 rounded-[32px] border-2 transition-all text-left ${
-                      isSelected 
-                        ? 'border-accent-mucuna bg-accent-mucuna/5 shadow-inner' 
-                        : 'border-surface-mucuna bg-surface-mucuna/30 hover:border-primary-mucuna/10'
-                    }`}
-                  >
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-primary-mucuna text-white rotate-12' : 'bg-white text-primary-mucuna/20'}`}>
-                      {isSelected ? (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-                      ) : (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                      )}
-                    </div>
-                    <div>
-                      <p className={`font-black uppercase tracking-tight text-sm italic ${isSelected ? 'text-primary-mucuna' : 'text-slate-400'}`}>{modelo.nome}</p>
-                      <p className="text-[9px] font-black text-accent-mucuna/40 uppercase tracking-widest mt-1">Biblioteca Orgânica</p>
-                    </div>
-                  </button>
-                );
-              })}
-              {availableModelos.length === 0 && (
-                <div className="col-span-full py-16 text-center">
-                  <p className="text-slate-300 font-black text-sm uppercase tracking-widest italic animate-pulse">Nenhum modelo detectado no ecossistema.</p>
+                  ))}
                 </div>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-4">
-              <button 
-                onClick={() => setShowFormulariosModal(false)}
-                className="group relative px-10 py-5 bg-primary-mucuna text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/20"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
-                <span className="relative z-10">Concluir Vínculo</span>
-              </button>
-            </div>
+             </div>
+             <div className="flex flex-row gap-4 w-full md:w-auto self-end">
+                <button type="button" onClick={() => setShowModal(false)} className="px-8 py-5 text-primary-mucuna/40 font-black uppercase text-sm tracking-widest hover:text-primary-mucuna transition-all">Cancelar</button>
+                <button type="submit" className="group relative px-12 py-5 bg-primary-mucuna text-white font-black uppercase text-[11px] tracking-[.3em] rounded-[24px] hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/30 hover:-translate-y-1">
+                  <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+                  <span className="relative z-10">{editMode ? 'Salvar Configurações' : 'Orquestrar Edital'}</span>
+                </button>
+             </div>
           </div>
+        </form>
+      </Modal>
+
+      <Modal 
+        isOpen={showFormulariosModal} 
+        onClose={() => setShowFormulariosModal(false)}
+        title="Vincular Formulários"
+        subtitle={`Edital: ${activeEditalForForms?.titulo}`}
+        maxWidth="max-w-2xl"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar-thick">
+          {availableModelos.map(modelo => {
+            const isSelected = editalFormularios.includes(modelo.id);
+            return (
+              <button 
+                key={modelo.id}
+                onClick={() => toggleFormulario(modelo.id)}
+                className={`flex items-center gap-6 p-6 rounded-[32px] border-2 transition-all text-left ${
+                  isSelected 
+                    ? 'border-accent-mucuna bg-accent-mucuna/5 shadow-inner' 
+                    : 'border-surface-mucuna bg-surface-mucuna/30 hover:border-primary-mucuna/10'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-primary-mucuna text-white rotate-12' : 'bg-white text-primary-mucuna/20'}`}>
+                  {isSelected ? (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                  )}
+                </div>
+                <div>
+                  <p className={`font-black uppercase tracking-tight text-sm italic ${isSelected ? 'text-primary-mucuna' : 'text-slate-400'}`}>{modelo.nome}</p>
+                  <p className="text-[9px] font-black text-accent-mucuna/40 uppercase tracking-widest mt-1">Biblioteca Orgânica</p>
+                </div>
+              </button>
+            );
+          })}
+          {availableModelos.length === 0 && (
+            <div className="col-span-full py-16 text-center">
+              <p className="text-slate-300 font-black text-sm uppercase tracking-widest italic animate-pulse">Nenhum modelo detectado no ecossistema.</p>
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="flex justify-end pt-8">
+          <button 
+            onClick={() => setShowFormulariosModal(false)}
+            className="group relative px-10 py-5 bg-primary-mucuna text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/20"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+            <span className="relative z-10">Concluir Vínculo</span>
+          </button>
+        </div>
+      </Modal>
       <style jsx>{`
         .custom-scrollbar-thick::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar-thick::-webkit-scrollbar-track { background: transparent; }

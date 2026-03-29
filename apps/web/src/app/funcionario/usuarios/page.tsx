@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api';
 import PermissionGuard from '@/components/PermissionGuard';
+import Modal from '@/components/Modal';
 
 interface Role {
   id: string;
@@ -239,104 +240,100 @@ export default function UsuariosPage() {
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-primary-mucuna/40 backdrop-blur-xl flex items-center justify-center p-4 z-[100] animate-in fade-in duration-500">
-          <div className="bg-white/90 backdrop-blur-2xl rounded-[56px] shadow-2xl shadow-primary-mucuna/20 max-w-lg w-full p-12 space-y-10 animate-in zoom-in-95 duration-500 border border-white">
-            <div className="space-y-3">
-              <div className="w-16 h-1 bg-accent-mucuna rounded-full opacity-50" />
-              <h2 className="text-4xl font-black text-primary-mucuna font-display uppercase tracking-tighter leading-tight italic">{editMode ? 'Editar' : 'Novo'} <span className="text-accent-mucuna not-italic">Membro.</span></h2>
-              <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">Sincronização de Identidade e Acesso</p>
+      <Modal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)}
+        title={`${editMode ? 'Editar' : 'Novo'} Membro`}
+        subtitle="Sincronização de Identidade e Acesso"
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 gap-8">
+            <div className="space-y-2 group">
+              <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Nome Completo</label>
+              <input 
+                type="text" required 
+                value={formData.nome}
+                onChange={e => setFormData({...formData, nome: e.target.value})}
+                className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                placeholder="Nome do integrante"
+              />
             </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 gap-8">
-                <div className="space-y-2 group">
-                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Nome Completo</label>
-                  <input 
-                    type="text" required 
-                    value={formData.nome}
-                    onChange={e => setFormData({...formData, nome: e.target.value})}
-                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
-                    placeholder="Nome do integrante"
-                  />
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2 group">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">E-mail Corporativo</label>
-                    <input 
-                      type="email" required 
-                      value={formData.email}
-                      onChange={e => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
-                      placeholder="email@uefs.br"
-                    />
-                  </div>
-                  <div className="space-y-2 group">
-                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">CPF</label>
-                    <input 
-                      type="text" required 
-                      value={formData.cpf}
-                      onChange={e => setFormData({...formData, cpf: e.target.value})}
-                      className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
-                      placeholder="000.000.000-00"
-                    />
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">E-mail Corporativo</label>
+                <input 
+                  type="email" required 
+                  value={formData.email}
+                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                  placeholder="email@uefs.br"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">CPF</label>
+                <input 
+                  type="text" required 
+                  value={formData.cpf}
+                  onChange={e => setFormData({...formData, cpf: e.target.value})}
+                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                  placeholder="000.000.000-00"
+                />
+              </div>
+            </div>
 
-                <div className="space-y-2 group">
-                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Senha de Acesso</label>
-                  <input 
-                    type="password"
-                    required={!editMode}
-                    value={formData.senha}
-                    onChange={e => setFormData({...formData, senha: e.target.value})}
-                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
-                    placeholder={editMode ? "Mantenha em branco p/ não alterar" : "Mínimo 6 caracteres"}
-                  />
-                  {editMode && <p className="text-[9px] font-black text-accent-mucuna mt-2 uppercase tracking-tight italic">* Preencha apenas para redefinir a credencial.</p>}
-                </div>
+            <div className="space-y-2 group">
+              <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Senha de Acesso</label>
+              <input 
+                type="password"
+                required={!editMode}
+                value={formData.senha}
+                onChange={e => setFormData({...formData, senha: e.target.value})}
+                className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                placeholder={editMode ? "Mantenha em branco p/ não alterar" : "Mínimo 6 caracteres"}
+              />
+              {editMode && <p className="text-[9px] font-black text-accent-mucuna mt-2 uppercase tracking-tight italic">* Preencha apenas para redefinir a credencial.</p>}
+            </div>
 
-                <div className="space-y-2 group">
-                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Perfil de Permissão</label>
-                  <div className="relative">
-                    <select 
-                      value={formData.roleId}
-                      onChange={e => setFormData({...formData, roleId: e.target.value})}
-                      className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer text-sm"
-                    >
-                      <option value="" disabled>Selecione um perfil orgânico</option>
-                      {roles.map(role => (
-                        <option key={role.id} value={role.id}>{role.nome}</option>
-                      ))}
-                    </select>
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                  </div>
+            <div className="space-y-2 group">
+              <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Perfil de Permissão</label>
+              <div className="relative">
+                <select 
+                  value={formData.roleId}
+                  onChange={e => setFormData({...formData, roleId: e.target.value})}
+                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer text-sm"
+                >
+                  <option value="" disabled>Selecione um perfil orgânico</option>
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>{role.nome}</option>
+                  ))}
+                </select>
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
                 </div>
               </div>
-
-              <div className="flex flex-col md:flex-row gap-4 pt-10">
-                <button 
-                  type="button" 
-                  onClick={() => setShowModal(false)} 
-                  className="flex-1 py-5 text-primary-mucuna/40 font-black uppercase text-sm tracking-widest hover:text-primary-mucuna transition-all order-2 md:order-1"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit" 
-                  className="group relative flex-[2] py-5 bg-primary-mucuna text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/30 order-1 md:order-2"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
-                  <span className="relative z-10">{editMode ? 'Salvar Mudanças' : 'Confirmar Ingresso'}</span>
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex flex-col md:flex-row gap-4 pt-10">
+            <button 
+              type="button" 
+              onClick={() => setShowModal(false)} 
+              className="flex-1 py-5 text-primary-mucuna/40 font-black uppercase text-sm tracking-widest hover:text-primary-mucuna transition-all order-2 md:order-1"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              className="group relative flex-[2] py-5 bg-primary-mucuna text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/30 order-1 md:order-2"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+              <span className="relative z-10">{editMode ? 'Salvar Mudanças' : 'Confirmar Ingresso'}</span>
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
     </PermissionGuard>
   );

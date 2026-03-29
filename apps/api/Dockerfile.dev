@@ -3,6 +3,10 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
+
+# Dependências para compilação de módulos nativos (ex: bcrypt)
+RUN apk add --no-cache python3 make g++
+
 RUN npm install
 
 COPY . .

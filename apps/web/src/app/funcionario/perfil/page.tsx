@@ -113,100 +113,109 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Meu Perfil</h1>
-        <p className="text-slate-500 font-medium">Gerencie suas informações pessoais e credenciais de acesso.</p>
+    <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 backdrop-blur-md p-8 rounded-[40px] border border-white/20 shadow-sm">
+        <div>
+          <h1 className="text-4xl font-black text-primary-mucuna tracking-tighter italic uppercase">Meu Perfil</h1>
+          <p className="text-primary-mucuna/60 font-bold mt-1 uppercase text-xs tracking-[0.2em]">Gestão de Identidade e Acesso</p>
+        </div>
+        <div className="w-16 h-16 bg-primary-mucuna text-white rounded-[24px] flex items-center justify-center shadow-xl shadow-primary-mucuna/20 uppercase font-black italic text-xl">
+          {formData.nome?.charAt(0) || 'U'}
+        </div>
       </div>
 
-      <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-8 lg:p-12">
-        <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="bg-white/70 backdrop-blur-xl rounded-[48px] p-10 lg:p-16 shadow-2xl shadow-primary-mucuna/5 border border-white relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-surface-mucuna rounded-full opacity-50" />
+        
+        <form onSubmit={handleSubmit} className="relative z-10 space-y-12">
           {error && (
-            <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-2xl animate-in fade-in slide-in-from-top-1">
-              {error}
+            <div className="p-6 bg-rose-50/50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-[24px] animate-in slide-in-from-top-2 italic">
+              ⚠️ {error}
             </div>
           )}
           {success && (
-            <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold rounded-2xl animate-in fade-in slide-in-from-top-1">
-              {success}
+            <div className="p-6 bg-emerald-50/50 border border-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-[24px] animate-in slide-in-from-top-2 italic">
+              ✨ {success}
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nome Completo</label>
+          <div className="grid grid-cols-1 gap-10">
+            <div className="space-y-4 group">
+              <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Identificação Completa</label>
               <input 
                 type="text" required
                 value={formData.nome}
                 onChange={e => setFormData({...formData, nome: e.target.value})}
-                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                placeholder="Seu nome completo"
+                className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner italic placeholder:text-primary-mucuna/20"
+                placeholder="Nome do Colaborador"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">E-mail</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-4 group">
+                <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">E-mail Institucional</label>
                 <input 
                   type="email" required
                   value={formData.email}
                   onChange={e => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                  placeholder="seu@email.com"
+                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner italic lowercase tracking-tight"
+                  placeholder="usuario@mucuna.com.br"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">CPF</label>
+              <div className="space-y-4 group">
+                <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Cadastro Nacional (CPF)</label>
                 <input 
                   type="text" required
                   value={formData.cpf}
                   onChange={e => setFormData({...formData, cpf: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
+                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner tabular-nums italic"
                   placeholder="000.000.000-00"
                 />
               </div>
             </div>
 
-            <hr className="border-slate-100 my-4" />
-
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Alterar Senha</h3>
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Preencha apenas se desejar alterar sua senha atual</p>
+            <div className="pt-6 border-t border-primary-mucuna/5">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-1 h-6 bg-accent-mucuna rounded-full" />
+                <h3 className="text-xs font-black text-primary-mucuna uppercase tracking-[0.3em] italic">Segurança de Acesso</h3>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nova Senha</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-4 group">
+                  <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Nova Credencial</label>
                   <input 
                     type="password"
                     autoComplete="new-password"
                     value={formData.senha}
                     onChange={e => setFormData({...formData, senha: e.target.value})}
-                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
+                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner italic"
                     placeholder="••••••••"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Confirmar Nova Senha</label>
+                <div className="space-y-4 group">
+                  <label className="text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.2em] ml-2 group-focus-within:text-accent-mucuna transition-colors">Confirmar Credencial</label>
                   <input 
                     type="password"
                     autoComplete="new-password"
                     value={formData.confirmarSenha}
                     onChange={e => setFormData({...formData, confirmarSenha: e.target.value})}
-                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
+                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner italic"
                     placeholder="••••••••"
                   />
                 </div>
               </div>
+              <p className="mt-6 text-[9px] font-black text-primary-mucuna/20 uppercase tracking-[0.4em] text-center italic">Deixe em branco para manter a senha atual</p>
             </div>
           </div>
 
-          <div className="pt-6">
+          <div className="pt-10">
             <button 
               type="submit"
               disabled={saving}
-              className="w-full py-5 bg-slate-900 text-white font-black uppercase text-sm tracking-[0.2em] rounded-2xl hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full py-6 bg-primary-mucuna text-white font-black uppercase text-sm tracking-[.3em] rounded-[24px] hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/20 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed italic"
             >
-              {saving ? 'Gravando Alterações...' : 'Atualizar Meu Perfil'}
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+              <span className="relative z-10">{saving ? 'Processando Sincronização...' : 'Confirmar Atualização de Perfil'}</span>
             </button>
           </div>
         </form>

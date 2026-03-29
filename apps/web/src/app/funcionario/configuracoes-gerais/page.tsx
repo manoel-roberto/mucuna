@@ -62,124 +62,139 @@ export default function ConfiguracoesGeraisPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header Estilizado */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-100">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-slate-900 rounded-xl text-emerald-400">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-            </div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Parâmetros do <span className="text-emerald-500 italic">Sistema</span></h1>
+    <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700">
+      {/* Header com Glassmorphism */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/40 backdrop-blur-md p-10 rounded-[48px] border border-white/20 shadow-sm relative overflow-hidden group">
+        <div className="absolute -top-12 -left-12 w-32 h-32 bg-accent-mucuna/5 rounded-full blur-3xl group-hover:bg-accent-mucuna/10 transition-colors duration-700" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-1.5 h-6 bg-accent-mucuna rounded-full" />
+            <h1 className="text-4xl font-black text-primary-mucuna tracking-tighter italic uppercase">Parâmetros do Sistema</h1>
           </div>
-          <p className="text-slate-500 font-medium font-bold italic">Configuração de diretrizes globais, reserva de vagas e base jurídica institucional.</p>
+          <p className="text-primary-mucuna/60 font-bold uppercase text-[10px] tracking-[0.2em] ml-5">Diretrizes Globais e Base Jurídica Organizada</p>
         </div>
 
         <button 
           onClick={handleSave}
           disabled={saving}
-          className="group relative flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-[24px] font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 disabled:opacity-50 overflow-hidden"
+          className="group relative px-10 py-6 bg-primary-mucuna text-white font-black uppercase text-xs tracking-[.3em] rounded-[24px] hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/20 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed italic"
         >
-          {saving ? 'Salvando...' : (
-            <>
-              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-              Salvar Alterações
-              <div className="absolute inset-x-0 bottom-0 h-1 bg-emerald-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-            </>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+          <span className="relative z-10 flex items-center gap-3">
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+            )}
+            {saving ? 'Sincronizando...' : 'Confirmar Parâmetros'}
+          </span>
         </button>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Painel de Percentuais */}
-        <div className="lg:col-span-4 space-y-6">
-          <section className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50">
-            <h2 className="flex items-center gap-2 text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-8">
-              <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              Cotas e Reservas %
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Painel de Percentuais Translúcido */}
+        <div className="lg:col-span-4 space-y-8">
+          <section className="bg-white/70 backdrop-blur-xl p-10 rounded-[56px] border border-white shadow-2xl shadow-primary-mucuna/5 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-surface-mucuna rounded-full opacity-50" />
+            
+            <h2 className="relative z-10 flex items-center gap-3 text-[10px] font-black text-primary-mucuna/30 uppercase tracking-[0.3em] mb-12 italic">
+              <svg className="w-4 h-4 text-accent-mucuna" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Cotas Institucionais
             </h2>
 
-            <div className="space-y-8">
+            <div className="space-y-12">
               {/* Negros */}
-              <div className="group">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block mb-3 pl-1 transition-colors group-focus-within:text-emerald-600">Percentual para Negros</label>
+              <div className="group relative z-10">
+                <label className="text-[9px] font-black text-primary-mucuna/40 uppercase tracking-[0.2em] block mb-4 ml-2 group-focus-within:text-accent-mucuna transition-all italic">Percentual para Negros</label>
                 <div className="relative flex items-center">
                   <input 
                     type="number" 
                     value={config.percentualNegrosPadrao}
                     onChange={e => setConfig({...config, percentualNegrosPadrao: parseFloat(e.target.value) || 0})}
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-500/20 focus:bg-white rounded-[24px] py-4 px-6 text-2xl font-black text-slate-900 outline-none transition-all pr-12 italic"
+                    className="w-full bg-surface-mucuna/50 border border-transparent focus:bg-white focus:border-accent-mucuna rounded-[32px] py-6 px-10 text-4xl font-black text-primary-mucuna outline-none transition-all pr-20 italic shadow-inner tabular-nums"
                   />
-                  <span className="absolute right-6 text-xl font-black text-slate-400 tracking-tighter">%</span>
+                  <span className="absolute right-8 text-2xl font-black text-primary-mucuna/20 tracking-tighter">%</span>
                 </div>
-                <p className="text-sm text-slate-300 mt-3 pl-4 leading-relaxed font-black uppercase tracking-tight">Referência: Lei Estadual 13.182/14.</p>
+                <p className="text-[10px] text-primary-mucuna/20 mt-4 pl-4 font-black uppercase tracking-widest italic">Lei Estadual 13.182/14</p>
               </div>
 
               {/* PCD */}
-              <div className="group pt-6 border-t border-slate-50">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block mb-3 pl-1 transition-colors group-focus-within:text-blue-600">Percentual para PCD</label>
+              <div className="group relative z-10 pt-10 border-t border-primary-mucuna/5">
+                <label className="text-[9px] font-black text-primary-mucuna/40 uppercase tracking-[0.2em] block mb-4 ml-2 group-focus-within:text-accent-mucuna transition-all italic">Percentual para PCD</label>
                 <div className="relative flex items-center">
                   <input 
                     type="number"
                     value={config.percentualPCDPadrao}
                     onChange={e => setConfig({...config, percentualPCDPadrao: parseFloat(e.target.value) || 0})}
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500/20 focus:bg-white rounded-[24px] py-4 px-6 text-2xl font-black text-slate-900 outline-none transition-all pr-12 italic"
+                    className="w-full bg-surface-mucuna/50 border border-transparent focus:bg-white focus:border-accent-mucuna rounded-[32px] py-6 px-10 text-4xl font-black text-primary-mucuna outline-none transition-all pr-20 italic shadow-inner tabular-nums"
                   />
-                  <span className="absolute right-6 text-xl font-black text-slate-400 tracking-tighter">%</span>
+                  <span className="absolute right-8 text-2xl font-black text-primary-mucuna/20 tracking-tighter">%</span>
                 </div>
-                <p className="text-sm text-slate-300 mt-3 pl-4 leading-relaxed font-black uppercase tracking-tight">Referência: Decreto 15.353/14.</p>
+                <p className="text-[10px] text-primary-mucuna/20 mt-4 pl-4 font-black uppercase tracking-widest italic">Decreto 15.353/14</p>
               </div>
             </div>
           </section>
 
-          {/* Dica Informativa */}
-          <div className="bg-emerald-50 p-6 rounded-[32px] border border-emerald-100 text-emerald-800 flex gap-4">
-             <div className="mt-1 flex-shrink-0">
-               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-             </div>
-            <p className="text-[11px] font-black uppercase tracking-wide leading-relaxed">
-              Alterar esses valores afetará apenas os <span className="text-emerald-600">novos processos</span>. Dados históricos permanecerão imutáveis conforme ato de criação.
+          {/* Banner de Aviso Organizado */}
+          <div className="bg-primary-mucuna/5 p-8 rounded-[40px] border border-primary-mucuna/10 flex gap-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-2 h-full bg-accent-mucuna opacity-20 group-hover:opacity-100 transition-opacity" />
+            <div className="mt-1 flex-shrink-0 text-accent-mucuna">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p className="text-[10px] font-black text-primary-mucuna uppercase tracking-widest leading-loose italic">
+              Alterações neste núcleo afetam exclusivamente <span className="text-accent-mucuna">novos protocolos</span>. Processos em curso preservam sua integridade jurídica original.
             </p>
           </div>
         </div>
 
-        {/* Editor de Base Legal */}
-        <div className="lg:col-span-8 space-y-6">
-          <section className="bg-slate-900 p-8 rounded-[40px] shadow-2xl shadow-slate-400/20 min-h-[500px] flex flex-col relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/5 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+        {/* Editor de Base Legal de Alta Densidade */}
+        <div className="lg:col-span-8 space-y-8">
+          <section className="bg-primary-mucuna p-12 rounded-[56px] shadow-2xl shadow-primary-mucuna/20 min-h-[600px] flex flex-col relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-accent-mucuna/10 rounded-full blur-[100px] -mr-40 -mt-40 group-hover:bg-accent-mucuna/20 transition-colors duration-1000" />
             
-            <div className="flex items-center justify-between mb-8 relative z-10">
-              <h2 className="flex items-center gap-2 text-sm font-black text-slate-500 uppercase tracking-[0.3em]">
-                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-                Base Legal (Node Global)
-              </h2>
+            <div className="flex items-center justify-between mb-10 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 rounded-full bg-accent-mucuna animate-pulse" />
+                <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] italic">
+                  Corpus Jurídico (Base Legal Global)
+                </h2>
+              </div>
               <div className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                {[1, 2, 3].map(i => (
+                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 3 ? 'bg-accent-mucuna' : 'bg-white/10'}`} />
+                ))}
               </div>
             </div>
 
             <textarea 
               value={config.baseLegalTexto}
               onChange={e => setConfig({...config, baseLegalTexto: e.target.value})}
-              placeholder="Descreva aqui o embasamento jurídico..."
-              className="flex-grow w-full bg-slate-800/40 rounded-[32px] p-8 text-slate-300 font-bold leading-loose outline-none focus:ring-2 ring-emerald-500/20 transition-all resize-none scrollbar-hide italic relative z-10"
+              placeholder="Inicie o embasamento jurídico institucional..."
+              className="flex-grow w-full bg-white/5 rounded-[40px] p-10 text-white/80 font-bold leading-loose outline-none focus:bg-white/10 transition-all resize-none scrollbar-hide italic relative z-10 text-lg border border-white/5 focus:border-accent-mucuna/30 placeholder:text-white/10 shadow-inner"
             />
+            
+            <div className="mt-8 flex justify-between items-center relative z-10">
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em] italic">Mucunã Intelligence OS</span>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-1 bg-white/10 rounded-full" />
+                <div className="w-12 h-1 bg-accent-mucuna rounded-full" />
+              </div>
+            </div>
           </section>
 
-          {/* Mensagens de Feedback */}
-          <div className="flex gap-4 min-h-[48px]">
+          {/* Notações de Sincronismo */}
+          <div className="flex gap-4 min-h-[56px]">
             {success && (
-              <div className="flex-grow bg-emerald-600 text-white px-8 py-5 rounded-[24px] flex items-center gap-3 animate-in zoom-in duration-300 shadow-xl shadow-emerald-500/20">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-                <span className="font-black text-sm uppercase tracking-[0.2em]">Configurações Sincronizadas com o Ecossistema</span>
+              <div className="flex-grow bg-accent-mucuna/10 text-accent-mucuna border border-accent-mucuna/20 px-10 py-6 rounded-[32px] flex items-center gap-4 animate-in zoom-in duration-500 shadow-xl shadow-accent-mucuna/5">
+                <div className="w-2 h-2 bg-accent-mucuna rounded-full animate-ping" />
+                <span className="font-black text-[10px] uppercase tracking-[0.3em] italic">Parâmetros Sincronizados com a Infraestrutura Global</span>
               </div>
             )}
             {error && (
-              <div className="flex-grow bg-rose-600 text-white px-8 py-5 rounded-[24px] flex items-center gap-3 animate-in shake duration-300 shadow-xl shadow-rose-500/20">
+              <div className="flex-grow bg-rose-50 text-rose-600 border border-rose-100 px-10 py-6 rounded-[32px] flex items-center gap-4 animate-in shake duration-500">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                <span className="font-black text-sm uppercase tracking-[0.2em]">{error}</span>
+                <span className="font-black text-[10px] uppercase tracking-[0.3em] italic tracking-tight">{error}</span>
               </div>
             )}
           </div>
