@@ -25,6 +25,11 @@ interface CandidatoHabilitado {
   celularCandidato?: string;
   enderecoCandidato?: string;
   numeroInscricao?: string;
+  cargo?: { id: string, nome: string };
+  areaAtuacao?: { id: string, nome: string };
+  carreira?: { id: string, nome: string };
+  nivel?: { id: string, nome: string };
+  envios?: any[];
 }
 
 export default function ClassificacaoPage() {
@@ -53,14 +58,20 @@ export default function ClassificacaoPage() {
     carreiraId: string;
     nivelId: string;
     modeloFormularioId: string;
-    vagasPorModalidade: Record<string, number>;
+    totalGeral: number;
+    vagasNEG: number;
+    vagasPCD: number;
+    justificativa: string;
   }>({ 
     cargoId: '', 
     areaAtuacaoId: '', 
     carreiraId: '', 
     nivelId: '', 
     modeloFormularioId: '',
-    vagasPorModalidade: {} 
+    totalGeral: 0,
+    vagasNEG: 0,
+    vagasPCD: 0,
+    justificativa: ''
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCoverageModal, setShowCoverageModal] = useState(false);
@@ -71,6 +82,15 @@ export default function ClassificacaoPage() {
   const [selectedCandidatos, setSelectedCandidatos] = useState<string[]>([]);
   const [selectedVagasCards, setSelectedVagasCards] = useState<string[]>([]);
   const [marking, setMarking] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredCandidatos = candidatos.filter(c => 
+    c.nomeCandidato.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.cpfCandidato.includes(searchQuery) ||
+    c.numeroInscricao?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.cargo?.nome?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.areaAtuacao?.nome?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const fetchData = async () => {
     setLoading(true);
@@ -151,15 +171,31 @@ export default function ClassificacaoPage() {
 
   const handleQuickCreateVaga = (item: any) => {
     setEditingId(null);
+    
+    // Calcula as vagas sugeridas baseado no edital e candidatos afetados
+    const totalGeral = item.candidatosAfetados || 1;
+    const pN = edital?.percentualNegros || 10;
+    const pP = edital?.percentualPCD || 6;
+
+    const calcSuge = (t: number, p: number, type: 'negro' | 'pcd') => {
+      if (t === 0) return 0;
+      const r = t * (p / 100);
+      let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
+      if (type === 'negro' && t >= 5 && f < 1) f = 1;
+      if (type === 'pcd' && t >= 20 && f < 1) f = 1;
+      return f;
+    };
+
     setNewVaga({
       cargoId: item.cargoId,
       areaAtuacaoId: item.areaAtuacaoId || '',
       carreiraId: item.carreiraId || '',
       nivelId: item.nivelId || '',
       modeloFormularioId: item.modeloFormularioId || '',
-      vagasPorModalidade: {
-        [item.modalidadeId]: 1 // Sugerir 1 vaga para a modalidade que disparou o alerta
-      }
+      totalGeral: totalGeral,
+      vagasNEG: calcSuge(totalGeral, pN, 'negro'),
+      vagasPCD: calcSuge(totalGeral, pP, 'pcd'),
+      justificativa: `Criação automática sugerida para ${item.modalidade || 'concorrência faltante'}.`
     });
     setShowCoverageModal(false);
     setShowVagasModal(true);
@@ -198,7 +234,10 @@ export default function ClassificacaoPage() {
       carreiraId: vaga.carreiraId || '',
       nivelId: vaga.nivelId || '',
       modeloFormularioId: vaga.modeloFormularioId || '',
-      vagasPorModalidade: vaga.vagasPorModalidade || {}
+      totalGeral: vaga.totalGeral || vaga.quantidadeVagas || 0,
+      vagasNEG: vaga.vagasNEG || 0,
+      vagasPCD: vaga.vagasPCD || 0,
+      justificativa: ''
     });
     setShowVagasModal(true);
   };
@@ -230,6 +269,33 @@ export default function ClassificacaoPage() {
   useEffect(() => {
     fetchData();
   }, [editalId]);
+
+  useEffect(() => {
+    if (showVagasModal && newVaga.totalGeral > 0) {
+      const pN = edital?.percentualNegros || 10;
+      const pP = edital?.percentualPCD || 6;
+      
+      const calcAuto = (t: number, p: number, type: 'negro' | 'pcd') => {
+        const r = t * (p / 100);
+        let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
+        if (type === 'negro' && t >= 5 && f < 1) f = 1;
+        if (type === 'pcd' && t >= 20 && f < 1) f = 1;
+        return f;
+      };
+
+      const vN = calcAuto(newVaga.totalGeral, pN, 'negro');
+      const vP = calcAuto(newVaga.totalGeral, pP, 'pcd');
+
+      // Só atualiza se for diferente para evitar loops
+      if (vN !== newVaga.vagasNEG || vP !== newVaga.vagasPCD) {
+        setNewVaga(prev => ({
+          ...prev,
+          vagasNEG: vN,
+          vagasPCD: vP
+        }));
+      }
+    }
+  }, [newVaga.totalGeral, showVagasModal, edital]);
 
   const handleImport = async () => {
     const lines = importText.trim().split(/\r?\n/);
@@ -403,15 +469,12 @@ export default function ClassificacaoPage() {
     try {
       const token = localStorage.getItem('token');
       
-      const vagasPayload = Object.entries(newVaga.vagasPorModalidade)
-        .map(([modalId, qty]) => ({ modalidadeId: modalId, quantidadeVagas: qty }));
-
-      if (vagasPayload.length === 0) {
-        alert('Informe pelo menos uma vaga para alguma modalidade.');
+      if (newVaga.totalGeral <= 0) {
+        alert('Informe o total de vagas para esta especialização.');
         return;
       }
 
-      const res = await fetch(`${API_URL}/vagas-edital/bulk`, {
+      const res = await fetch(`${API_URL}/vagas-edital`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -424,14 +487,20 @@ export default function ClassificacaoPage() {
           carreiraId: newVaga.carreiraId,
           nivelId: newVaga.nivelId,
           modeloFormularioId: newVaga.modeloFormularioId || null,
-          vagas: vagasPayload 
+          totalGeral: newVaga.totalGeral,
+          vagasNEG: newVaga.vagasNEG,
+          vagasPCD: newVaga.vagasPCD,
+          justificativa: newVaga.justificativa
         }),
       });
 
       if (res.ok) {
         setShowVagasModal(false);
         setEditingId(null);
-        setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', vagasPorModalidade: {} });
+        setNewVaga({ 
+          cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', 
+          modeloFormularioId: '', totalGeral: 0, vagasNEG: 0, vagasPCD: 0, justificativa: '' 
+        });
         fetchData();
       } else {
         const error = await res.json();
@@ -525,16 +594,27 @@ export default function ClassificacaoPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="flex items-center gap-4">
-        <Link href="/funcionario/editais" className="p-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 leading-tight">Lista de Habilitados</h1>
-          <p className="text-sm text-slate-500 font-bold uppercase tracking-wider">
-            {edital?.titulo || 'Carregando...'} • {edital?.ano}
-          </p>
+    <div className="space-y-8 pb-32 relative">
+      <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-6">
+          <Link href="/funcionario/editais" className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all group">
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 leading-tight font-display tracking-tight">Lista de Habilitados</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">
+                {edital?.titulo || 'Carregando...'}
+              </span>
+              <span className="text-sm font-black text-slate-300">•</span>
+              <span className="text-sm font-black text-slate-400 uppercase tracking-widest">{edital?.ano}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm">
+           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+           <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Servidores Operacionais</span>
         </div>
       </div>
 
@@ -553,7 +633,7 @@ export default function ClassificacaoPage() {
             }}
             checked={vagasEstatisticas.length > 0 && selectedVagasCards.length === vagasEstatisticas.length}
           />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selecionar Todas</span>
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Selecionar Todas</span>
         </div>
         {selectedVagasCards.length > 0 && (
           <button 
@@ -566,15 +646,15 @@ export default function ClassificacaoPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
         {vagasEstatisticas.map((v) => (
-          <div key={v.id} className={`bg-white p-6 rounded-[24px] shadow-sm border transition-all flex flex-col justify-between hover:shadow-md ${selectedVagasCards.includes(v.id) ? 'border-emerald-500 bg-emerald-50/10' : 'border-slate-100'}`}>
+          <div key={v.id} className={`bg-white p-7 rounded-[32px] shadow-sm border transition-all flex flex-col justify-between hover:shadow-xl hover:shadow-emerald-900/5 ${selectedVagasCards.includes(v.id) ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-slate-100'}`}>
             <div>
               <div className="relative">
-                <div className="absolute top-0 right-0 flex gap-1 -mt-1 -mr-1">
+                <div className="absolute top-0 right-0 flex gap-2 -mt-1 -mr-1">
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer mr-2 mt-1"
+                    className="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 border-slate-200 cursor-pointer transition-all"
                     checked={selectedVagasCards.includes(v.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -586,54 +666,52 @@ export default function ClassificacaoPage() {
                   />
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleEditVaga(v); }}
-                    className="p-1.5 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"
+                    className="p-2 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
                     title="Editar Configuração"
                   >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleDeleteVaga(v); }}
-                    className="p-1.5 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"
+                    className="p-2 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                     title="Excluir Configuração"
                   >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
-                <div className="flex justify-between items-start mb-2 gap-2 pr-12">
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest truncate">{v.cargoNome}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase flex-shrink-0 ${v.disponivel > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                    {v.disponivel > 0 ? `${v.disponivel} Vagas` : 'Esgotado'}
-                  </span>
+                <div className="flex justify-between items-start mb-3 gap-2 pr-20">
+                  <span className="text-sm font-black text-emerald-600 uppercase tracking-[2px] truncate">{v.cargoNome}</span>
                 </div>
-                <h3 className="text-sm font-black text-slate-900 leading-tight mb-1">{v.areaNome}</h3>
+                <h3 className="text-lg font-black text-slate-900 leading-tight mb-2 font-display">{v.areaNome}</h3>
+                
                 {v.modeloFormularioNome && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
-                    <span className="text-[9px] font-black text-indigo-600 uppercase tracking-tighter">Formulário: {v.modeloFormularioNome}</span>
+                  <div className="inline-flex items-center gap-2 bg-indigo-50 px-2 py-1 rounded-lg">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                    <span className="text-[9px] font-black text-indigo-700 uppercase tracking-tighter">Formulário: {v.modeloFormularioNome}</span>
                   </div>
                 )}
               </div>
             </div>
-            <div className="mt-4 space-y-3">
+            <div className="mt-6 space-y-4">
               <div>
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter mb-1">
+                <div className="flex justify-between text-sm font-black uppercase tracking-widest mb-1.5">
                   <span className="text-slate-400">Total Habilitados</span>
                   <span className="text-slate-900">{v.candidatosHabilitados} / {v.quantidadeVagas}</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full transition-all duration-700 ease-out bg-emerald-500`}
+                    className={`h-full transition-all duration-1000 ease-out bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]`}
                     style={{ width: `${Math.min(100, (v.candidatosHabilitados / (v.quantidadeVagas || 1)) * 100)}%` }}
                   />
                 </div>
               </div>
               
               {v.detalhesModalidades && v.detalhesModalidades.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-50">
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-50">
                   {v.detalhesModalidades.map((dm: any) => (
-                    <div key={dm.modalidadeId} className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">{dm.modalidadeNome}:</span>
-                      <span className="text-[10px] font-black text-slate-700">{dm.quantidade}</span>
+                    <div key={dm.modalidadeId} className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{dm.modalidadeNome}</span>
+                      <span className="text-sm font-black text-slate-900">{dm.quantidade}</span>
                     </div>
                   ))}
                 </div>
@@ -643,73 +721,62 @@ export default function ClassificacaoPage() {
         ))}
         <button 
           onClick={() => setShowVagasModal(true)}
-          className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-[24px] flex flex-col items-center justify-center text-slate-400 hover:border-emerald-500 hover:text-emerald-600 hover:bg-white transition-all group min-h-[120px]"
+          className="bg-white border-2 border-dashed border-slate-200 p-7 rounded-[32px] flex flex-col items-center justify-center text-slate-400 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50/10 transition-all group min-h-[220px]"
         >
-          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 group-hover:bg-white transition-all">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Configurar Vagas</span>
+          <span className="text-sm font-black uppercase tracking-[3px]">Configurar Vagas</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-[32px] shadow-xl border border-slate-100 overflow-hidden">
-        <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+      <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative z-10 transition-all">
+        <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/30 backdrop-blur-sm">
           <div className="flex gap-4">
-             <div className="bg-emerald-50 px-4 py-2 rounded-2xl">
-                <span className="text-[10px] font-black text-emerald-600 uppercase block mb-0.5">Total Habilitados</span>
-                <span className="text-xl font-black text-emerald-900">{candidatos.length}</span>
+             <div className="bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100/50">
+                <span className="text-sm font-black text-emerald-600 uppercase tracking-widest block mb-1">Total Habilitados</span>
+                <span className="text-2xl font-black text-emerald-900 font-display">{candidatos.length}</span>
              </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap justify-end gap-3">
             {selectedCandidatos.length > 0 && (
               <button 
                 onClick={handleMarcarConvocacao}
                 disabled={marking}
-                className="px-6 py-3 bg-amber-500 text-white font-black rounded-2xl hover:bg-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-amber-100"
+                className="px-6 py-3.5 bg-amber-500 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-amber-600 transition-all flex items-center gap-3 shadow-lg shadow-amber-200/50"
               >
                 {marking ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 )}
-                Marcar para Convocação ({selectedCandidatos.length})
+                Gerar Fila de Convocação ({selectedCandidatos.length})
               </button>
             )}
             {selectedCandidatos.length > 0 && (
               <button 
                 onClick={handleBulkDelete}
                 disabled={marking}
-                className="px-6 py-3 bg-rose-50 text-rose-600 font-black rounded-2xl hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 border border-rose-100 shadow-lg shadow-rose-100/50"
+                className="px-6 py-3.5 bg-rose-50 text-rose-600 text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-rose-600 hover:text-white transition-all flex items-center gap-3 border border-rose-100 shadow-lg shadow-rose-100/30"
               >
                 {marking ? (
-                  <div className="w-5 h-5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 )}
-                Excluir Selecionados ({selectedCandidatos.length})
+                Excluir Selecionados
               </button>
             )}
-            <button 
-              onClick={handleGerarFila}
-              disabled={generating}
-              className="px-6 py-3 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100"
-            >
-              {generating ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-              )}
-              Gerar Fila de Convocação
-            </button>
+            
             <button 
               onClick={fetchCoverageAnalysis}
               disabled={analyzing}
-              className="px-6 py-3 bg-slate-100 text-slate-600 font-black rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-2"
+              className="px-6 py-3.5 bg-slate-100 text-slate-600 text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-3"
             >
               {analyzing ? (
-                <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
               )}
               Análise de Vagas
             </button>
@@ -734,60 +801,84 @@ export default function ClassificacaoPage() {
                 celularCandidato: '',
                 enderecoCandidato: '',
               })}
-              className="px-6 py-3 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg shadow-emerald-100"
+              className="px-6 py-3.5 bg-emerald-600 text-white text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-700 transition-all flex items-center gap-3 shadow-lg shadow-emerald-200/50"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
               Adicionar Candidato
             </button>
             <button 
               onClick={() => setShowImport(true)}
-              className="px-6 py-3 bg-slate-900 text-white font-black rounded-2xl hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-lg"
+              className="px-6 py-3.5 bg-slate-900 text-white text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-all flex items-center gap-3 shadow-xl"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
               Importar Listas
             </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Barra de Pesquisa e Filtros Rápidos */}
+        <div className="relative z-10 mb-6 group">
+          <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+            <svg className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <input 
+            type="text"
+            placeholder="Pesquisar por nome, CPF, inscrição ou cargo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-14 pr-8 py-5 bg-white border border-slate-100 rounded-[24px] outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-bold text-slate-700 shadow-sm placeholder:text-slate-300"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-6 flex items-center text-slate-300 hover:text-rose-500 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          )}
+        </div>
+
+        <div className="overflow-x-auto bg-white rounded-[40px] shadow-sm border border-slate-100/50">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="px-6 py-5 w-10">
+            <thead className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100">
+              <tr className="bg-slate-50/50">
+                <th className="px-8 py-6 w-10">
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                    className="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 border-slate-200 cursor-pointer transition-all"
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedCandidatos(candidatos.map(c => c.id));
+                        setSelectedCandidatos(filteredCandidatos.map(c => c.id));
                       } else {
                         setSelectedCandidatos([]);
                       }
                     }}
-                    checked={selectedCandidatos.length > 0 && selectedCandidatos.length === candidatos.length}
+                    checked={filteredCandidatos.length > 0 && selectedCandidatos.length === filteredCandidatos.length}
                   />
                 </th>
-                <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Inscrição</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidato</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Nota</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Especialização</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Lista / Convocação</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Documentos</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                <th className="px-4 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px]">Inscrição</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px]">Candidato</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px] text-center">Nota</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px]">Especialização</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px]">Lista / Convocação</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px]">Documentos</th>
+                  <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[3px] text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
-              {[...candidatos].sort((a, b) => {
+            <tbody className="divide-y divide-slate-100/50">
+              {[...filteredCandidatos].sort((a, b) => {
                 if (a.posicaoConvocacao && b.posicaoConvocacao) return a.posicaoConvocacao - b.posicaoConvocacao;
                 if (a.posicaoConvocacao) return -1;
                 if (b.posicaoConvocacao) return 1;
                 return (a.posicaoAmpla || 0) - (b.posicaoAmpla || 0);
               }).map((c: any) => (
-                <tr key={c.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-5">
+                <tr key={c.id} className="hover:bg-slate-50/80 transition-all group cursor-default">
+                  <td className="px-8 py-6">
                       <input 
                         type="checkbox" 
-                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                        className="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 border-slate-200 cursor-pointer transition-all"
                         checked={selectedCandidatos.includes(c.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -798,91 +889,108 @@ export default function ClassificacaoPage() {
                         }}
                       />
                   </td>
-                  <td className="px-4 py-5 font-black text-slate-900">{c.numeroInscricao}</td>
-                  <td className="px-8 py-5">
-
-                    <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">{c.nomeCandidato}</div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-tighter">CPF: {c.cpfCandidato}</div>
+                  <td className="px-4 py-6 font-black text-slate-900 font-display tracking-tight text-base">{c.numeroInscricao}</td>
+                  <td className="px-8 py-6">
+                    <div className="font-black text-slate-900 group-hover:text-emerald-700 transition-colors text-base uppercase font-display leading-tight">{c.nomeCandidato}</div>
+                    <div className="text-xs font-black text-slate-400 uppercase tracking-widest mt-0.5">CPF: {c.cpfCandidato}</div>
                   </td>
-                  <td className="px-8 py-5 text-center">
-                    <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
+                  <td className="px-8 py-6 text-center">
+                    <span className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100/50 shadow-sm shadow-emerald-50 tabular-nums">
                       {c.nota ? Number(c.nota).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '-'}
                     </span>
                   </td>
-                  <td className="px-8 py-5">
-                    <div className="text-xs font-black text-emerald-600 uppercase tracking-tight">{c.cargo?.nome || 'Não definido'}</div>
-                    <div className="text-sm font-bold text-slate-900">{c.areaAtuacao?.nome || 'Geral'}</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-1">
+                  <td className="px-8 py-6">
+                    <div className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">{c.cargo?.nome || 'Não definido'}</div>
+                    <div className="text-sm font-black text-slate-800 leading-tight">{c.areaAtuacao?.nome || 'Geral'}</div>
+                    <div className="text-[9px] text-slate-400 font-black uppercase tracking-tighter mt-1.5 opacity-60">
                       {c.carreira?.nome || 'N/A'} • {c.nivel?.nome || 'N/A'}
                     </div>
                   </td>
-                  <td className="px-8 py-5">
-                    <div className="flex flex-col gap-2">
-                       <div className="flex items-center gap-2">
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col gap-2.5">
+                       <div className="flex items-center gap-3">
                           {c.posicaoConvocacao ? (
-                            <div className="flex items-center gap-1.5 bg-indigo-600 text-white px-3 py-1.5 rounded-xl shadow-lg shadow-indigo-100 animate-in zoom-in duration-500">
-                               <span className="text-[10px] font-black uppercase tracking-tighter opacity-70">Conv.</span>
-                               <span className="text-base font-black">{c.posicaoConvocacao}º</span>
+                            <div className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-2xl shadow-xl shadow-slate-200 animate-in zoom-in duration-500">
+                               <span className="text-sm font-black uppercase tracking-widest text-emerald-400">#</span>
+                               <span className="text-xl font-black font-display leading-none">{c.posicaoConvocacao}º</span>
                             </div>
                           ) : (
                             <div className="flex flex-col">
-                               <span className="text-base font-black text-slate-900">A: {c.posicaoAmpla}º</span>
-                               {c.posicaoNegro && <span className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">N: {c.posicaoNegro}º</span>}
-                               {c.posicaoPCD && <span className="text-[9px] font-bold text-sky-600 uppercase tracking-tighter">P: {c.posicaoPCD}º</span>}
+                               <div className="flex items-baseline gap-1">
+                                 <span className="text-sm font-black text-slate-400 uppercase tracking-tighter">A:</span>
+                                 <span className="text-xl font-black text-slate-900 font-display leading-none">{c.posicaoAmpla}º</span>
+                               </div>
+                               <div className="flex gap-2 mt-1">
+                                 {c.posicaoNegro && <span className="text-sm font-black text-amber-600 uppercase tracking-tighter flex items-center gap-1">N: <span className="text-sm">{c.posicaoNegro}º</span></span>}
+                                 {c.posicaoPCD && <span className="text-sm font-black text-sky-600 uppercase tracking-tighter flex items-center gap-1">P: <span className="text-sm">{c.posicaoPCD}º</span></span>}
+                               </div>
                              </div>
                           )}
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1.5">
                              {(c as any).concorrenciaAmpla && (
-                               <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-slate-200">Ampla</span>
+                               <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-200/50 shadow-sm">Ampla</span>
                              )}
                              {(c as any).concorrenciaNegro && (
-                               <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-md text-[8px] font-black uppercase tracking-widest border border-amber-200">Negro</span>
+                               <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-[9px] font-black uppercase tracking-widest border border-amber-100 shadow-sm">Negro</span>
                              )}
                              {(c as any).concorrenciaPCD && (
-                               <span className="px-2 py-0.5 bg-sky-100 text-sky-700 rounded-md text-[8px] font-black uppercase tracking-widest border border-sky-200">PCD</span>
+                               <span className="px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg text-[9px] font-black uppercase tracking-widest border border-sky-100 shadow-sm">PCD</span>
                              )}
                           </div>
                        </div>
                        
                        {c.situacao && (
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${
-                            c.situacao === 'APROVADO_CONVOCAVEL' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                          <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                            c.situacao === 'APROVADO_CONVOCAVEL' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm shadow-emerald-50' : 'bg-rose-50 text-rose-600 border border-rose-100'
                           }`}>
+                            <div className={`w-1 h-1 rounded-full ${c.situacao === 'APROVADO_CONVOCAVEL' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
                             {c.situacao.replace(/_/g, ' ')}
                           </span>
                           {c.posicaoConvocacao && (
-                            <span className="text-[8px] font-black text-slate-400 italic">Lista Geral: #{c.posicaoAmpla}</span>
+                            <span className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">Geral: #{c.posicaoAmpla}</span>
                           )}
                         </div>
                       )}
                     </div>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-8 py-6">
                     {c.envios && c.envios.length > 0 ? (
-                      <div className="flex flex-col gap-1">
-                        <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-black rounded-full uppercase tracking-widest w-fit">
-                          {c.envios.length} Enviado(s)
-                        </span>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100 group-hover:bg-white group-hover:shadow-sm transition-all">
+                            <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                          </div>
+                          <span className="text-sm font-black text-indigo-600 uppercase tracking-widest">{c.envios.length} Documentos</span>
+                        </div>
                         {c.statusConvocacao && (
-                          <span className="text-[9px] font-black text-emerald-600 uppercase italic font-bold">
-                            Status: {c.statusConvocacao.replace(/_/g, ' ')}
-                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                             <span className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse"></span>
+                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter italic whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">
+                               Status: {c.statusConvocacao.replace(/_/g, ' ')}
+                             </span>
+                          </div>
                         )}
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black text-slate-300 uppercase italic">Nenhum envio</span>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2 opacity-30 grayscale group-hover:grayscale-0 transition-all">
+                          <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                          <span className="text-sm font-black text-slate-300 uppercase tracking-widest">Vazio</span>
+                        </div>
                         {c.situacao === 'APROVADO_CONVOCAVEL' && (
-                          <span className="text-[8px] font-black text-rose-500 uppercase animate-pulse">Aguardando Documentos</span>
+                          <div className="flex items-center gap-2 mt-1 px-2 py-0.5 bg-rose-50 rounded-md border border-rose-100/50 w-fit">
+                             <div className="w-1 h-1 rounded-full bg-rose-500 animate-pulse"></div>
+                             <span className="text-[8px] font-black text-rose-500 uppercase tracking-tighter">Pendente</span>
+                          </div>
                         )}
                       </div>
                     )}
                   </td>
-                  <td className="px-8 py-5 text-right flex gap-2 justify-end">
+                  <td className="px-8 py-6 text-right flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all">
                     <button 
                       onClick={() => setEditingCandidato({...c})}
-                      className="p-2 text-slate-300 hover:text-emerald-600 transition-colors"
+                      className="p-2.5 bg-slate-50 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     </button>
@@ -895,16 +1003,39 @@ export default function ClassificacaoPage() {
                         });
                         if(res.ok) fetchData();
                       }}
-                      className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
+                      className="p-2.5 bg-slate-50 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   </td>
                 </tr>
               ))}
-              {candidatos.length === 0 && !loading && (
+              {filteredCandidatos.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={7} className="px-8 py-20 text-center text-slate-400 font-bold italic">Nenhum candidato habilitado para este edital. Clique em "Importar Listas".</td>
+                  <td colSpan={8} className="px-8 py-32 text-center relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+                       <span className="text-9xl font-black italic tracking-tighter">VACAT</span>
+                    </div>
+                    <div className="relative z-10 space-y-4">
+                       <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                          <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 012-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                          </svg>
+                       </div>
+                       <h3 className="text-xl font-black text-slate-900 font-display italic">Nenhum resultado encontrado</h3>
+                       <p className="text-sm font-black text-slate-400 uppercase tracking-widest max-w-xs mx-auto leading-loose">
+                         {searchQuery ? `Não encontramos candidatos para "${searchQuery}" nesta categoria.` : "A base de dados de habilitados está vazia para este edital."}
+                       </p>
+                       {!searchQuery && (
+                         <button 
+                           onClick={() => setShowImport(true)}
+                           className="mt-6 px-10 py-4 bg-slate-900 text-white text-sm font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-emerald-600 transition-all shadow-xl"
+                         >
+                           Importar Listas Agora
+                         </button>
+                       )}
+                    </div>
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -919,36 +1050,36 @@ export default function ClassificacaoPage() {
             <div className="flex justify-between items-center border-b border-slate-50 pb-6">
               <div>
                 <h2 className="text-2xl font-black text-slate-900">{editingId ? 'Editar Configuração' : 'Configurar Vagas'}</h2>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Defina a oferta de especializações para este edital</p>
+                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Defina a oferta de especializações para este edital</p>
               </div>
               <button 
-                onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', vagasPorModalidade: {} }); }} 
+                onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', totalGeral: 0, vagasNEG: 0, vagasPCD: 0, justificativa: '' }); }} 
                 className="text-slate-200 hover:text-slate-900 transition-all"
               >
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
 
-            <form onSubmit={handleSaveVaga} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Cargo</label>
+            <form onSubmit={handleSaveVaga} className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Cargo</label>
                   <select 
                     required
                     value={newVaga.cargoId}
                     onChange={e => setNewVaga({...newVaga, cargoId: e.target.value, areaAtuacaoId: ''})}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 appearance-none"
+                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm text-slate-700 appearance-none shadow-sm transition-all"
                   >
                     <option value="">Selecione o Cargo</option>
                     {cargos.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Área de Atuação</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Área de Atuação</label>
                   <select 
                     value={newVaga.areaAtuacaoId}
                     onChange={e => setNewVaga({...newVaga, areaAtuacaoId: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 appearance-none"
+                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm text-slate-700 appearance-none shadow-sm transition-all"
                     disabled={!newVaga.cargoId}
                   >
                     <option value="">Geral / Sem Área</option>
@@ -956,96 +1087,256 @@ export default function ClassificacaoPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Carreira</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Carreira</label>
                   <select 
                     required
                     value={newVaga.carreiraId}
                     onChange={e => setNewVaga({...newVaga, carreiraId: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 appearance-none"
+                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm text-slate-700 appearance-none shadow-sm transition-all"
                   >
                     <option value="">Selecione a Carreira</option>
                     {carreiras.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                   </select>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nível</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nível</label>
                   <select 
                     required
                     value={newVaga.nivelId}
                     onChange={e => setNewVaga({...newVaga, nivelId: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 appearance-none"
+                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm text-slate-700 appearance-none shadow-sm transition-all"
                   >
                     <option value="">Selecione o Nível</option>
                     {niveis.map(n => <option key={n.id} value={n.id}>{n.nome}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Modelo de Formulário para o Candidato</label>
+              <div className="space-y-2">
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Modelo de Formulário para o Candidato</label>
                 <select 
                   value={newVaga.modeloFormularioId}
                   onChange={e => setNewVaga({...newVaga, modeloFormularioId: e.target.value})}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 appearance-none"
+                  className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm text-slate-700 appearance-none shadow-sm transition-all"
                 >
                   <option value="">Selecione o Modelo de Formulário</option>
                   {modelosFormulario.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}
                 </select>
-                <p className="text-[9px] text-slate-400 font-bold italic ml-1">O candidato convocado para esta vaga preencherá este formulário eletronicamente.</p>
+                <p className="text-sm text-slate-400 font-bold italic ml-1 opacity-70">O candidato convocado para esta vaga preencherá este formulário eletronicamente.</p>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Vagas por Modalidade</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {modalidades.map(m => (
-                    <div key={m.id} className="bg-white p-4 rounded-2xl border border-slate-200 focus-within:border-emerald-500 transition-all">
-                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-tighter block mb-2">{m.nome}</label>
-                      <input 
-                        type="number" min="0"
-                        placeholder="0"
-                        value={newVaga.vagasPorModalidade[m.id] || ''}
-                        onChange={e => setNewVaga({
-                          ...newVaga, 
-                          vagasPorModalidade: {
-                            ...newVaga.vagasPorModalidade,
-                            [m.id]: parseInt(e.target.value) || 0
-                          }
-                        })}
-                        className="w-full bg-transparent outline-none font-black text-slate-900 border-b border-slate-100 focus:border-emerald-500"
-                      />
+              <div className="pt-4">
+              {/* Painel de Alertas Legislativos */}
+              {(() => {
+                const pNegro = edital?.percentualNegros || 10;
+                const pPcd = edital?.percentualPCD || 6;
+                const total = newVaga.totalGeral || 0;
+                const neg = newVaga.vagasNEG || 0;
+                const pcd = newVaga.vagasPCD || 0;
+                
+                const calcCota = (t: number, p: number, type: 'negro' | 'pcd') => {
+                  if (t === 0) return 0;
+                  const res = t * (p / 100);
+                  const int = Math.floor(res);
+                  const frac = res - int;
+                  let f = frac >= 0.5 ? Math.ceil(res) : Math.floor(res);
+                  if (type === 'negro' && t >= 5 && f < 1) f = 1;
+                  if (type === 'pcd' && t >= 20 && f < 1) f = 1;
+                  return f;
+                };
+
+                const negEsp = calcCota(total, pNegro, 'negro');
+                const pcdEsp = calcCota(total, pPcd, 'pcd');
+                const ampla = total - neg - pcd;
+
+                const alerts = [];
+                let hasBlockingError = false;
+
+                // Validações Negros
+                if (total >= 5 && neg === 0) {
+                  alerts.push({ type: 'ERROR', msg: `Com ${total} vagas, é obrigatório reservar vagas para Negros (Mínimo: ${negEsp}).` });
+                  hasBlockingError = true;
+                } else if (neg < negEsp) {
+                  alerts.push({ type: 'ERROR', msg: `Vagas para Negros abaixo do mínimo exigido (Esperado: ${negEsp}).` });
+                  hasBlockingError = true;
+                } else if (neg > negEsp && negEsp > 0) {
+                  alerts.push({ type: 'WARNING', msg: `Vagas para Negros acima do percentual legal de ${pNegro}%. (Esperado: ${negEsp}).` });
+                }
+
+                // Validações PCD
+                if (total >= 20 && pcd === 0) {
+                  alerts.push({ type: 'ERROR', msg: `Com ${total} vagas, é obrigatório reservar vagas para PCD (Mínimo: ${pcdEsp}).` });
+                  hasBlockingError = true;
+                } else if (pcd < pcdEsp) {
+                  alerts.push({ type: 'ERROR', msg: `Vagas para PCD abaixo do mínimo exigido (Esperado: ${pcdEsp}).` });
+                  hasBlockingError = true;
+                } else if (pcd > pcdEsp && pcdEsp > 0) {
+                  alerts.push({ type: 'WARNING', msg: `Vagas para PCD acima do percentual legal de ${pPcd}%. (Esperado: ${pcdEsp}).` });
+                }
+
+                // Validação Consistência
+                if (ampla < 0) {
+                  alerts.push({ type: 'ERROR', msg: 'A soma de Negros e PCD não pode superar o Total Geral.' });
+                  hasBlockingError = true;
+                }
+
+                return (
+                  <div className="space-y-4">
+                    {alerts.length > 0 && (
+                      <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-3">
+                        <h5 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                           Validação Legislativa
+                        </h5>
+                        <div className="space-y-2">
+                          {alerts.map((a, i) => (
+                            <div key={i} className={`text-[11px] font-bold flex items-start gap-2 ${a.type === 'ERROR' ? 'text-rose-600' : 'text-amber-600'}`}>
+                              <span className="mt-0.5">•</span>
+                              {a.msg}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {/* Total Geral */}
+                      <div className="bg-slate-900 p-6 rounded-[32px] shadow-xl shadow-slate-200">
+                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-2">Total Geral</label>
+                        <input 
+                          type="number" min="0" required
+                          value={newVaga.totalGeral}
+                          onChange={e => {
+                            const val = parseInt(e.target.value) || 0;
+                            const pN = edital?.percentualNegros || 10;
+                            const pP = edital?.percentualPCD || 6;
+                            
+                            const calcExt = (t: number, p: number, type: 'negro' | 'pcd') => {
+                              if (t === 0) return 0;
+                              const r = t * (p / 100);
+                              let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
+                              if (type === 'negro' && t >= 5 && f < 1) f = 1;
+                              if (type === 'pcd' && t >= 20 && f < 1) f = 1;
+                              return f;
+                            };
+
+                            setNewVaga({
+                              ...newVaga,
+                              totalGeral: val,
+                              vagasNEG: calcExt(val, pN, 'negro'),
+                              vagasPCD: calcExt(val, pP, 'pcd')
+                            });
+                          }}
+                          className="w-full bg-transparent border-none outline-none font-black text-3xl text-white p-0 tabular-nums focus:text-emerald-400 transition-colors"
+                        />
+                      </div>
+
+                      {/* Negros */}
+                      <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm transition-all hover:border-amber-200">
+                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">Negros ({pNegro}%)</label>
+                        <input 
+                          type="number" min="0" required
+                          value={newVaga.vagasNEG}
+                          onChange={e => setNewVaga({...newVaga, vagasNEG: parseInt(e.target.value) || 0})}
+                          className="w-full bg-transparent border-none outline-none font-black text-3xl text-slate-900 p-0 tabular-nums focus:text-amber-600 transition-colors"
+                        />
+                        <div className="text-[9px] font-black text-amber-500 uppercase mt-2 opacity-70">Esperado: {negEsp}</div>
+                      </div>
+
+                      {/* PCD */}
+                      <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm transition-all hover:border-sky-200">
+                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">PCD ({pPcd}%)</label>
+                        <input 
+                          type="number" min="0" required
+                          value={newVaga.vagasPCD}
+                          onChange={e => setNewVaga({...newVaga, vagasPCD: parseInt(e.target.value) || 0})}
+                          className="w-full bg-transparent border-none outline-none font-black text-3xl text-slate-900 p-0 tabular-nums focus:text-sky-600 transition-colors"
+                        />
+                        <div className="text-[9px] font-black text-sky-500 uppercase mt-2 opacity-70">Esperado: {pcdEsp}</div>
+                      </div>
+
+                      {/* Ampla */}
+                      <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 flex flex-col justify-center">
+                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1 opacity-50">Ampla (Resto)</label>
+                        <div className="font-black text-3xl text-slate-400 tabular-nums">{Math.max(0, ampla)}</div>
+                        <div className="text-[9px] font-black text-slate-300 uppercase mt-2">Automático</div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              <div className="flex justify-end pr-2 pt-2">
-                <button type="submit" className="px-8 py-3 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex-shrink-0">
-                  {editingId ? 'Salvar Alterações' : 'Adicionar Ofertas'}
-                </button>
+                    {alerts.some(a => a.type === 'WARNING') && (
+                      <div className="pt-4 space-y-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                        <label className="text-sm font-black text-amber-600 uppercase tracking-widest pl-1">Justificativa para Divergência Legislativa</label>
+                        <textarea 
+                          required
+                          value={newVaga.justificativa || ''}
+                          onChange={e => setNewVaga({...newVaga, justificativa: e.target.value})}
+                          placeholder="Informe o motivo técnico/legal para não seguir o percentual exato..."
+                          className="w-full px-5 py-4 bg-amber-50/30 border border-amber-100 rounded-2xl outline-none focus:border-amber-500 font-bold text-sm text-slate-700 min-h-[100px] transition-all"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center pt-8 border-t border-slate-200">
+                      <button 
+                        type="button"
+                        onClick={() => { setShowVagasModal(false); setEditingId(null); }}
+                        className="text-sm font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-all font-display"
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        type="submit"
+                        disabled={hasBlockingError}
+                        className={`px-10 py-5 text-sm font-black uppercase tracking-[0.2em] rounded-[24px] shadow-xl transition-all active:scale-95 font-display ${
+                          hasBlockingError 
+                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200 shadow-none' 
+                            : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200/50'
+                        }`}
+                      >
+                        {editingId ? 'Confirmar Alterações' : 'Publicar Vagas'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
               </div>
             </form>
 
             <div className="space-y-4">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Vagas já Configuradas</h3>
+              <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Vagas já Configuradas</h3>
               <div className="divide-y divide-slate-50 border border-slate-100 rounded-3xl overflow-hidden">
                 {vagasEstatisticas.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-400 font-bold italic bg-slate-50/30">Nenhuma vaga configurada para este edital.</div>
+                  <div className="p-8 text-center text-sm text-slate-400 font-bold italic bg-slate-50/30">Nenhuma vaga configurada para este edital.</div>
                 ) : (
                   vagasEstatisticas.map(v => (
-                    <div key={v.id} className="p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition-colors group">
+                    <div key={v.id} className="p-6 flex justify-between items-center bg-white hover:bg-slate-50 transition-colors group">
                       <div>
-                        <div className="text-[10px] font-black text-emerald-600 uppercase tracking-tight">{v.cargoNome}</div>
-                        <div className="text-sm font-black text-slate-900">{v.areaNome}</div>
+                        <div className="text-sm font-black text-emerald-600 uppercase tracking-widest">{v.cargoNome}</div>
+                        <div className="text-base font-black text-slate-900 font-display leading-tight">{v.areaNome}</div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <div className="text-[10px] font-black text-slate-300 uppercase">Vagas</div>
-                          <div className="text-sm font-black text-slate-900">{v.quantidadeVagas}</div>
+                      <div className="flex items-center gap-8">
+                        <div className="flex gap-4">
+                          <div className="text-center group-hover:bg-slate-100 p-2 rounded-xl transition-all">
+                             <div className="text-sm font-black text-slate-300 uppercase tracking-widest leading-none mb-1">AC</div>
+                             <div className="text-base font-black text-slate-900 tabular-nums">{v.vagasAC}</div>
+                          </div>
+                          <div className="text-center group-hover:bg-amber-50 p-2 rounded-xl transition-all">
+                             <div className="text-sm font-black text-amber-300 uppercase tracking-widest leading-none mb-1">NEG</div>
+                             <div className="text-base font-black text-amber-600 tabular-nums">{v.vagasNEG}</div>
+                          </div>
+                          <div className="text-center group-hover:bg-sky-50 p-2 rounded-xl transition-all">
+                             <div className="text-sm font-black text-sky-300 uppercase tracking-widest leading-none mb-1">PCD</div>
+                             <div className="text-base font-black text-sky-600 tabular-nums">{v.vagasPCD}</div>
+                          </div>
+                        </div>
+                        <div className="text-right border-l border-slate-100 pl-4">
+                          <div className="text-sm font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total</div>
+                          <div className="text-2xl font-black text-slate-900 font-display tabular-nums leading-none">{v.totalGeral}</div>
                         </div>
                         <button 
                           onClick={() => handleDeleteVaga(v)}
-                          className="p-2 text-slate-300 hover:text-rose-500 transition-all"
+                          className="p-3 bg-slate-50 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                           title="Excluir toda esta configuração de vagas"
                         >
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -1057,10 +1348,10 @@ export default function ClassificacaoPage() {
               </div>
             </div>
             
-             <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-4">
                 <button 
-                  onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', vagasPorModalidade: {} }); }} 
-                  className="px-8 py-4 bg-slate-900 text-white font-black uppercase text-[10px] tracking-[.2em] rounded-[20px] hover:bg-emerald-600 transition-all shadow-xl"
+                  onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', totalGeral: 0, vagasNEG: 0, vagasPCD: 0, justificativa: '' }); }} 
+                  className="px-10 py-5 bg-slate-900 text-white font-black uppercase text-sm tracking-[.2em] rounded-[24px] hover:bg-emerald-600 transition-all shadow-2xl"
                 >
                   Concluir Configuração
                 </button>
@@ -1071,216 +1362,309 @@ export default function ClassificacaoPage() {
 
       {showImport && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
-          <div className="bg-white rounded-[40px] shadow-2xl max-w-2xl w-full p-10 space-y-6">
-            <div className="flex justify-between items-center">
+          <div className="bg-white rounded-[40px] shadow-2xl max-w-2xl w-full p-10 space-y-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-50 pb-6">
               <div>
-                <h2 className="text-2xl font-black text-slate-900">Importação em Massa</h2>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Cole os dados da banca examinadora abaixo</p>
+                <h2 className="text-2xl font-black text-slate-900 font-display">Importação em Massa</h2>
+                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Cole os dados da banca examinadora abaixo</p>
               </div>
               <button onClick={() => setShowImport(false)} className="text-slate-200 hover:text-slate-900 transition-all">
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
 
-            <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
-              <p className="text-sm text-emerald-700 leading-relaxed font-bold">
-                Cole cada candidato em uma linha seguindo o padrão:<br/>
-                <code className="bg-white px-2 py-0.5 rounded-md text-emerald-900 font-black text-[10px]">INSCRICAO;CPF;NOME;NOTA;POS_AMPLA;POS_NEGRO;POS_PCD;CARGO;AREA;CARREIRA;NIVEL;EMAIL;TELEFONE;CELULAR;ENDERECO</code>
-              </p>
-              <p className="text-[10px] text-emerald-600 mt-2 italic font-bold pr-10">Ex: 2026001;123.456.789-00;MANOEL SILVA;85,50;1;;;PROFESSOR;MATEMATICA;MAGISTERIO;SUPERIOR;teste@email.com;(75) 3333-3333;(75) 99999-9999;Rua Teste, 10, Bairro Cento, Cidade-BA</p>
-              <a 
-                href="/modelo_importacao.csv" 
-                download="modelo_importacao.csv"
-                className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-white/60 hover:bg-white text-emerald-900 rounded-lg text-[10px] font-black transition-all border border-emerald-200"
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Baixar Modelo CSV
-              </a>
-            </div>
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 border-dashed flex flex-col items-center justify-center text-center group hover:bg-white hover:border-emerald-500 transition-all cursor-pointer">
-                <input 
-                  type="file" 
-                  id="csv-file-modal" 
-                  accept=".csv,.txt"
-                  className="hidden" 
-                  onChange={handleFileUpload}
-                />
-                <label htmlFor="csv-file-modal" className="cursor-pointer space-y-2">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mx-auto shadow-sm group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 transition-all">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                  </div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Enviar Arquivo .CSV</span>
-                </label>
+            <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100/50">
+              <div className="flex items-start gap-4">
+                 <div className="bg-white p-2 rounded-xl text-emerald-600 shadow-sm border border-emerald-100">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                 </div>
+                 <div className="flex-1">
+                    <p className="text-sm text-emerald-900 leading-relaxed font-black mb-2 font-display">Instruções de Formatação</p>
+                    <p className="text-sm text-emerald-700/80 leading-relaxed font-bold">
+                      Use ponto e vírgula (;) para separar os campos. A primeira linha deve conter os cabeçalhos.
+                    </p>
+                    <div className="mt-4 p-3 bg-white/50 rounded-xl font-mono text-[9px] text-emerald-900/60 break-all border border-emerald-100 uppercase tracking-tighter">
+                      INSCRICAO;CPF;NOME;NOTA;POS_AMPLA;POS_NEGRO;POS_PCD;CARGO;AREA;CARREIRA;NIVEL;EMAIL;TELEFONE;CELULAR;ENDERECO
+                    </div>
+                 </div>
               </div>
-            <textarea 
-              value={importText}
-              onChange={e => setImportText(e.target.value)}
-              className="w-full h-80 px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono text-xs font-bold text-slate-700 placeholder:text-slate-300"
-              placeholder="2026001;123.456.789-00;MANOEL SILVA;85,50;1;;;PROFESSOR;MATEMATICA;MAGISTERIO;SUPERIOR"
-            />
+              
+              <div className="mt-6 flex gap-3">
+                 <a 
+                  href="/modelo_importacao.csv" 
+                  download="modelo_importacao.csv"
+                  className="flex-1 py-4 px-6 bg-white hover:bg-emerald-600 hover:text-white text-emerald-900 rounded-2xl text-sm font-black uppercase tracking-widest transition-all border border-emerald-100 shadow-sm text-center flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  Modelo CSV
+                </a>
+                <div className="flex-1">
+                  <input 
+                    type="file" id="csv-file-modal-final" accept=".csv,.txt" className="hidden" 
+                    onChange={handleFileUpload}
+                  />
+                  <label htmlFor="csv-file-modal-final" className="w-full py-4 px-6 bg-slate-900 text-white hover:bg-emerald-600 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-xl cursor-pointer text-center flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    Upload CSV
+                  </label>
+                </div>
+              </div>
+            </div>
 
-            <div className="flex gap-4 justify-end pt-4">
+            <div className="space-y-2">
+               <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Conteúdo da Lista</label>
+               <textarea 
+                value={importText}
+                onChange={e => setImportText(e.target.value)}
+                className="w-full h-80 px-8 py-6 bg-slate-50 border border-slate-100 rounded-[32px] outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all font-mono text-[11px] font-bold text-slate-700 placeholder:text-slate-200"
+                placeholder="2026001;123.456.789-00;MANOEL SILVA;85,50;1;;;PROFESSOR;MATEMATICA;MAGISTERIO;SUPERIOR"
+              />
+            </div>
+
+            <div className="flex gap-4 justify-between items-center pt-4 border-t border-slate-50">
               <button 
                 onClick={() => setShowImport(false)}
-                className="px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all"
+                className="px-8 py-4 text-slate-400 font-black uppercase text-sm tracking-widest hover:text-slate-900 transition-all"
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleImport}
-                className="px-10 py-4 bg-emerald-600 text-white font-black uppercase text-xs tracking-[.2em] rounded-[20px] hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200"
+                disabled={!importText.trim()}
+                className="px-12 py-5 bg-emerald-600 text-white font-black uppercase text-sm tracking-[.25em] rounded-[24px] hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-200/50 disabled:opacity-50 disabled:shadow-none animate-in zoom-in-95 duration-200"
               >
-                Processar e Salvar
+                Importar Base
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {showCoverageModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+           <div className="bg-white rounded-[40px] shadow-2xl max-w-4xl w-full p-10 space-y-8 max-h-[90vh] overflow-y-auto border border-white/20">
+              <div className="flex justify-between items-start border-b border-slate-50 pb-8">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 font-display italic">Diagnóstico de Cobertura</h2>
+                  <p className="text-sm text-slate-400 font-bold uppercase tracking-[.2em] mt-2">Identificação de inconsistências em cargos e modalidades</p>
+                </div>
+                <button onClick={() => setShowCoverageModal(false)} className="p-2 bg-slate-50 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              {!coverageData ? (
+                 <div className="py-20 text-center space-y-4">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                       <svg className="w-8 h-8 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <p className="text-slate-400 font-black uppercase text-sm tracking-widest">Processando métricas...</p>
+                 </div>
+              ) : coverageData.length === 0 ? (
+                <div className="py-20 text-center space-y-6">
+                   <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[40px] flex items-center justify-center mx-auto shadow-inner">
+                      <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+                   </div>
+                   <div>
+                      <h4 className="text-2xl font-black text-slate-900 mb-2 font-display italic">Tudo em Ordem!</h4>
+                      <p className="text-slate-500 font-bold max-w-sm mx-auto">Nenhuma inconsistência de vagas foi detectada para este edital.</p>
+                   </div>
+                </div>
+              ) : (
+                <div className="space-y-10">
+                   <div className={`p-8 rounded-[32px] flex items-center gap-8 ${coverageData.some((d: any) => d.tipo === 'FALTANTE') ? 'bg-rose-50 border border-rose-100' : 'bg-amber-50 border border-amber-100'}`}>
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl ${coverageData.some((d: any) => d.tipo === 'FALTANTE') ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+                         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                      </div>
+                      <div className="flex-1">
+                         <h4 className="text-lg font-black text-slate-900 font-display">Conflitos Encontrados</h4>
+                         <p className="text-slate-500 text-sm font-bold">Existem {coverageData.length} inconsistências que impossibilitam a classificação automática completa.</p>
+                      </div>
+                   </div>
+
+                   <div className="space-y-6">
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-[.3em] pl-1">Relatório de Inconsistências</h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {coverageData.map((item: any, idx: number) => (
+                          <div key={idx} className="bg-slate-50 p-8 rounded-[40px] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500">
+                             <div className="space-y-2 max-w-md">
+                                <div className={`inline-block px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter ${item.tipo === 'FALTANTE' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                                   {item.tipo === 'FALTANTE' ? 'Não Ofertado' : 'Impacto Mínimo Não Atingido'}
+                                </div>
+                                <div className="text-xl font-black text-slate-900 font-display leading-tight">{item.cargo} / {item.area}</div>
+                                <div className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">{item.modalidade}</div>
+                             </div>
+                             
+                             <div className="flex items-center gap-10">
+                                <div className="text-center min-w-[60px]">
+                                   <div className="text-[9px] font-black text-slate-300 uppercase mb-1">Vagas</div>
+                                   <div className="text-2xl font-black text-slate-900 font-display tabular-nums">{item.vagasConfiguradas}</div>
+                                </div>
+                                <div className="text-center min-w-[60px]">
+                                   <div className="text-[9px] font-black text-slate-300 uppercase mb-1">Candidatos</div>
+                                   <div className="text-2xl font-black text-slate-900 font-display tabular-nums">{item.candidatosAfetados}</div>
+                                </div>
+                                <button 
+                                  onClick={() => handleQuickCreateVaga(item)}
+                                  className="px-6 py-3.5 bg-white border border-slate-200 text-sm font-black uppercase tracking-widest text-slate-600 rounded-2xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm"
+                                >
+                                  Corrigir
+                                </button>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-8 border-t border-slate-50">
+                <button 
+                  onClick={() => setShowCoverageModal(false)}
+                  className="px-8 py-4 text-slate-400 font-black uppercase text-sm tracking-widest hover:text-slate-900 transition-all"
+                >
+                  Fechar Diagnóstico
+                </button>
+                {coverageData && coverageData.length > 0 && (
+                  <button 
+                    onClick={handleApplyAllSuggestions}
+                    disabled={applyingSuggestions}
+                    className="px-10 py-5 bg-emerald-600 text-white font-black uppercase text-sm tracking-[.25em] rounded-[24px] hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-200/50 flex items-center gap-3 disabled:opacity-50"
+                  >
+                    {applyingSuggestions && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>}
+                    Resolver Todas Automaticamente
+                  </button>
+                )}
+              </div>
+           </div>
+        </div>
+      )}
+
       {editingCandidato && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
-           <div className="bg-white rounded-[40px] shadow-2xl max-w-lg w-full p-10 space-y-8">
-              <div className="flex justify-between items-center">
+           <div className="bg-white rounded-[40px] shadow-2xl max-w-2xl w-full p-10 space-y-8 max-h-[95vh] overflow-y-auto">
+              <div className="flex justify-between items-center border-b border-slate-50 pb-6">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900">{editingCandidato.id ? 'Editar' : 'Novo'} Habilitado</h2>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-                    {editingCandidato.id ? 'Ajuste os dados cadastrais' : 'Preencha os dados do novo candidato'}
-                  </p>
+                  <h2 className="text-2xl font-black text-slate-900 font-display italic">{editingCandidato.id ? 'Ficha do Candidato' : 'Novo Habilitado'}</h2>
+                  <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de dados sensíveis e classificação</p>
                 </div>
                 <button onClick={() => setEditingCandidato(null)} className="text-slate-200 hover:text-slate-900 transition-all">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
 
-              <form onSubmit={handleSave} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nome Completo</label>
-                  <input 
-                    type="text" required
-                    value={editingCandidato.nomeCandidato}
-                    onChange={e => setEditingCandidato({...editingCandidato, nomeCandidato: e.target.value})}
-                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">CPF</label>
+              <form onSubmit={handleSave} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 col-span-1 md:col-span-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nome Completo</label>
+                    <input 
+                      type="text" required
+                      value={editingCandidato.nomeCandidato}
+                      onChange={e => setEditingCandidato({...editingCandidato, nomeCandidato: e.target.value})}
+                      className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-black text-slate-800 font-display text-lg uppercase shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">CPF</label>
                     <input 
                       type="text" required
                       value={editingCandidato.cpfCandidato}
                       onChange={e => setEditingCandidato({...editingCandidato, cpfCandidato: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
+                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800 tabular-nums"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Inscrição</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Número de Inscrição</label>
                     <input 
                       type="text" required
                       value={editingCandidato.numeroInscricao}
                       onChange={e => setEditingCandidato({...editingCandidato, numeroInscricao: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nota</label>
-                    <input 
-                      type="text"
-                      value={editingCandidato.nota || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, nota: e.target.value})}
-                      placeholder="0,00"
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Posição Ampla (Obrigatória)</label>
-                    <input 
-                      type="number" required
-                      value={editingCandidato.posicaoAmpla || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, posicaoAmpla: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
+                      className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Posição Negro</label>
-                    </div>
-                    <input 
-                      type="number"
-                      value={editingCandidato.posicaoNegro || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, posicaoNegro: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Posição PCD</label>
-                    </div>
-                    <input 
-                      type="number"
-                      value={editingCandidato.posicaoPCD || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, posicaoPCD: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
+                <div className="bg-slate-50/50 p-8 rounded-[32px] border border-slate-100 space-y-6">
+                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4 pl-1">Pontuação e Posicionamento</h3>
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200">
+                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter block mb-1">Nota</label>
+                         <input 
+                           type="text" value={editingCandidato.nota || ''}
+                           onChange={e => setEditingCandidato({...editingCandidato, nota: e.target.value})}
+                           className="w-full bg-transparent outline-none font-black text-xl text-emerald-600 tabular-nums"
+                         />
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200">
+                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter block mb-1">Ampla</label>
+                         <input 
+                           type="number" required value={editingCandidato.posicaoAmpla || ''}
+                           onChange={e => setEditingCandidato({...editingCandidato, posicaoAmpla: e.target.value})}
+                           className="w-full bg-transparent outline-none font-black text-xl text-slate-900 tabular-nums"
+                         />
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200">
+                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter block mb-1">Negro</label>
+                         <input 
+                           type="number" value={editingCandidato.posicaoNegro || ''}
+                           onChange={e => setEditingCandidato({...editingCandidato, posicaoNegro: e.target.value})}
+                           className="w-full bg-transparent outline-none font-black text-xl text-amber-600 tabular-nums"
+                         />
+                      </div>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200">
+                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter block mb-1">PCD</label>
+                         <input 
+                           type="number" value={editingCandidato.posicaoPCD || ''}
+                           onChange={e => setEditingCandidato({...editingCandidato, posicaoPCD: e.target.value})}
+                           className="w-full bg-transparent outline-none font-black text-xl text-sky-600 tabular-nums"
+                         />
+                      </div>
+                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Carreira</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Carreira</label>
                     <select 
                       value={editingCandidato.carreiraId || ''}
                       onChange={e => setEditingCandidato({...editingCandidato, carreiraId: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none"
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none shadow-sm transition-all"
                     >
-                      <option value="">Selecione a Carreira</option>
-                      {carreiras.map(c => (
-                        <option key={c.id} value={c.id}>{c.nome}</option>
-                      ))}
+                      <option value="">Selecione...</option>
+                      {carreiras.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                     </select>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nível</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nível</label>
                     <select 
                       value={editingCandidato.nivelId || ''}
                       onChange={e => setEditingCandidato({...editingCandidato, nivelId: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none"
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none shadow-sm transition-all"
                     >
-                      <option value="">Selecione o Nível</option>
-                      {niveis.map(n => (
-                        <option key={n.id} value={n.id}>{n.nome}</option>
-                      ))}
+                      <option value="">Selecione...</option>
+                      {niveis.map(n => <option key={n.id} value={n.id}>{n.nome}</option>)}
                     </select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Cargo</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Cargo</label>
                     <select 
                       value={editingCandidato.cargoId || ''}
                       onChange={e => setEditingCandidato({...editingCandidato, cargoId: e.target.value, areaAtuacaoId: ''})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none"
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none shadow-sm transition-all"
                     >
-                      <option value="">Selecione o Cargo</option>
-                      {cargos.map(c => (
-                        <option key={c.id} value={c.id}>{c.nome}</option>
-                      ))}
+                      <option value="">Selecione...</option>
+                      {cargos.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                     </select>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Área de Atuação</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Área de Atuação</label>
                     <select 
                       value={editingCandidato.areaAtuacaoId || ''}
                       onChange={e => setEditingCandidato({...editingCandidato, areaAtuacaoId: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none"
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-emerald-500 font-bold text-slate-800 appearance-none shadow-sm transition-all"
                       disabled={!editingCandidato.cargoId}
                     >
-                      <option value="">Geral / Sem Área</option>
+                      <option value="">Geral</option>
                       {cargos.find(c => c.id === editingCandidato.cargoId)?.areas?.map((a: any) => (
                         <option key={a.id} value={a.id}>{a.nome}</option>
                       ))}
@@ -1288,185 +1672,55 @@ export default function ClassificacaoPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">E-mail</label>
-                    <input 
-                      type="email"
-                      value={editingCandidato.emailCandidato || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, emailCandidato: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Celular</label>
-                    <input 
-                      type="text"
-                      value={editingCandidato.celularCandidato || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, celularCandidato: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
+                <div className="bg-slate-900 p-10 rounded-[40px] space-y-8 shadow-2xl">
+                   <h3 className="text-sm font-black text-emerald-400 uppercase tracking-[.3em] pl-1">Logística e Contato</h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-slate-500 uppercase tracking-widest pl-1">E-mail Corporativo/Pessoal</label>
+                        <input 
+                          type="email" value={editingCandidato.emailCandidato || ''}
+                          onChange={e => setEditingCandidato({...editingCandidato, emailCandidato: e.target.value})}
+                          className="w-full px-6 py-4 bg-white/5 border-none rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/50 text-white font-bold text-sm shadow-inner"
+                          placeholder="candidato@email.com"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-black text-slate-500 uppercase tracking-widest pl-1">Celular / WhatsApp</label>
+                        <input 
+                          type="text" value={editingCandidato.celularCandidato || ''}
+                          onChange={e => setEditingCandidato({...editingCandidato, celularCandidato: e.target.value})}
+                          className="w-full px-6 py-4 bg-white/5 border-none rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/50 text-white font-bold text-sm shadow-inner"
+                          placeholder="(00) 00000-0000"
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-1 md:col-span-2">
+                        <label className="text-sm font-black text-slate-500 uppercase tracking-widest pl-1">Endereço Residencial</label>
+                        <input 
+                          type="text" value={editingCandidato.enderecoCandidato || ''}
+                          onChange={e => setEditingCandidato({...editingCandidato, enderecoCandidato: e.target.value})}
+                          className="w-full px-6 py-4 bg-white/5 border-none rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/50 text-white font-bold text-sm shadow-inner"
+                          placeholder="Logradouro, Bairro, CEP, Cidade-UF"
+                        />
+                      </div>
+                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Telefone Fixo</label>
-                    <input 
-                      type="text"
-                      value={editingCandidato.telefoneCandidato || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, telefoneCandidato: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Endereço de Correspondência</label>
-                    <input 
-                      type="text"
-                      value={editingCandidato.enderecoCandidato || ''}
-                      onChange={e => setEditingCandidato({...editingCandidato, enderecoCandidato: e.target.value})}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-bold text-slate-800"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 justify-end pt-6">
+                <div className="flex gap-4 justify-end pt-8 border-t border-slate-50">
                   <button 
-                    type="button"
-                    onClick={() => setEditingCandidato(null)}
-                    className="px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all"
+                    type="button" onClick={() => setEditingCandidato(null)}
+                    className="px-10 py-5 text-slate-400 font-black uppercase text-sm tracking-widest hover:text-slate-900 transition-all"
                   >
-                    Cancelar
+                    Descartar Alterações
                   </button>
                   <button 
                     type="submit"
-                    className="px-10 py-4 bg-emerald-600 text-white font-black uppercase text-xs tracking-[.2em] rounded-[20px] hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200"
+                    className="px-14 py-5 bg-emerald-600 text-white font-black uppercase text-sm tracking-[.3em] rounded-[24px] hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-200/50 active:scale-95"
                   >
-                    Salvar Alterações
+                    Salvar Candidato
                   </button>
                 </div>
               </form>
            </div>
-        </div>
-      )}
-
-      {/* Modal de Análise de Cobertura */}
-      {showCoverageModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300">
-            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900 italic">Análise de Cobertura</h3>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Diagnóstico de configurações do Edital</p>
-              </div>
-              <button 
-                onClick={() => setShowCoverageModal(false)}
-                className="p-3 hover:bg-white hover:shadow-lg rounded-2xl transition-all text-slate-400 hover:text-rose-500"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-
-            <div className="p-8 overflow-y-auto flex-1">
-              {coverageData.length === 0 ? (
-                <div className="text-center py-12">
-                   <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[32px] flex items-center justify-center mx-auto mb-6">
-                      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-                   </div>
-                   <h4 className="text-2xl font-black text-slate-900 mb-2">Tudo Configurado!</h4>
-                   <p className="text-slate-500 font-bold">Todos os candidatos possuem vagas correspondentes cadastradas no edital.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                   <div className={`p-6 ${coverageData.some(d => d.tipo === 'INSUFICIENTE') ? 'bg-amber-50 border-amber-100' : 'bg-rose-50 border-rose-100'} rounded-3xl flex items-center gap-6`}>
-                      <div className={`w-12 h-12 ${coverageData.some(d => d.tipo === 'INSUFICIENTE') ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'} rounded-2xl flex items-center justify-center flex-shrink-0`}>
-                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                      </div>
-                      <div>
-                         <h4 className={`font-black ${coverageData.some(d => d.tipo === 'INSUFICIENTE') ? 'text-amber-900' : 'text-rose-900'}`}>Inconsistências de Vagas Detectadas</h4>
-                         <p className={`text-sm ${coverageData.some(d => d.tipo === 'INSUFICIENTE') ? 'text-amber-700' : 'text-rose-700'} font-bold`}>
-                           Identificamos <span className="underline">{coverageData.length} problemas</span> que precisam de atenção.
-                         </p>
-                      </div>
-                   </div>
-
-                   <div className="overflow-hidden rounded-3xl border border-slate-100">
-                      <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50">
-                          <tr className="bg-slate-50/50">
-                               <th className="text-left py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Problema</th>
-                               <th className="text-left py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cargo / Área</th>
-                               <th className="text-left py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Modalidade</th>
-                               <th className="text-center py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vagas</th>
-                               <th className="text-center py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Habilitados</th>
-                               <th className="text-center py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ação</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100">
-                             {coverageData.map((item, idx) => (
-                               <tr key={idx} className="hover:bg-slate-50 transition-colors group">
-                                  <td className="py-4 px-6">
-                                     <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-tighter ${item.tipo === 'FALTANTE' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
-                                        {item.tipo === 'FALTANTE' ? 'Não Configurado' : 'Qtd Insuficiente'}
-                                     </span>
-                                  </td>
-                                  <td className="py-4 px-6">
-                                     <div className="text-xs font-black text-slate-900">{item.cargo}</div>
-                                     <div className="text-[10px] font-bold text-slate-400 uppercase">{item.area}</div>
-                                  </td>
-                                  <td className="py-4 px-6">
-                                     <div className="text-[10px] font-black text-slate-600 uppercase tracking-tighter bg-slate-100 inline-block px-2 py-1 rounded-lg">
-                                        {item.modalidade}
-                                     </div>
-                                  </td>
-                                  <td className="py-4 px-6 text-center">
-                                     <span className={`text-xs font-black ${item.tipo === 'INSUFICIENTE' ? 'text-amber-600' : 'text-slate-400 italic'}`}>
-                                        {item.vagasConfiguradas}
-                                     </span>
-                                  </td>
-                                  <td className="py-4 px-6 text-center">
-                                     <span className="text-xs font-black text-slate-900">{item.candidatosAfetados}</span>
-                                  </td>
-                                  <td className="py-4 px-6 text-center">
-                                     <button 
-                                        onClick={() => handleQuickCreateVaga(item)}
-                                        className="px-4 py-2 bg-white border border-slate-200 text-[10px] font-black uppercase text-slate-600 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm"
-                                     >
-                                        {item.tipo === 'FALTANTE' ? 'Cadastrar Vaga' : 'Ajustar Vagas'}
-                                     </button>
-                                  </td>
-                               </tr>
-                             ))}
-                        </tbody>
-                      </table>
-                   </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-               <button 
-                 onClick={() => setShowCoverageModal(false)}
-                 className="px-6 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all"
-               >
-                 Fechar Análise
-               </button>
-               {coverageData.length > 0 && (
-                 <button 
-                    onClick={handleApplyAllSuggestions}
-                    disabled={applyingSuggestions}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 transition-all shadow-xl shadow-emerald-100 disabled:opacity-50"
-                 >
-                    {applyingSuggestions ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>
-                    )}
-                    Aplicar Todas as Sugestões
-                 </button>
-               )}
-            </div>
-          </div>
         </div>
       )}
     </div>

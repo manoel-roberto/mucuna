@@ -184,7 +184,7 @@ function AreasContent() {
           {filterCargoId && (
             <button 
               onClick={() => router.push('/funcionario/areas-atuacao')}
-              className="px-6 py-4 border-2 border-slate-100 text-slate-400 font-black rounded-2xl hover:bg-slate-50 transition-all text-xs uppercase"
+              className="px-6 py-4 border-2 border-slate-100 text-slate-400 font-black rounded-2xl hover:bg-slate-50 transition-all text-sm uppercase"
             >
               Limpar Filtro
             </button>
@@ -211,9 +211,9 @@ function AreasContent() {
                   className="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer shadow-sm"
                 />
               </th>
-              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome da Área / Especialização</th>
-              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cargo Vinculado</th>
-              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+              <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-widest">Nome da Área / Especialização</th>
+              <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-widest">Cargo Vinculado</th>
+              <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
@@ -239,7 +239,7 @@ function AreasContent() {
                     <span className="text-slate-900 font-extrabold text-lg">{area.nome}</span>
                   </td>
                   <td className="px-10 py-6">
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-emerald-100 italic">
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-black uppercase tracking-tighter border border-emerald-100 italic">
                       {area.cargo?.nome}
                     </span>
                   </td>
@@ -266,7 +266,7 @@ function AreasContent() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-black text-slate-900">{editMode ? 'Editar' : 'Nova'} Área</h2>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Sincronização com Cargo</p>
+                <p className="text-sm text-slate-400 font-black uppercase tracking-widest mt-1">Sincronização com Cargo</p>
               </div>
               <button onClick={() => setShowModal(false)} className="text-slate-200 hover:text-slate-900 transition-all">
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -275,7 +275,7 @@ function AreasContent() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Cargo Vinculado</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Cargo Vinculado</label>
                 <select
                   required
                   value={formData.cargoId}
@@ -288,7 +288,7 @@ function AreasContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nome da Área / Formação</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nome da Área / Formação</label>
                 <input 
                   type="text" required 
                   value={formData.nome}
@@ -299,7 +299,7 @@ function AreasContent() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all">Cancelar</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-sm tracking-widest hover:text-slate-900 transition-all">Cancelar</button>
                 <button type="submit" className="px-10 py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100">
                   {editMode ? 'Salvar Mudanças' : 'Cadastrar Área'}
                 </button>

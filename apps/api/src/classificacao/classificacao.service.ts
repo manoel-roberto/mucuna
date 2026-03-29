@@ -21,63 +21,82 @@ export class ClassificacaoService {
   async findAllByEdital(editalId: string): Promise<any[]> {
     const list = await this.prisma.classificacaoCandidato.findMany({
       where: { editalId },
-      include: { 
+      include: {
         modalidade: true,
         cargo: true,
         areaAtuacao: true,
         carreira: true,
         nivel: true,
         envios: {
-          select: { id: true, statusAvaliacao: true }
-        }
+          select: { id: true, statusAvaliacao: true },
+        },
       },
       orderBy: { posicaoAmpla: 'asc' },
     });
 
     // Migração Automática (Lazy Migration)
     // Se encontrarmos registros que ainda não foram migrados para o novo modelo de concorrência
-    if (list.length > 0 && list.some(c => !c.concorrenciaAmpla && !c.concorrenciaNegro && !c.concorrenciaPCD)) {
-       for (const c of list) {
-         if (!c.concorrenciaAmpla && !c.concorrenciaNegro && !c.concorrenciaPCD) {
-            const data: any = { concorrenciaAmpla: true };
-            if ((c.posicaoAmpla === 0 || c.posicaoAmpla === null) && (c.posicao ?? 0) > 0) {
-              data.posicaoAmpla = c.posicao;
-            }
-            if (c.modalidade?.nome.includes('Negros')) {
-              data.concorrenciaNegro = true;
-              data.posicaoNegro = c.posicao;
-            }
-            if (c.modalidade?.nome.includes('PCD')) {
-              data.concorrenciaPCD = true;
-              data.posicaoPCD = c.posicao;
-            }
-            await this.prisma.classificacaoCandidato.update({ where: { id: c.id }, data });
-         }
-       }
-       // Recarregar para retornar dados ordenados corretamente
-       return this.findAllByEdital(editalId);
+    if (
+      list.length > 0 &&
+      list.some(
+        (c) =>
+          !c.concorrenciaAmpla && !c.concorrenciaNegro && !c.concorrenciaPCD,
+      )
+    ) {
+      for (const c of list) {
+        if (
+          !c.concorrenciaAmpla &&
+          !c.concorrenciaNegro &&
+          !c.concorrenciaPCD
+        ) {
+          const data: any = { concorrenciaAmpla: true };
+          if (
+            (c.posicaoAmpla === 0 || c.posicaoAmpla === null) &&
+            (c.posicao ?? 0) > 0
+          ) {
+            data.posicaoAmpla = c.posicao;
+          }
+          if (c.modalidade?.nome.includes('Negros')) {
+            data.concorrenciaNegro = true;
+            data.posicaoNegro = c.posicao;
+          }
+          if (c.modalidade?.nome.includes('PCD')) {
+            data.concorrenciaPCD = true;
+            data.posicaoPCD = c.posicao;
+          }
+          await this.prisma.classificacaoCandidato.update({
+            where: { id: c.id },
+            data,
+          });
+        }
+      }
+      // Recarregar para retornar dados ordenados corretamente
+      return this.findAllByEdital(editalId);
     }
-    
+
     return list;
   }
 
   async migrarDadosLegados() {
     const all = await this.prisma.classificacaoCandidato.findMany({
-      include: { modalidade: true }
+      include: { modalidade: true },
     });
-    
+
     let count = 0;
     for (const c of all) {
       const data: any = {};
-      
+
       // 1. Migrar posição geral
-      if ((c.posicaoAmpla === 0 || c.posicaoAmpla === null) && (c.posicao ?? 0) > 0) {
+      if (
+        (c.posicaoAmpla === 0 || c.posicaoAmpla === null) &&
+        (c.posicao ?? 0) > 0
+      ) {
         data.posicaoAmpla = c.posicao;
       }
-      
+
       // 2. Setar flags de concorrência baseada na modalidadeId legada
       if (!c.concorrenciaAmpla && !c.concorrenciaNegro && !c.concorrenciaPCD) {
-        data.concorrenciaAmpla = true; 
+        data.concorrenciaAmpla = true;
         if (c.modalidade?.nome.includes('Negros')) {
           data.concorrenciaNegro = true;
           if (!c.posicaoNegro) data.posicaoNegro = c.posicao;
@@ -87,11 +106,11 @@ export class ClassificacaoService {
           if (!c.posicaoPCD) data.posicaoPCD = c.posicao;
         }
       }
-      
+
       if (Object.keys(data).length > 0) {
         await this.prisma.classificacaoCandidato.update({
           where: { id: c.id },
-          data
+          data,
         });
         count++;
       }
@@ -100,28 +119,27 @@ export class ClassificacaoService {
   }
 
   async findAllByUsuario(usuarioId: string) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { id: usuarioId } });
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+    });
     if (!usuario) return [];
-    
+
     const cleanCpf = usuario.cpf.replace(/\D/g, '');
 
     return this.prisma.classificacaoCandidato.findMany({
-      where: { 
-        OR: [
-          { usuarioId: usuario.id },
-          { cpfCandidato: cleanCpf }
-        ]
+      where: {
+        OR: [{ usuarioId: usuario.id }, { cpfCandidato: cleanCpf }],
       },
-      include: { 
+      include: {
         edital: {
-          include: { 
+          include: {
             vagas: {
-              include: { modeloFormulario: true }
+              include: { modeloFormulario: true },
             },
-            formularios: { 
-              include: { modeloFormulario: true } 
-            }
-          }
+            formularios: {
+              include: { modeloFormulario: true },
+            },
+          },
         },
         modalidade: true,
         cargo: true,
@@ -130,15 +148,19 @@ export class ClassificacaoService {
         nivel: true,
         modeloFormulario: true,
         envios: {
-          include: { arquivos: true }
-        }
-      }
+          include: { arquivos: true },
+        },
+      },
     });
   }
 
   private normalize(str: string | null | undefined): string {
     if (!str) return '';
-    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 
   private normalizeCpf(cpf: string | null | undefined): string {
@@ -147,26 +169,38 @@ export class ClassificacaoService {
   }
 
   async importar(editalId: string, candidatos: any[]) {
-    console.log(`Iniciando importação de ${candidatos.length} candidatos para o edital ${editalId}`);
+    console.log(
+      `Iniciando importação de ${candidatos.length} candidatos para o edital ${editalId}`,
+    );
     try {
       const modalidades = await this.modalidadesConcorrenciaService.findAll();
-      const cargos = await this.prisma.cargo.findMany({ include: { areas: true } });
+      const cargos = await this.prisma.cargo.findMany({
+        include: { areas: true },
+      });
       const carreiras = await this.prisma.carreira.findMany();
       const niveis = await this.prisma.nivel.findMany();
-      const vagas = await this.prisma.vagaEdital.findMany({ where: { editalId } });
-      
+      const vagas = await this.prisma.vagaEdital.findMany({
+        where: { editalId },
+      });
+
       const success = [];
       const errors = [];
 
       for (const [index, cand] of candidatos.entries()) {
         try {
           const posicaoAmpla = parseInt(cand.posicaoAmpla) || 0;
-          const posicaoNegro = cand.posicaoNegro ? parseInt(cand.posicaoNegro) : null;
+          const posicaoNegro = cand.posicaoNegro
+            ? parseInt(cand.posicaoNegro)
+            : null;
           const posicaoPCD = cand.posicaoPCD ? parseInt(cand.posicaoPCD) : null;
-          const nota = cand.nota ? parseFloat(String(cand.nota).replace(',', '.')) : null;
+          const nota = cand.nota
+            ? parseFloat(String(cand.nota).replace(',', '.'))
+            : null;
 
           if (isNaN(posicaoAmpla) && !cand.posicaoAmpla) {
-            errors.push(`Linha ${index + 1}: Posição Ampla ausente ou inválida`);
+            errors.push(
+              `Linha ${index + 1}: Posição Ampla ausente ou inválida`,
+            );
             continue;
           }
 
@@ -177,17 +211,21 @@ export class ClassificacaoService {
           }
 
           // 1. Modalidade de Concorrência (Boolean Flags)
-          let concorrenciaAmpla = true;
+          const concorrenciaAmpla = true;
           let concorrenciaNegro = !!posicaoNegro; // Se tem posição, concorreu por esta cota
-          let concorrenciaPCD = !!posicaoPCD;     // Se tem posição, concorreu por esta cota
+          let concorrenciaPCD = !!posicaoPCD; // Se tem posição, concorreu por esta cota
 
-          const modalidadeValueRaw = cand.modalidadeConcorrencia || cand.tipoVaga || cand.modalidade;
+          const modalidadeValueRaw =
+            cand.modalidadeConcorrencia || cand.tipoVaga || cand.modalidade;
           const modalidadeValue = this.normalize(modalidadeValueRaw);
-          
+
           if (modalidadeValue) {
             if (modalidadeValue.includes('negro')) {
               concorrenciaNegro = true;
-            } else if (modalidadeValue.includes('deficien') || modalidadeValue.includes('pcd')) {
+            } else if (
+              modalidadeValue.includes('deficien') ||
+              modalidadeValue.includes('pcd')
+            ) {
               concorrenciaPCD = true;
             }
           }
@@ -195,8 +233,9 @@ export class ClassificacaoService {
           // Manter o modalidadeId para compatibilidade com as VagaEdital (provisório)
           let modalidadeId = null;
           if (modalidadeValueRaw) {
-            const modalidadeEncontrada = modalidades.find(m =>
-              this.normalize(m.nome) === this.normalize(modalidadeValueRaw)
+            const modalidadeEncontrada = modalidades.find(
+              (m) =>
+                this.normalize(m.nome) === this.normalize(modalidadeValueRaw),
             );
             if (modalidadeEncontrada) {
               modalidadeId = modalidadeEncontrada.id;
@@ -208,31 +247,31 @@ export class ClassificacaoService {
           let areaAtuacaoId = null;
 
           if (cand.cargo) {
-            let cargoEncontrado = cargos.find(c =>
-              this.normalize(c.nome) === this.normalize(cand.cargo)
+            let cargoEncontrado = cargos.find(
+              (c) => this.normalize(c.nome) === this.normalize(cand.cargo),
             );
-            
+
             if (!cargoEncontrado) {
               cargoEncontrado = await this.prisma.cargo.create({
                 data: { nome: cand.cargo.trim() },
-                include: { areas: true }
+                include: { areas: true },
               });
               cargos.push(cargoEncontrado);
             }
 
             cargoId = cargoEncontrado.id;
-            
+
             if (cand.area) {
-              let areaEncontrada = cargoEncontrado.areas.find(a =>
-                this.normalize(a.nome) === this.normalize(cand.area)
+              let areaEncontrada = cargoEncontrado.areas.find(
+                (a) => this.normalize(a.nome) === this.normalize(cand.area),
               );
-              
+
               if (!areaEncontrada) {
                 areaEncontrada = await this.prisma.areaAtuacao.create({
                   data: {
                     nome: cand.area.trim(),
-                    cargoId: cargoId
-                  }
+                    cargoId: cargoId,
+                  },
                 });
                 cargoEncontrado.areas.push(areaEncontrada);
               }
@@ -245,12 +284,12 @@ export class ClassificacaoService {
           let nivelId = null;
 
           if (cand.carreira) {
-            let carreiraEncontrada = carreiras.find(c =>
-              this.normalize(c.nome) === this.normalize(cand.carreira)
+            let carreiraEncontrada = carreiras.find(
+              (c) => this.normalize(c.nome) === this.normalize(cand.carreira),
             );
             if (!carreiraEncontrada) {
               carreiraEncontrada = await this.prisma.carreira.create({
-                data: { nome: cand.carreira.trim() }
+                data: { nome: cand.carreira.trim() },
               });
               carreiras.push(carreiraEncontrada);
             }
@@ -258,10 +297,12 @@ export class ClassificacaoService {
           }
 
           if (cand.nivel) {
-            let niv = niveis.find(n => this.normalize(n.nome) === this.normalize(cand.nivel));
+            let niv = niveis.find(
+              (n) => this.normalize(n.nome) === this.normalize(cand.nivel),
+            );
             if (!niv) {
               niv = await this.prisma.nivel.create({
-                data: { nome: cand.nivel.trim() }
+                data: { nome: cand.nivel.trim() },
               });
               niveis.push(niv);
             }
@@ -269,16 +310,23 @@ export class ClassificacaoService {
           }
 
           // 6. Situação preliminar baseada em vagas
-          const vagaCorrespondente = vagas.find(v => 
-            v.cargoId === cargoId && 
-            (v.areaAtuacaoId === areaAtuacaoId || (!v.areaAtuacaoId && !areaAtuacaoId)) && 
-            (v.carreiraId === carreiraId || (!v.carreiraId && !carreiraId)) &&
-            (v.nivelId === nivelId || (!v.nivelId && !nivelId)) &&
-            (v.modalidadeId === modalidadeId || (!v.modalidadeId && !modalidadeId))
+          const vagaCorrespondente = vagas.find(
+            (v) =>
+              v.cargoId === cargoId &&
+              (v.areaAtuacaoId === areaAtuacaoId ||
+                (!v.areaAtuacaoId && !areaAtuacaoId)) &&
+              (v.carreiraId === carreiraId || (!v.carreiraId && !carreiraId)) &&
+              (v.nivelId === nivelId || (!v.nivelId && !nivelId)) &&
+              (v.modalidadeId === modalidadeId ||
+                (!v.modalidadeId && !modalidadeId)),
           );
 
-          let situacao: 'APROVADO_CONVOCAVEL' | 'CADASTRO_RESERVA' = 'CADASTRO_RESERVA';
-          if (vagaCorrespondente && (posicaoAmpla <= vagaCorrespondente.quantidadeVagas)) {
+          let situacao: 'APROVADO_CONVOCAVEL' | 'CADASTRO_RESERVA' =
+            'CADASTRO_RESERVA';
+          if (
+            vagaCorrespondente &&
+            posicaoAmpla <= vagaCorrespondente.quantidadeVagas
+          ) {
             situacao = 'APROVADO_CONVOCAVEL';
           }
 
@@ -288,22 +336,30 @@ export class ClassificacaoService {
               editalId,
               OR: [
                 { cpfCandidato: cleanCpf },
-                { numeroInscricao: String(cand.numeroInscricao) }
-              ]
+                { numeroInscricao: String(cand.numeroInscricao) },
+              ],
             },
           });
 
           // 7. Verificar se já existe um usuário com este CPF para vincular
-          const usuarioExistente = await this.prisma.usuario.findUnique({ where: { cpf: cleanCpf } });
+          const usuarioExistente = await this.prisma.usuario.findUnique({
+            where: { cpf: cleanCpf },
+          });
 
           const baseData = {
             nomeCandidato: String(cand.nome),
             numeroInscricao: String(cand.numeroInscricao),
             usuarioId: usuarioExistente?.id || null,
             posicaoAmpla: Number(posicaoAmpla),
-            posicaoNegro: (posicaoNegro !== null && !isNaN(posicaoNegro)) ? Number(posicaoNegro) : null,
-            posicaoPCD: (posicaoPCD !== null && !isNaN(posicaoPCD)) ? Number(posicaoPCD) : null,
-            nota: (nota !== null && !isNaN(nota)) ? Number(nota) : null,
+            posicaoNegro:
+              posicaoNegro !== null && !isNaN(posicaoNegro)
+                ? Number(posicaoNegro)
+                : null,
+            posicaoPCD:
+              posicaoPCD !== null && !isNaN(posicaoPCD)
+                ? Number(posicaoPCD)
+                : null,
+            nota: nota !== null && !isNaN(nota) ? Number(nota) : null,
             situacao,
             concorrenciaAmpla: Boolean(concorrenciaAmpla),
             concorrenciaNegro: Boolean(concorrenciaNegro),
@@ -337,9 +393,14 @@ export class ClassificacaoService {
           }
           success.push(cand.nome);
         } catch (error: any) {
-          console.error(`DETALHE DO ERRO - Candidato ${cand.nome || 'sem nome'} (Payload: ${JSON.stringify(cand)}):`, JSON.stringify(error, null, 2));
+          console.error(
+            `DETALHE DO ERRO - Candidato ${cand.nome || 'sem nome'} (Payload: ${JSON.stringify(cand)}):`,
+            JSON.stringify(error, null, 2),
+          );
           console.error(`ERRO MESSAGE:`, error.message);
-          errors.push(`Candidato ${cand.nome || 'sem nome'}: ${error.message.substring(0, 150)}...`);
+          errors.push(
+            `Candidato ${cand.nome || 'sem nome'}: ${error.message.substring(0, 150)}...`,
+          );
         }
       }
 
@@ -350,33 +411,50 @@ export class ClassificacaoService {
       // Re-classificar automaticamente após importação
       await this.reprocessarSituacaoCandidatos(editalId);
 
-      return { total: success.length, errors: errors.length > 0 ? errors : undefined };
+      return {
+        total: success.length,
+        errors: errors.length > 0 ? errors : undefined,
+      };
     } catch (error) {
       console.error('Erro fatal na importação:', error);
       if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException(`DEBUG-API: Erro interno: ${error.message}`);
+      throw new BadRequestException(
+        `DEBUG-API: Erro interno: ${error.message}`,
+      );
     }
   }
 
   async create(editalId: string, data: any) {
-    const { modalidadeId, cargoId, areaAtuacaoId, carreiraId, nivelId, situacao, ...rest } = data;
-    
+    const {
+      modalidadeId,
+      cargoId,
+      areaAtuacaoId,
+      carreiraId,
+      nivelId,
+      situacao,
+      ...rest
+    } = data;
+
     // Validar duplicidade antes de criar
     const existente = await this.prisma.classificacaoCandidato.findFirst({
       where: {
         editalId,
         OR: [
           { cpfCandidato: rest.cpfCandidato },
-          { numeroInscricao: rest.numeroInscricao }
-        ]
-      }
+          { numeroInscricao: rest.numeroInscricao },
+        ],
+      },
     });
 
     if (existente) {
-      throw new BadRequestException(`Candidato já cadastrado neste edital com este CPF (${rest.cpfCandidato}) ou Inscrição (${rest.numeroInscricao}).`);
+      throw new BadRequestException(
+        `Candidato já cadastrado neste edital com este CPF (${rest.cpfCandidato}) ou Inscrição (${rest.numeroInscricao}).`,
+      );
     }
 
-    const usuarioExistente = await this.prisma.usuario.findUnique({ where: { cpf: rest.cpfCandidato } });
+    const usuarioExistente = await this.prisma.usuario.findUnique({
+      where: { cpf: rest.cpfCandidato },
+    });
 
     return this.prisma.classificacaoCandidato.create({
       data: {
@@ -386,9 +464,13 @@ export class ClassificacaoService {
         posicaoConvocacao: rest.posicaoConvocacao || null,
         situacao: situacao || 'CADASTRO_RESERVA',
         edital: { connect: { id: editalId } },
-        modalidade: modalidadeId ? { connect: { id: modalidadeId } } : undefined,
+        modalidade: modalidadeId
+          ? { connect: { id: modalidadeId } }
+          : undefined,
         cargo: cargoId ? { connect: { id: cargoId } } : undefined,
-        areaAtuacao: areaAtuacaoId ? { connect: { id: areaAtuacaoId } } : undefined,
+        areaAtuacao: areaAtuacaoId
+          ? { connect: { id: areaAtuacaoId } }
+          : undefined,
         carreira: carreiraId ? { connect: { id: carreiraId } } : undefined,
         nivel: nivelId ? { connect: { id: nivelId } } : undefined,
       },
@@ -396,11 +478,21 @@ export class ClassificacaoService {
   }
 
   async update(id: string, data: any) {
-    const { modalidadeId, cargoId, areaAtuacaoId, carreiraId, nivelId, situacao, ...rest } = data;
-    
+    const {
+      modalidadeId,
+      cargoId,
+      areaAtuacaoId,
+      carreiraId,
+      nivelId,
+      situacao,
+      ...rest
+    } = data;
+
     let usuarioId = undefined;
     if (rest.cpfCandidato) {
-      const u = await this.prisma.usuario.findUnique({ where: { cpf: rest.cpfCandidato } });
+      const u = await this.prisma.usuario.findUnique({
+        where: { cpf: rest.cpfCandidato },
+      });
       if (u) usuarioId = u.id;
     }
 
@@ -410,13 +502,36 @@ export class ClassificacaoService {
         ...rest,
         ...(usuarioId && { usuarioId }),
         ...(situacao && { situacao }),
-        posicao: rest.posicao === undefined ? undefined : (rest.posicao || null),
-        posicaoConvocacao: rest.posicaoConvocacao === undefined ? undefined : (rest.posicaoConvocacao || null),
-        modalidade: modalidadeId ? { connect: { id: modalidadeId } } : (modalidadeId === null ? { disconnect: true } : undefined),
-        cargo: cargoId ? { connect: { id: cargoId } } : (cargoId === null ? { disconnect: true } : undefined),
-        areaAtuacao: areaAtuacaoId ? { connect: { id: areaAtuacaoId } } : (areaAtuacaoId === null ? { disconnect: true } : undefined),
-        carreira: carreiraId ? { connect: { id: carreiraId } } : (carreiraId === null ? { disconnect: true } : undefined),
-        nivel: nivelId ? { connect: { id: nivelId } } : (nivelId === null ? { disconnect: true } : undefined),
+        posicao: rest.posicao === undefined ? undefined : rest.posicao || null,
+        posicaoConvocacao:
+          rest.posicaoConvocacao === undefined
+            ? undefined
+            : rest.posicaoConvocacao || null,
+        modalidade: modalidadeId
+          ? { connect: { id: modalidadeId } }
+          : modalidadeId === null
+            ? { disconnect: true }
+            : undefined,
+        cargo: cargoId
+          ? { connect: { id: cargoId } }
+          : cargoId === null
+            ? { disconnect: true }
+            : undefined,
+        areaAtuacao: areaAtuacaoId
+          ? { connect: { id: areaAtuacaoId } }
+          : areaAtuacaoId === null
+            ? { disconnect: true }
+            : undefined,
+        carreira: carreiraId
+          ? { connect: { id: carreiraId } }
+          : carreiraId === null
+            ? { disconnect: true }
+            : undefined,
+        nivel: nivelId
+          ? { connect: { id: nivelId } }
+          : nivelId === null
+            ? { disconnect: true }
+            : undefined,
       },
     });
   }
@@ -428,10 +543,11 @@ export class ClassificacaoService {
   async confirmarDados(id: string, data: any) {
     const classificacao = await this.prisma.classificacaoCandidato.findUnique({
       where: { id },
-      select: { cpfCandidato: true }
+      select: { cpfCandidato: true },
     });
 
-    if (!classificacao) throw new BadRequestException('Classificação não encontrada');
+    if (!classificacao)
+      throw new BadRequestException('Classificação não encontrada');
 
     // Atualizar todas as classificações do mesmo CPF para manter sincronia
     return this.prisma.classificacaoCandidato.updateMany({
@@ -441,8 +557,8 @@ export class ClassificacaoService {
         telefoneCandidato: data.telefoneCandidato,
         celularCandidato: data.celularCandidato,
         enderecoCandidato: data.enderecoCandidato,
-        dadosConfirmados: true
-      }
+        dadosConfirmados: true,
+      },
     });
   }
 
@@ -462,21 +578,24 @@ export class ClassificacaoService {
         areaAtuacao: true,
         modalidade: true,
         modeloFormulario: true,
-      }
+      },
     } as any);
 
-    const grupos: Record<string, {
-      vagasIds: string[];
-      cargoId: string;
-      areaAtuacaoId?: string | null;
-      carreiraId?: string | null;
-      nivelId?: string | null;
-      cargoNome: string;
-      areaNome: string;
-      quantidadeVagas: number;
-      modeloFormularioId?: string | null;
-      modeloFormularioNome?: string | null;
-    }> = {};
+    const grupos: Record<
+      string,
+      {
+        vagasIds: string[];
+        cargoId: string;
+        areaAtuacaoId?: string | null;
+        carreiraId?: string | null;
+        nivelId?: string | null;
+        cargoNome: string;
+        areaNome: string;
+        quantidadeVagas: number;
+        modeloFormularioId?: string | null;
+        modeloFormularioNome?: string | null;
+      }
+    > = {};
 
     for (const vaga of vagas as any[]) {
       const key = `${vaga.cargoId}_${vaga.areaAtuacaoId || 'geral'}_${vaga.carreiraId || 'geral'}_${vaga.nivelId || 'geral'}`;
@@ -495,7 +614,7 @@ export class ClassificacaoService {
         };
       }
       grupos[key].vagasIds.push(vaga.id);
-      grupos[key].quantidadeVagas += vaga.quantidadeVagas;
+      grupos[key].quantidadeVagas += vaga.totalGeral || vaga.quantidadeVagas || 0;
     }
 
     const estatisticas = await Promise.all(
@@ -512,14 +631,15 @@ export class ClassificacaoService {
         });
 
         // Montar detalhamento de vagas por modalidade
-        const vagasNoGrupo = (vagas as any[]).filter(v => 
-          v.cargoId === grupo.cargoId && 
-          (v.areaAtuacaoId || null) === (grupo.areaAtuacaoId || null) &&
-          (v.carreiraId || null) === (grupo.carreiraId || null) &&
-          (v.nivelId || null) === (grupo.nivelId || null)
+        const vagasNoGrupo = (vagas as any[]).filter(
+          (v) =>
+            v.cargoId === grupo.cargoId &&
+            (v.areaAtuacaoId || null) === (grupo.areaAtuacaoId || null) &&
+            (v.carreiraId || null) === (grupo.carreiraId || null) &&
+            (v.nivelId || null) === (grupo.nivelId || null),
         );
 
-        const detalhesModalidades = vagasNoGrupo.map(v => ({
+        const detalhesModalidades = vagasNoGrupo.map((v) => ({
           modalidadeId: v.modalidadeId,
           modalidadeNome: v.modalidade?.nome || 'Geral',
           quantidade: v.quantidadeVagas,
@@ -528,7 +648,13 @@ export class ClassificacaoService {
         // Manter o mapa legado para compatibilidade se necessário, mas focar no novo array
         const vagasPorModalidade: Record<string, number> = {};
         for (const v of vagasNoGrupo) {
-          if (v.modalidadeId) {
+          // Se for o novo modelo (posicional)
+          if (v.totalGeral > 0) {
+            vagasPorModalidade['ampla'] = v.vagasAC;
+            vagasPorModalidade['negro'] = v.vagasNEG;
+            vagasPorModalidade['pcd'] = v.vagasPCD;
+          } else if (v.modalidadeId) {
+            // Modelo legado
             vagasPorModalidade[v.modalidadeId] = v.quantidadeVagas;
           }
         }
@@ -557,122 +683,127 @@ export class ClassificacaoService {
   }
 
   async analisarCobertura(editalId: string) {
-    // 1. Buscar todos os candidatos e vagas
+    // 1. Buscar dados fundamentais
     const candidatos = await this.prisma.classificacaoCandidato.findMany({
       where: { editalId },
       include: {
         cargo: true,
         areaAtuacao: true,
-        modalidade: true,
         carreira: true,
         nivel: true,
       },
     });
-
     const vagas = await this.prisma.vagaEdital.findMany({
       where: { editalId },
       include: {
-        cargo: true,
-        areaAtuacao: true,
-        carreira: true,
-        nivel: true,
         modalidade: true,
-      }
+      },
     });
+    const modalidades = await this.modalidadesConcorrenciaService.findAll();
 
-    // 2. Identificar candidatos sem vaga correspondente ou com vagas insuficientes
+    // Mapeamento de IDs para categorias de concorrência
+    const getModId = (category: 'ampla' | 'negro' | 'pcd') => {
+      const found = modalidades.find((m) => {
+        const n = this.normalize(m.nome);
+        if (category === 'ampla') return n.includes('ampla');
+        if (category === 'negro') return n.includes('negro');
+        if (category === 'pcd')
+          return n.includes('pcd') || n.includes('deficien');
+        return false;
+      });
+      return found?.id || null;
+    };
+
+    const modAmplaId = getModId('ampla');
+    const modNegroId = getModId('negro');
+    const modPcdId = getModId('pcd');
+
     const alertas = [];
-    const combinacoesVistas = new Set();
+    const chavesVistas = new Set<string>();
 
-    // Map para acesso rápido por ID e soma de quantidades por chave
-    const mapaVagas = new Map<string, number>();
-    for (const v of vagas) {
-      const key = `${v.cargoId}-${v.areaAtuacaoId || null}-${v.modalidadeId || null}-${v.carreiraId || null}-${v.nivelId || null}`;
-      mapaVagas.set(key, (mapaVagas.get(key) || 0) + v.quantidadeVagas);
-    }
-
+    // 2. Identificar todas as combinações únicas de (Cargo, Área, Carreira, Nível)
     for (const cand of candidatos) {
-      const keyCand = `${cand.cargoId}-${cand.areaAtuacaoId || null}-${cand.modalidadeId || null}-${cand.carreiraId || null}-${cand.nivelId || null}`;
-      
-      if (combinacoesVistas.has(keyCand)) continue;
-      combinacoesVistas.add(keyCand);
+      const baseKey = `${cand.cargoId}-${cand.areaAtuacaoId || null}-${cand.carreiraId || null}-${cand.nivelId || null}`;
+      if (chavesVistas.has(baseKey)) continue;
+      chavesVistas.add(baseKey);
 
-      // Quantidade de candidatos nesta combinação exata
-      const totalCandidatos = candidatos.filter(c => 
-        (c.cargoId || null) === (cand.cargoId || null) && 
-        (c.areaAtuacaoId || null) === (cand.areaAtuacaoId || null) && 
-        (c.modalidadeId || null) === (cand.modalidadeId || null) &&
-        (c.carreiraId || null) === (cand.carreiraId || null) &&
-        (c.nivelId || null) === (cand.nivelId || null)
-      ).length;
+      // 3. Para cada combinação, validar as 3 listas independentemente
+      const tiposConcorrencia = [
+        {
+          key: 'concorrenciaAmpla',
+          modId: modAmplaId,
+          label: 'Ampla Concorrência',
+        },
+        { key: 'concorrenciaNegro', modId: modNegroId, label: 'Negros' },
+        { key: 'concorrenciaPCD', modId: modPcdId, label: 'PCD' },
+      ];
 
-      // Buscar quantidade configurada (pelo ID ou fallback por Nome se necessário)
-      let qtdConfigurada = mapaVagas.get(keyCand) || 0;
+      for (const tipo of tiposConcorrencia) {
+        // Quantidade de candidatos nesta categoria específica para este cargo/área
+        const candidatosNaLista = candidatos.filter(
+          (c: any) =>
+            (c.cargoId || null) === (cand.cargoId || null) &&
+            (c.areaAtuacaoId || null) === (cand.areaAtuacaoId || null) &&
+            (c.carreiraId || null) === (cand.carreiraId || null) &&
+            (c.nivelId || null) === (cand.nivelId || null) &&
+            c[tipo.key] === true,
+        ).length;
 
-      // Se por ID não achou nada, tenta o fallback por nomes para evitar falso positivo de "Faltante"
-      if (qtdConfigurada === 0) {
-        const nomeCargo = this.normalize(cand.cargo?.nome);
-        const nomeArea = this.normalize(cand.areaAtuacao?.nome || 'Geral');
-        const nomeMod = this.normalize(cand.modalidade?.nome || 'Ampla Concorrencia');
-        const nomeCarr = this.normalize(cand.carreira?.nome);
-        const nomeNivel = this.normalize(cand.nivel?.nome);
+        if (candidatosNaLista === 0) continue;
 
-        const vagaNome = vagas.find(v => 
-          this.normalize(v.cargo?.nome) === nomeCargo &&
-          this.normalize(v.areaAtuacao?.nome || 'Geral') === nomeArea &&
-          this.normalize(v.modalidade?.nome || 'Ampla Concorrencia') === nomeMod &&
-          this.normalize(v.carreira?.nome) === nomeCarr &&
-          this.normalize(v.nivel?.nome) === nomeNivel
-        );
-        
-        if (vagaNome) {
-           // Se achou por nome, pega a soma de todas que batem com esse nome
-           const vagasBatendoNome = vagas.filter(v => 
-              this.normalize(v.cargo?.nome) === nomeCargo &&
-              this.normalize(v.areaAtuacao?.nome || 'Geral') === nomeArea &&
-              this.normalize(v.modalidade?.nome || 'Ampla Concorrencia') === nomeMod &&
-              this.normalize(v.carreira?.nome) === nomeCarr &&
-              this.normalize(v.nivel?.nome) === nomeNivel
-           );
-           qtdConfigurada = vagasBatendoNome.reduce((acc, curr) => acc + curr.quantidadeVagas, 0);
+        // Buscar vagas configuradas para esta categoria específica
+        const vagasConfiguradas = vagas
+          .filter(
+            (v) =>
+              v.cargoId === cand.cargoId &&
+              (v.areaAtuacaoId || null) === (cand.areaAtuacaoId || null) &&
+              (v.carreiraId || null) === (cand.carreiraId || null) &&
+              (v.nivelId || null) === (cand.nivelId || null),
+          )
+          .reduce((acc, curr: any) => {
+            if (tipo.key === 'concorrenciaAmpla')
+              return acc + (curr.vagasAC || 0);
+            if (tipo.key === 'concorrenciaNegro')
+              return acc + (curr.vagasNEG || 0);
+            if (tipo.key === 'concorrenciaPCD')
+              return acc + (curr.vagasPCD || 0);
+            return acc;
+          }, 0);
+
+        // Gerar alertas se houver defasagem
+        if (vagasConfiguradas === 0) {
+          alertas.push({
+            tipo: 'FALTANTE',
+            cargoId: cand.cargoId,
+            areaAtuacaoId: cand.areaAtuacaoId || null,
+            modalidadeId: tipo.modId,
+            carreiraId: cand.carreiraId || null,
+            nivelId: cand.nivelId || null,
+            cargo: cand.cargo?.nome || 'Não definido',
+            area: cand.areaAtuacao?.nome || 'Geral',
+            modalidade: tipo.label,
+            carreira: cand.carreira?.nome || 'Não definida',
+            nivel: cand.nivel?.nome || 'Não definido',
+            candidatosAfetados: candidatosNaLista,
+            vagasConfiguradas: 0,
+          });
+        } else if (vagasConfiguradas < candidatosNaLista) {
+          alertas.push({
+            tipo: 'INSUFICIENTE',
+            cargoId: cand.cargoId,
+            areaAtuacaoId: cand.areaAtuacaoId || null,
+            modalidadeId: tipo.modId,
+            carreiraId: cand.carreiraId || null,
+            nivelId: cand.nivelId || null,
+            cargo: cand.cargo?.nome || 'Não definido',
+            area: cand.areaAtuacao?.nome || 'Geral',
+            modalidade: tipo.label,
+            carreira: cand.carreira?.nome || 'Não definida',
+            nivel: cand.nivel?.nome || 'Não definido',
+            candidatosAfetados: candidatosNaLista,
+            vagasConfiguradas: vagasConfiguradas,
+          });
         }
-      }
-
-      // DECISÃO DE ALERTA:
-      if (qtdConfigurada === 0) {
-        // FALTA TOTAL
-        alertas.push({
-          tipo: 'FALTANTE',
-          cargoId: cand.cargoId,
-          areaAtuacaoId: cand.areaAtuacaoId || null,
-          modalidadeId: cand.modalidadeId || null,
-          carreiraId: cand.carreiraId || null,
-          nivelId: cand.nivelId || null,
-          cargo: cand.cargo?.nome || 'Não definido',
-          area: cand.areaAtuacao?.nome || 'Geral',
-          modalidade: cand.modalidade?.nome || 'Geral',
-          carreira: cand.carreira?.nome || 'Não definida',
-          nivel: cand.nivel?.nome || 'Não definido',
-          candidatosAfetados: totalCandidatos,
-          vagasConfiguradas: 0
-        });
-      } else if (qtdConfigurada < totalCandidatos) {
-        // QUANTIDADE INSUFICIENTE
-        alertas.push({
-          tipo: 'INSUFICIENTE',
-          cargoId: cand.cargoId,
-          areaAtuacaoId: cand.areaAtuacaoId || null,
-          modalidadeId: cand.modalidadeId || null,
-          carreiraId: cand.carreiraId || null,
-          nivelId: cand.nivelId || null,
-          cargo: cand.cargo?.nome || 'Não definido',
-          area: cand.areaAtuacao?.nome || 'Geral',
-          modalidade: cand.modalidade?.nome || 'Geral',
-          carreira: cand.carreira?.nome || 'Não definida',
-          nivel: cand.nivel?.nome || 'Não definido',
-          candidatosAfetados: totalCandidatos,
-          vagasConfiguradas: qtdConfigurada
-        });
       }
     }
 
@@ -680,60 +811,93 @@ export class ClassificacaoService {
   }
 
   async reprocessarSituacaoCandidatos(editalId: string) {
-    console.log(`[RECLASSIFICAR] Iniciando reprocessamento para edital ${editalId}`);
-    
+    console.log(
+      `[RECLASSIFICAR] Iniciando reprocessamento para edital ${editalId}`,
+    );
+
     // 1. Buscar todas as vagas configuradas
     const vagas = await this.prisma.vagaEdital.findMany({
-      where: { editalId }
+      where: { editalId },
     });
 
     // 2. Resetar todos os candidatos deste edital para CADASTRO_RESERVA (Limpeza de segurança)
     await this.prisma.classificacaoCandidato.updateMany({
       where: { editalId },
-      data: { situacao: 'CADASTRO_RESERVA' }
+      data: { situacao: 'CADASTRO_RESERVA' },
     });
 
-    // 3. Para cada vaga, marcar os Top N que se qualificam
-    const modalidades = await this.modalidadesConcorrenciaService.findAll();
-
+    // 3. Para cada vaga de posição (Cargo/Área), marcar os Top N de cada lista
     for (const vaga of vagas) {
-      // Determinar filtro de cota baseado na modalidade da vaga
-      const modVaga = modalidades.find(m => m.id === vaga.modalidadeId);
-      const modNome = this.normalize(modVaga?.nome);
-      
-      const filterMod: any = {};
-      let orderBy: any = { posicaoAmpla: 'asc' };
-      if (modNome.includes('negro')) {
-        filterMod.concorrenciaNegro = true;
-        orderBy = { posicaoNegro: 'asc' };
-      } else if (modNome.includes('deficien') || modNome.includes('pcd')) {
-        filterMod.concorrenciaPCD = true;
-        orderBy = { posicaoPCD: 'asc' };
-      } else {
-        filterMod.concorrenciaAmpla = true;
-        orderBy = { posicaoAmpla: 'asc' };
+      // 3.1. Processar Lista de Negros
+      if (vaga.vagasNEG > 0) {
+        const negrosParaVaga =
+          await this.prisma.classificacaoCandidato.findMany({
+            where: {
+              editalId,
+              cargoId: vaga.cargoId,
+              areaAtuacaoId: vaga.areaAtuacaoId || null,
+              carreiraId: vaga.carreiraId || null,
+              nivelId: vaga.nivelId || null,
+              concorrenciaNegro: true,
+              situacao: 'CADASTRO_RESERVA',
+            },
+            orderBy: { posicaoNegro: 'asc' },
+            take: vaga.vagasNEG,
+          });
+        if (negrosParaVaga.length > 0) {
+          await this.prisma.classificacaoCandidato.updateMany({
+            where: { id: { in: negrosParaVaga.map((c) => c.id) } },
+            data: { situacao: 'APROVADO_CONVOCAVEL' },
+          });
+        }
       }
 
-      const candidatosParaVaga = await this.prisma.classificacaoCandidato.findMany({
-        where: {
-          editalId,
-          cargoId: vaga.cargoId,
-          areaAtuacaoId: vaga.areaAtuacaoId,
-          carreiraId: vaga.carreiraId,
-          nivelId: vaga.nivelId,
-          ...filterMod,
-        },
-        orderBy,
-        take: vaga.quantidadeVagas
-      });
-
-      if (candidatosParaVaga.length > 0) {
-        const idsAprovados = candidatosParaVaga.map(c => c.id);
-        await this.prisma.classificacaoCandidato.updateMany({
-          where: { id: { in: idsAprovados } },
-          data: { situacao: 'APROVADO_CONVOCAVEL' }
+      // 3.2. Processar Lista de PCD
+      if (vaga.vagasPCD > 0) {
+        const pcdsParaVaga = await this.prisma.classificacaoCandidato.findMany({
+          where: {
+            editalId,
+            cargoId: vaga.cargoId,
+            areaAtuacaoId: vaga.areaAtuacaoId || null,
+            carreiraId: vaga.carreiraId || null,
+            nivelId: vaga.nivelId || null,
+            concorrenciaPCD: true,
+            situacao: 'CADASTRO_RESERVA',
+          },
+          orderBy: { posicaoPCD: 'asc' },
+          take: vaga.vagasPCD,
         });
-        console.log(`[RECLASSIFICAR] Vaga ${vaga.id}: ${idsAprovados.length} candidatos marcados como APROVADO_CONVOCAVEL`);
+        if (pcdsParaVaga.length > 0) {
+          await this.prisma.classificacaoCandidato.updateMany({
+            where: { id: { in: pcdsParaVaga.map((c) => c.id) } },
+            data: { situacao: 'APROVADO_CONVOCAVEL' },
+          });
+        }
+      }
+
+      // 3.3. Processar Lista de Ampla Concorrência
+      if (vaga.vagasAC > 0) {
+        const amplaParaVaga = await this.prisma.classificacaoCandidato.findMany(
+          {
+            where: {
+              editalId,
+              cargoId: vaga.cargoId,
+              areaAtuacaoId: vaga.areaAtuacaoId || null,
+              carreiraId: vaga.carreiraId || null,
+              nivelId: vaga.nivelId || null,
+              concorrenciaAmpla: true,
+              situacao: 'CADASTRO_RESERVA',
+            },
+            orderBy: { posicaoAmpla: 'asc' },
+            take: vaga.vagasAC,
+          },
+        );
+        if (amplaParaVaga.length > 0) {
+          await this.prisma.classificacaoCandidato.updateMany({
+            where: { id: { in: amplaParaVaga.map((c) => c.id) } },
+            data: { situacao: 'APROVADO_CONVOCAVEL' },
+          });
+        }
       }
     }
 

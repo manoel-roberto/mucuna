@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Delete, Param, UseGuards, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  Param,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 import { TipoEditalService } from './tipo-edital.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';

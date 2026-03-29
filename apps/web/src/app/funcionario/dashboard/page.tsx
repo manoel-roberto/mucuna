@@ -19,7 +19,7 @@ export default function FuncionarioDashboard() {
       <div className="flex flex-col gap-3 relative">
         <div className="w-16 h-1 bg-accent-mucuna rounded-full opacity-30 mb-2" />
         <h1 className="text-5xl font-black text-primary-mucuna tracking-tighter uppercase italic leading-none">Visão <span className="text-accent-mucuna not-italic leading-none">Operacional.</span></h1>
-        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] italic pl-1">Ecossistema Mucunã // Node-Live Dashboard</p>
+        <p className="text-sm text-slate-400 font-black uppercase tracking-[0.4em] italic pl-1">Ecossistema Mucunã // Node-Live Dashboard</p>
       </div>
 
       {/* STATS GRID - ORGANIC STYLE */}
@@ -34,7 +34,7 @@ export default function FuncionarioDashboard() {
             <div className={`w-16 h-16 ${s.color} border rounded-3xl flex items-center justify-center mb-8 shadow-inner group-hover:rotate-6 transition-transform duration-500`}>
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={s.icon}/></svg>
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">{s.label}</p>
+            <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em] mb-2">{s.label}</p>
             <div className="flex items-baseline gap-2">
                <p className="text-5xl font-black text-primary-mucuna tracking-tighter italic">{s.value}</p>
                <span className="w-2 h-2 bg-support-mucuna rounded-full animate-pulse"></span>
@@ -69,7 +69,7 @@ export default function FuncionarioDashboard() {
                  <div className={`w-3 h-3 rounded-full shrink-0 group-hover:scale-150 transition-transform ${a.status === 'critical' ? 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.6)]' : a.status === 'info' ? 'bg-accent-mucuna shadow-[0_0_12px_rgba(176,125,78,0.6)]' : 'bg-support-mucuna shadow-[0_0_12px_rgba(34,197,94,0.6)]'}`}></div>
                  <div className="flex-1 space-y-1">
                     <div className="flex justify-between items-center mb-2">
-                      <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${a.status === 'critical' ? 'text-rose-500' : a.status === 'info' ? 'text-accent-mucuna' : 'text-support-mucuna'}`}>{a.type}</span>
+                      <span className={`text-sm font-black uppercase tracking-[0.3em] ${a.status === 'critical' ? 'text-rose-500' : a.status === 'info' ? 'text-accent-mucuna' : 'text-support-mucuna'}`}>{a.type}</span>
                       <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest italic">{a.date}</span>
                     </div>
                     <p className="text-lg font-bold text-primary-mucuna leading-tight tracking-tight group-hover:italic transition-all">{a.message}</p>
@@ -99,7 +99,7 @@ export default function FuncionarioDashboard() {
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-accent-mucuna uppercase tracking-[0.3em] mb-1">Homologação Crítica</p>
-                    <p className="text-2xl font-black tracking-tighter italic">15 ABR <span className="text-white/30 not-italic uppercase text-xs tracking-widest pl-2">2026</span></p>
+                    <p className="text-2xl font-black tracking-tighter italic">15 ABR <span className="text-white/30 not-italic uppercase text-sm tracking-widest pl-2">2026</span></p>
                   </div>
                </div>
 
@@ -109,7 +109,7 @@ export default function FuncionarioDashboard() {
                    { id: '002/2026', phase: 'Fase 1', status: 'bg-accent-mucuna' }
                  ].map(item => (
                    <div key={item.id} className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 hover:bg-white/10 transition-all group/item">
-                      <span className="text-[10px] font-black uppercase tracking-widest italic group-hover/item:text-accent-mucuna transition-colors">Edital {item.id}</span>
+                      <span className="text-sm font-black uppercase tracking-widest italic group-hover/item:text-accent-mucuna transition-colors">Edital {item.id}</span>
                       <span className={`text-[8px] font-black uppercase ${item.status} text-primary-mucuna px-3 py-2 rounded-xl shadow-2xl`}>{item.phase}</span>
                    </div>
                  ))}
@@ -119,8 +119,8 @@ export default function FuncionarioDashboard() {
 
           <div className="bg-white rounded-[48px] border border-slate-100 p-10 space-y-6 shadow-2xl shadow-primary-mucuna/5">
              <div className="flex justify-between items-center">
-                <p className="text-[10px] font-black text-primary-mucuna uppercase tracking-[0.3em] italic">Node Load</p>
-                <span className="text-[10px] font-black text-support-mucuna uppercase">Status: Optimal</span>
+                <p className="text-sm font-black text-primary-mucuna uppercase tracking-[0.3em] italic">Node Load</p>
+                <span className="text-sm font-black text-support-mucuna uppercase">Status: Optimal</span>
              </div>
              <div className="w-full h-4 bg-surface-mucuna rounded-full overflow-hidden border border-slate-50 relative p-1 shadow-inner">
                <div className="w-[65%] h-full bg-gradient-to-r from-accent-mucuna to-support-mucuna rounded-full shadow-lg" />

@@ -19,7 +19,14 @@ export class EnviosController {
   constructor(private readonly enviosService: EnviosService) {}
 
   @Post()
-  create(@Body() data: { classificacaoId: string; modeloId: string; respostasJSON: any }) {
+  create(
+    @Body()
+    data: {
+      classificacaoId: string;
+      modeloId: string;
+      respostasJSON: any;
+    },
+  ) {
     return this.enviosService.create(data);
   }
 
@@ -38,14 +45,33 @@ export class EnviosController {
   @Permissions('CANDIDATOS_AVALIAR')
   avaliar(
     @Param('id') id: string,
-    @Body() body: { status: string; mensagem?: string; itensAvaliacao?: any; dataAgendamento?: string },
+    @Body()
+    body: {
+      status: string;
+      mensagem?: string;
+      itensAvaliacao?: any;
+      dataAgendamento?: string;
+    },
     @Req() req: any,
   ) {
-    return this.enviosService.avaliar(id, body.status as any, body.mensagem, body.itensAvaliacao, req.user.id, body.dataAgendamento);
+    return this.enviosService.avaliar(
+      id,
+      body.status as any,
+      body.mensagem,
+      body.itensAvaliacao,
+      req.user.id,
+      body.dataAgendamento,
+    );
   }
 
   @Get('candidato/:classificacaoId/modelo/:modeloId')
-  checkSubmission(@Param('classificacaoId') classificacaoId: string, @Param('modeloId') modeloId: string) {
-    return this.enviosService.findByCandidatoAndModelo(classificacaoId, modeloId);
+  checkSubmission(
+    @Param('classificacaoId') classificacaoId: string,
+    @Param('modeloId') modeloId: string,
+  ) {
+    return this.enviosService.findByCandidatoAndModelo(
+      classificacaoId,
+      modeloId,
+    );
   }
 }

@@ -134,7 +134,7 @@ export default function PerfilPage() {
 
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nome Completo</label>
+              <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nome Completo</label>
               <input 
                 type="text" required
                 value={formData.nome}
@@ -146,7 +146,7 @@ export default function PerfilPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">E-mail</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">E-mail</label>
                 <input 
                   type="email" required
                   value={formData.email}
@@ -156,7 +156,7 @@ export default function PerfilPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">CPF</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">CPF</label>
                 <input 
                   type="text" required
                   value={formData.cpf}
@@ -171,11 +171,11 @@ export default function PerfilPage() {
 
             <div className="space-y-4">
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Alterar Senha</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Preencha apenas se desejar alterar sua senha atual</p>
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Preencha apenas se desejar alterar sua senha atual</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nova Senha</label>
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nova Senha</label>
                   <input 
                     type="password"
                     autoComplete="new-password"
@@ -186,7 +186,7 @@ export default function PerfilPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Confirmar Nova Senha</label>
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Confirmar Nova Senha</label>
                   <input 
                     type="password"
                     autoComplete="new-password"
@@ -204,7 +204,7 @@ export default function PerfilPage() {
             <button 
               type="submit"
               disabled={saving}
-              className="w-full py-5 bg-slate-900 text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-5 bg-slate-900 text-white font-black uppercase text-sm tracking-[0.2em] rounded-2xl hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Gravando Alterações...' : 'Atualizar Meu Perfil'}
             </button>

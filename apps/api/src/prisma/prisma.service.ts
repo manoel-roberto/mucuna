@@ -10,14 +10,20 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
     const pool = new pg.Pool({
       connectionString: url,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : undefined,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
     });
 
     pool.on('error', (err) => {
-      console.error('[Database] Erro inesperado no Pool de Conexão:', err.message);
+      console.error(
+        '[Database] Erro inesperado no Pool de Conexão:',
+        err.message,
+      );
     });
 
     const adapter = new PrismaPg(pool);
@@ -29,7 +35,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       await this.$queryRaw`SELECT 1`;
       console.log('[Database] Conexão via adaptador estabelecida com sucesso.');
     } catch (error) {
-      console.error('[Database] Falha crítica na conexão com o banco:', error.message || error);
+      console.error(
+        '[Database] Falha crítica na conexão com o banco:',
+        error.message || error,
+      );
     }
   }
 }

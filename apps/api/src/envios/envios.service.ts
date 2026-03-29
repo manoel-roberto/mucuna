@@ -5,43 +5,54 @@ import { PrismaService } from '../prisma/prisma.service';
 export class EnviosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: { classificacaoId: string; modeloId: string; respostasJSON: any }) {
+  async create(data: {
+    classificacaoId: string;
+    modeloId: string;
+    respostasJSON: any;
+  }) {
     return this.prisma.envio.create({
       data: {
         classificacao: { connect: { id: data.classificacaoId } },
         modeloFormulario: { connect: { id: data.modeloId } },
         respostasJSON: data.respostasJSON,
       },
-      include: { 
+      include: {
         classificacao: true,
-        modeloFormulario: true
-      }
+        modeloFormulario: true,
+      },
     });
   }
 
   async findAllByEdital(editalId: string) {
     return this.prisma.envio.findMany({
       where: { classificacao: { editalId } },
-      include: { 
+      include: {
         classificacao: true,
-        modeloFormulario: true 
+        modeloFormulario: true,
       },
-      orderBy: { enviadoEm: 'desc' }
+      orderBy: { enviadoEm: 'desc' },
     });
   }
 
   async findOne(id: string) {
     return this.prisma.envio.findUnique({
       where: { id },
-      include: { 
+      include: {
         classificacao: true,
         modeloFormulario: true,
-        arquivos: true
-      }
+        arquivos: true,
+      },
     });
   }
 
-  async avaliar(id: string, status: any, mensagem?: string, itensAvaliacao?: any, usuarioId?: string, dataAgendamento?: string) {
+  async avaliar(
+    id: string,
+    status: any,
+    mensagem?: string,
+    itensAvaliacao?: any,
+    usuarioId?: string,
+    dataAgendamento?: string,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       try {
         // ... (resto do código)
@@ -69,7 +80,9 @@ export class EnviosService {
         const idClassificacao = updatedEnvio.classificacaoCandidatoId;
         const statusNormalizado = status?.toString().trim().toUpperCase();
 
-        console.log(`[DEBUG] Avaliando Envio: ${id} | Status: ${statusNormalizado}`);
+        console.log(
+          `[DEBUG] Avaliando Envio: ${id} | Status: ${statusNormalizado}`,
+        );
 
         // 2. Se rejeitado, muda status para DOCUMENTACAO_PENDENTE
         if (statusNormalizado === 'REJEITADO') {
@@ -77,7 +90,7 @@ export class EnviosService {
             where: { id: idClassificacao },
             data: { statusConvocacao: 'DOCUMENTACAO_PENDENTE' },
           });
-          
+
           await tx.registroConvocacao.create({
             data: {
               classificacaoCandidatoId: idClassificacao,
@@ -85,8 +98,8 @@ export class EnviosService {
               prazoDocumentacao: new Date(),
               status: 'MUDANCA_FASE',
               observacoes: `REJEIÇÃO: ${mensagem || 'Documentação inconsistente.'}`,
-              criadoPorId: usuarioId
-            }
+              criadoPorId: usuarioId,
+            },
           });
           console.log('[DEBUG] Registro de REJEIÇÃO criado');
         }
@@ -94,34 +107,42 @@ export class EnviosService {
         // 3. Se aprovado, verifica se todos os obrigatórios estão aprovados
         if (statusNormalizado === 'APROVADO') {
           const todosEnvios = await tx.envio.findMany({
-            where: { classificacaoCandidatoId: idClassificacao }
+            where: { classificacaoCandidatoId: idClassificacao },
           });
 
           // Lógica de Precedência Sincronizada com Frontend:
           // Se o candidato tiver um formulário específico vinculado, ele SUBSTITUI os globais do edital.
           let idsObrigatorios: string[] = [];
-          
+
           if (updatedEnvio.classificacao.modeloFormularioId) {
             idsObrigatorios = [updatedEnvio.classificacao.modeloFormularioId];
           } else {
             idsObrigatorios = updatedEnvio.classificacao.edital.formularios
-              .filter(f => f.obrigatorio)
-              .map(f => f.modeloFormularioId);
+              .filter((f) => f.obrigatorio)
+              .map((f) => f.modeloFormularioId);
           }
 
-          const todosObrigatoriosAprovados = idsObrigatorios.every(idModelo => {
-            if (idModelo === updatedEnvio.modeloFormularioId) return true;
-            return todosEnvios.some(e => e.modeloFormularioId === idModelo && e.statusAvaliacao === 'APROVADO');
-          });
+          const todosObrigatoriosAprovados = idsObrigatorios.every(
+            (idModelo) => {
+              if (idModelo === updatedEnvio.modeloFormularioId) return true;
+              return todosEnvios.some(
+                (e) =>
+                  e.modeloFormularioId === idModelo &&
+                  e.statusAvaliacao === 'APROVADO',
+              );
+            },
+          );
 
           if (todosObrigatoriosAprovados) {
-            const dataPrazo = dataAgendamento ? new Date(dataAgendamento) : new Date();
+            const dataPrazo = dataAgendamento
+              ? new Date(dataAgendamento)
+              : new Date();
 
             await tx.classificacaoCandidato.update({
               where: { id: idClassificacao },
-              data: { 
+              data: {
                 statusConvocacao: 'AGENDAMENTO_APRESENTACAO',
-                prazoEnvio: dataAgendamento ? dataPrazo : undefined
+                prazoEnvio: dataAgendamento ? dataPrazo : undefined,
               },
             });
 
@@ -131,11 +152,15 @@ export class EnviosService {
                 meioUtilizado: 'Avaliação de Documentos',
                 prazoDocumentacao: dataPrazo,
                 status: 'MUDANCA_FASE',
-                observacoes: 'APROVAÇÃO FINAL: Todos os formulários obrigatórios foram validados e aprovados.',
-                criadoPorId: usuarioId
-              }
+                observacoes:
+                  'APROVAÇÃO FINAL: Todos os formulários obrigatórios foram validados e aprovados.',
+                criadoPorId: usuarioId,
+              },
             });
-            console.log('[DEBUG] Registro de AGENDAMENTO_APRESENTACAO criado com data:', dataPrazo);
+            console.log(
+              '[DEBUG] Registro de AGENDAMENTO_APRESENTACAO criado com data:',
+              dataPrazo,
+            );
           } else {
             await tx.registroConvocacao.create({
               data: {
@@ -144,8 +169,8 @@ export class EnviosService {
                 prazoDocumentacao: new Date(),
                 status: 'MUDANCA_FASE',
                 observacoes: `APROVAÇÃO PARCIAL: Formulário aprovado. Ainda restam outros formulários obrigatórios.`,
-                criadoPorId: usuarioId
-              }
+                criadoPorId: usuarioId,
+              },
             });
             console.log('[DEBUG] Registro de APROVAÇÃO PARCIAL criado');
           }
@@ -161,8 +186,11 @@ export class EnviosService {
 
   async findByCandidatoAndModelo(classificacaoId: string, modeloId: string) {
     return this.prisma.envio.findFirst({
-      where: { classificacaoCandidatoId: classificacaoId, modeloFormularioId: modeloId },
-      orderBy: { enviadoEm: 'desc' }
+      where: {
+        classificacaoCandidatoId: classificacaoId,
+        modeloFormularioId: modeloId,
+      },
+      orderBy: { enviadoEm: 'desc' },
     });
   }
 }

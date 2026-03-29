@@ -9,8 +9,8 @@ export class CargosService {
     return this.prisma.cargo.findMany({
       include: {
         _count: {
-          select: { areas: true }
-        }
+          select: { areas: true },
+        },
       },
       orderBy: { nome: 'asc' },
     });
@@ -21,8 +21,8 @@ export class CargosService {
       where: { id },
       include: {
         _count: {
-          select: { areas: true }
-        }
+          select: { areas: true },
+        },
       },
     });
   }
@@ -47,7 +47,14 @@ export class CargosService {
     });
   }
 
-  async importarLote(items: { cargoNome: string; areaNome: string; carreiraNome?: string; nivelNome?: string }[]) {
+  async importarLote(
+    items: {
+      cargoNome: string;
+      areaNome: string;
+      carreiraNome?: string;
+      nivelNome?: string;
+    }[],
+  ) {
     const results = [];
     try {
       for (const item of items) {

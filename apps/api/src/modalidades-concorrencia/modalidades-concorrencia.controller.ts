@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ModalidadesConcorrenciaService } from './modalidades-concorrencia.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -7,7 +16,9 @@ import { Permissions } from '../auth/decorators/permissions.decorator';
 @Controller('modalidades-concorrencia')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export default class ModalidadesConcorrenciaController {
-  constructor(private readonly modalidadesConcorrenciaService: ModalidadesConcorrenciaService) {}
+  constructor(
+    private readonly modalidadesConcorrenciaService: ModalidadesConcorrenciaService,
+  ) {}
 
   @Get()
   @Permissions('MODALIDADES_LISTAR')
@@ -23,7 +34,10 @@ export default class ModalidadesConcorrenciaController {
 
   @Patch(':id')
   @Permissions('MODALIDADES_EDITAR')
-  update(@Param('id') id: string, @Body() data: { nome?: string; descricao?: string }) {
+  update(
+    @Param('id') id: string,
+    @Body() data: { nome?: string; descricao?: string },
+  ) {
     return this.modalidadesConcorrenciaService.update(id, data);
   }
 

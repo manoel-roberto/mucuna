@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -40,10 +50,16 @@ export class FormulariosController {
 
   @Post('vincular-edital')
   @Permissions('FORMULARIOS_EDITAR')
-  vincular(@Body() data: { editalId: string; modeloId: string; obrigatorio?: boolean }) {
-    return this.formulariosService.vincularAoEdital(data.editalId, data.modeloId, data.obrigatorio);
+  vincular(
+    @Body() data: { editalId: string; modeloId: string; obrigatorio?: boolean },
+  ) {
+    return this.formulariosService.vincularAoEdital(
+      data.editalId,
+      data.modeloId,
+      data.obrigatorio,
+    );
   }
-  
+
   @Get('edital/:editalId')
   findByEdital(@Param('editalId') editalId: string) {
     return this.formulariosService.listByEdital(editalId);

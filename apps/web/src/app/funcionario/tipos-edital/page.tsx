@@ -99,7 +99,7 @@ export default function TiposEditalPage() {
               <div className="pt-4 flex gap-3">
                 <button 
                   onClick={() => { setFormData({ id: c.id, nome: c.nome }); setShowModal(true); }}
-                  className="flex-1 px-4 py-2 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-900 hover:text-white transition-all text-xs"
+                  className="flex-1 px-4 py-2 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-900 hover:text-white transition-all text-sm"
                 >
                   Editar
                 </button>
@@ -122,7 +122,7 @@ export default function TiposEditalPage() {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nome do Tipo</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Nome do Tipo</label>
                 <input 
                   type="text" 
                   required 
@@ -137,7 +137,7 @@ export default function TiposEditalPage() {
                 <button 
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-6 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest hover:text-slate-900"
+                  className="flex-1 px-6 py-4 text-slate-400 font-bold uppercase text-sm tracking-widest hover:text-slate-900"
                 >
                   Cancelar
                 </button>

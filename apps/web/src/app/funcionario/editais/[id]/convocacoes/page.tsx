@@ -306,12 +306,12 @@ export default function ControleConvocacaoPage() {
                   {!isCollapsed ? (
                     <div className="flex items-center gap-3">
                       <span className="text-[11px] font-black uppercase tracking-[0.15em]">{col.title}</span>
-                      <span className="bg-white/60 px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm ring-1 ring-black/5">{colCandidatos.length}</span>
+                      <span className="bg-white/60 px-2 py-0.5 rounded-full text-sm font-black shadow-sm ring-1 ring-black/5">{colCandidatos.length}</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center w-full gap-4 mt-6">
-                      <span className="bg-white/60 flex items-center justify-center w-10 h-10 rounded-full text-xs font-black shadow-inner ring-1 ring-black/5">{colCandidatos.length}</span>
-                      <div className="writing-vertical-rl text-[10px] font-black uppercase tracking-[0.2em] rotate-180 mb-2 whitespace-nowrap">{col.title}</div>
+                      <span className="bg-white/60 flex items-center justify-center w-10 h-10 rounded-full text-sm font-black shadow-inner ring-1 ring-black/5">{colCandidatos.length}</span>
+                      <div className="writing-vertical-rl text-sm font-black uppercase tracking-[0.2em] rotate-180 mb-2 whitespace-nowrap">{col.title}</div>
                     </div>
                   )}
 
@@ -377,7 +377,7 @@ export default function ControleConvocacaoPage() {
                           </div>
 
                           <h4 className="text-[13px] font-black text-slate-800 leading-tight group-hover:text-emerald-800 transition-colors uppercase break-words">{c.nomeCandidato}</h4>
-                          <div className="text-[10px] font-bold text-slate-400 mt-2 uppercase truncate opacity-80">{c.cargo.nome} {c.areaAtuacao && `• ${c.areaAtuacao.nome}`}</div>
+                          <div className="text-sm font-bold text-slate-400 mt-2 uppercase truncate opacity-80">{c.cargo.nome} {c.areaAtuacao && `• ${c.areaAtuacao.nome}`}</div>
                           
                           <div className="mt-2 flex items-center gap-1.5">
                             <span className={`text-[9px] font-black px-2 py-1 rounded-lg border flex items-center gap-1 ${c.modeloFormularioId ? 'bg-slate-50 text-slate-500 border-slate-100' : 'bg-rose-50 text-rose-500 border-rose-100 animate-pulse'}`}>
@@ -408,7 +408,7 @@ export default function ControleConvocacaoPage() {
                                       handleDrop(null as any, 'EFETIVADO', c.id);
                                     }
                                   }}
-                                  className="w-full mt-2 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
+                                  className="w-full mt-2 py-2.5 bg-emerald-600 text-white text-sm font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
                                 >
                                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
                                   Concluir Processo
@@ -422,7 +422,7 @@ export default function ControleConvocacaoPage() {
                     {colCandidatos.length === 0 && (
                       <div className="h-full min-h-[140px] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[28px] bg-white/30 p-6 gap-2">
                         <svg className="w-8 h-8 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                        <span className="text-[10px] font-black text-slate-300 text-center uppercase tracking-widest leading-relaxed">Arraste cards para esta coluna</span>
+                        <span className="text-sm font-black text-slate-300 text-center uppercase tracking-widest leading-relaxed">Arraste cards para esta coluna</span>
                       </div>
                     )}
                   </div>
@@ -443,46 +443,46 @@ export default function ControleConvocacaoPage() {
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 mt-6">
                     <div className="space-y-1">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">CPF / INSCRIÇÃO</span>
-                      <span className="text-xs font-bold text-slate-700">{selectedCandidato.cpfCandidato} • {selectedCandidato.numeroInscricao}</span>
+                      <span className="text-sm font-bold text-slate-700">{selectedCandidato.cpfCandidato} • {selectedCandidato.numeroInscricao}</span>
                     </div>
                     {selectedCandidato.emailCandidato && (
                       <div className="space-y-1">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">E-MAIL COMPLETO</span>
-                        <span className="text-xs font-bold text-slate-700">{selectedCandidato.emailCandidato}</span>
+                        <span className="text-sm font-bold text-slate-700">{selectedCandidato.emailCandidato}</span>
                       </div>
                     )}
                     {(selectedCandidato.telefoneCandidato || selectedCandidato.celularCandidato) && (
                       <div className="space-y-1">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">TEL / CELULAR</span>
-                        <span className="text-xs font-bold text-slate-700">{selectedCandidato.telefoneCandidato || '-'} / {selectedCandidato.celularCandidato || '-'}</span>
+                        <span className="text-sm font-bold text-slate-700">{selectedCandidato.telefoneCandidato || '-'} / {selectedCandidato.celularCandidato || '-'}</span>
                       </div>
                     )}
                     <div className="space-y-1">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">OCUPAÇÃO VINCULADA</span>
-                      <span className="text-xs font-bold text-slate-700">{selectedCandidato.cargo?.nome} {selectedCandidato.areaAtuacao && `• ${selectedCandidato.areaAtuacao.nome}`}</span>
+                      <span className="text-sm font-bold text-slate-700">{selectedCandidato.cargo?.nome} {selectedCandidato.areaAtuacao && `• ${selectedCandidato.areaAtuacao.nome}`}</span>
                     </div>
                     {(selectedCandidato.carreira || selectedCandidato.nivel) && (
                       <div className="space-y-1">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">CARREIRA / NÍVEL</span>
-                        <span className="text-xs font-bold text-slate-700">{selectedCandidato.carreira?.nome || '-'} • {selectedCandidato.nivel?.nome || '-'}</span>
+                        <span className="text-sm font-bold text-slate-700">{selectedCandidato.carreira?.nome || '-'} • {selectedCandidato.nivel?.nome || '-'}</span>
                       </div>
                     )}
                     <div className="space-y-1">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">NOTA FINAL</span>
-                      <span className="text-xs font-black text-emerald-600">{selectedCandidato.nota?.toFixed(2) || '0.00'}</span>
+                      <span className="text-sm font-black text-emerald-600">{selectedCandidato.nota?.toFixed(2) || '0.00'}</span>
                     </div>
                   </div>
                   
                   {selectedCandidato.enderecoCandidato && (
                     <div className="mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-100">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">ENDEREÇO DE CONTATO</span>
-                      <span className="text-xs font-medium text-slate-600 italic">"{selectedCandidato.enderecoCandidato}"</span>
+                      <span className="text-sm font-medium text-slate-600 italic">"{selectedCandidato.enderecoCandidato}"</span>
                     </div>
                   )}
 
                   <div className="flex flex-wrap gap-2 mt-6">
-                    <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border border-indigo-100">Posição: {selectedCandidato.posicaoConvocacao || selectedCandidato.posicaoAmpla}º</span>
-                    <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <span className="px-3 py-1 rounded-xl text-sm font-black uppercase bg-indigo-50 text-indigo-600 border border-indigo-100">Posição: {selectedCandidato.posicaoConvocacao || selectedCandidato.posicaoAmpla}º</span>
+                    <span className="px-3 py-1 rounded-xl text-sm font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">
                       {selectedCandidato.modalidade?.nome || (
                         selectedCandidato.concorrenciaPCD ? 'PCD' : 
                         selectedCandidato.concorrenciaNegro ? 'Negro' : 'Ampla Concorrência'
@@ -500,7 +500,7 @@ export default function ControleConvocacaoPage() {
                   <div className="mb-8">
                     <button 
                       onClick={() => setViewAvaliacao(false)}
-                      className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-all hover:-translate-x-1"
+                      className="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-all hover:-translate-x-1"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                       Voltar ao Histórico
@@ -519,7 +519,7 @@ export default function ControleConvocacaoPage() {
                     <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[32px] border border-slate-200/60 shadow-inner">
                       <div className="space-y-4 flex-1 mr-4">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                             Status Atual
                           </span>
@@ -529,13 +529,13 @@ export default function ControleConvocacaoPage() {
                         </div>
                         
                         <div className="space-y-2">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             Modelo de Formulário
                           </span>
                           <div className="flex items-center gap-3">
                             <select 
-                              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500 transition-all flex-1"
+                              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 transition-all flex-1"
                               value={selectedCandidato.modeloFormularioId || ''}
                               disabled={updatingForm}
                               onChange={(e) => handleVincularFormulario(selectedCandidato.id, e.target.value)}
@@ -558,7 +558,7 @@ export default function ControleConvocacaoPage() {
                       <div className="flex flex-col gap-2 shrink-0">
                         <button 
                           onClick={() => handleReverterConvocacao(selectedCandidato.id)}
-                          className="px-5 py-3 text-rose-600 hover:bg-rose-50 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all border border-rose-200 shadow-sm"
+                          className="px-5 py-3 text-rose-600 hover:bg-rose-50 text-sm font-black uppercase tracking-widest rounded-2xl transition-all border border-rose-200 shadow-sm"
                         >
                           Desfazer
                         </button>
@@ -606,12 +606,12 @@ export default function ControleConvocacaoPage() {
                           <div className="bg-white border border-slate-100 rounded-[28px] p-7 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300">
                             <div className="flex justify-between items-start mb-4">
                               <div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Meio / Fase</span>
-                                <span className="text-xs font-black text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">{reg.meioUtilizado}</span>
+                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">Meio / Fase</span>
+                                <span className="text-sm font-black text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">{reg.meioUtilizado}</span>
                               </div>
                               <div className="text-right">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Data/Hora</span>
-                                <span className="text-xs font-black text-slate-700">{new Date(reg.dataConvocacao).toLocaleString('pt-BR')}</span>
+                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">Data/Hora</span>
+                                <span className="text-sm font-black text-slate-700">{new Date(reg.dataConvocacao).toLocaleString('pt-BR')}</span>
                               </div>
                             </div>
                             <div className="space-y-4">
@@ -622,7 +622,7 @@ export default function ControleConvocacaoPage() {
                                 </div>
                               )}
                               {reg.observacoes && (
-                                <div className="text-xs text-slate-600 bg-slate-50 p-4 rounded-[20px] border border-slate-100 leading-relaxed font-bold italic">
+                                <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-[20px] border border-slate-100 leading-relaxed font-bold italic">
                                   "{reg.observacoes}"
                                 </div>
                               )}
@@ -638,7 +638,7 @@ export default function ControleConvocacaoPage() {
                   <div className="mb-8">
                     <button 
                       onClick={() => setShowNovoRegistro(false)}
-                      className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-all hover:-translate-x-1"
+                      className="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-all hover:-translate-x-1"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                       Voltar ao Histórico

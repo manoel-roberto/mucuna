@@ -161,7 +161,7 @@ export default function UsuariosPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-mucuna/5 border border-primary-mucuna/10 rounded-full">
             <div className="w-1.5 h-1.5 bg-primary-mucuna rounded-full" />
-            <span className="text-[10px] font-black text-primary-mucuna uppercase tracking-[0.2em]">Administração</span>
+            <span className="text-sm font-black text-primary-mucuna uppercase tracking-[0.2em]">Administração</span>
           </div>
           <h1 className="text-4xl font-black text-primary-mucuna font-display uppercase tracking-tighter italic">Gestão de <span className="text-accent-mucuna not-italic">Equipe.</span></h1>
           <p className="text-sm text-slate-400 font-bold max-w-md">Controle de acessos e membros da equipe administrativa do ecossistema Mucunã.</p>
@@ -181,10 +181,10 @@ export default function UsuariosPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-mucuna/50 border-b border-primary-mucuna/5">
-                <th className="p-8 text-[10px] uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Funcionário</th>
-                <th className="p-8 text-[10px] uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Contato & Identidade</th>
-                <th className="p-8 text-[10px] uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Perfil de Acesso</th>
-                <th className="p-8 text-right text-[10px] uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Ações</th>
+                <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Funcionário</th>
+                <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Contato & Identidade</th>
+                <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Perfil de Acesso</th>
+                <th className="p-8 text-right text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-primary-mucuna/5">
@@ -199,16 +199,16 @@ export default function UsuariosPage() {
                       </div>
                       <div>
                         <div className="font-black text-primary-mucuna text-lg leading-tight uppercase tracking-tighter italic">{u.nome}</div>
-                        <div className="text-[10px] text-accent-mucuna font-black uppercase tracking-widest mt-0.5">Membro Integrante</div>
+                        <div className="text-sm text-accent-mucuna font-black uppercase tracking-widest mt-0.5">Membro Integrante</div>
                       </div>
                     </div>
                   </td>
                   <td className="p-8">
                     <div className="text-sm font-bold text-slate-600 mb-1">{u.email}</div>
-                    <div className="inline-block px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none">{u.cpf}</div>
+                    <div className="inline-block px-2 py-0.5 bg-slate-100 rounded-md text-sm font-black text-slate-400 uppercase tracking-tighter leading-none">{u.cpf}</div>
                   </td>
                   <td className="p-8">
-                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] shadow-sm ${
+                    <span className={`px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-[0.15em] shadow-sm ${
                       u.role?.nome === 'Administrador' ? 'bg-primary-mucuna text-white' :
                       u.role?.nome === 'Operador' ? 'bg-accent-mucuna text-white' : 'bg-surface-mucuna text-primary-mucuna border border-primary-mucuna/10'
                     }`}>
@@ -245,13 +245,13 @@ export default function UsuariosPage() {
             <div className="space-y-3">
               <div className="w-16 h-1 bg-accent-mucuna rounded-full opacity-50" />
               <h2 className="text-4xl font-black text-primary-mucuna font-display uppercase tracking-tighter leading-tight italic">{editMode ? 'Editar' : 'Novo'} <span className="text-accent-mucuna not-italic">Membro.</span></h2>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Sincronização de Identidade e Acesso</p>
+              <p className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">Sincronização de Identidade e Acesso</p>
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 gap-8">
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Nome Completo</label>
+                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Nome Completo</label>
                   <input 
                     type="text" required 
                     value={formData.nome}
@@ -263,7 +263,7 @@ export default function UsuariosPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">E-mail Corporativo</label>
+                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">E-mail Corporativo</label>
                     <input 
                       type="email" required 
                       value={formData.email}
@@ -273,7 +273,7 @@ export default function UsuariosPage() {
                     />
                   </div>
                   <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">CPF</label>
+                    <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">CPF</label>
                     <input 
                       type="text" required 
                       value={formData.cpf}
@@ -285,7 +285,7 @@ export default function UsuariosPage() {
                 </div>
 
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Senha de Acesso</label>
+                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Senha de Acesso</label>
                   <input 
                     type="password"
                     required={!editMode}
@@ -298,7 +298,7 @@ export default function UsuariosPage() {
                 </div>
 
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Perfil de Permissão</label>
+                  <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Perfil de Permissão</label>
                   <div className="relative">
                     <select 
                       value={formData.roleId}
@@ -321,7 +321,7 @@ export default function UsuariosPage() {
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)} 
-                  className="flex-1 py-5 text-primary-mucuna/40 font-black uppercase text-[10px] tracking-widest hover:text-primary-mucuna transition-all order-2 md:order-1"
+                  className="flex-1 py-5 text-primary-mucuna/40 font-black uppercase text-sm tracking-widest hover:text-primary-mucuna transition-all order-2 md:order-1"
                 >
                   Cancelar
                 </button>

@@ -98,8 +98,9 @@ async function main() {
     { slug: 'NOTICIAS_EDITAR', nome: 'Editar Notícia', categoria: 'Sistema', descricao: 'Alterar notícias publicadas' },
     { slug: 'NOTICIAS_EXCLUIR', nome: 'Excluir Notícia', categoria: 'Sistema', descricao: 'Remover avisos do sistema' },
 
-    { slug: 'CONFIGURACOES_SISTEMA', nome: 'Configurações Globais', categoria: 'Sistema', descricao: 'Ajustes finos da plataforma' },
+    { slug: 'CONFIGURACOES_SISTEMA', nome: 'Configurações Globais', categoria: 'Sistema', descricao: 'Ajustes de cotas e reserva legal' },
     { slug: 'PORTAL_CANDIDATO_ACESSO', nome: 'Acesso Portal', categoria: 'Portal', descricao: 'Permissão básica de candidato' },
+    { slug: 'VAGAS_HISTORICO', nome: 'Log de Vagas', categoria: 'Vagas', descricao: 'Ver histórico de alterações e justificativas' },
   ];
 
   for (const p of permissionsList) {
@@ -218,6 +219,20 @@ async function main() {
     create: { editalId: edital.id, modeloFormularioId: modelo.id, obrigatorio: true },
   });
   console.log('✅ Edital Demo pronto.');
+  
+  // 7. Configuração Global (Lei Estadual 13.182/2014)
+  console.log('Provisionando Configuração Global...');
+  await prisma.configuracaoSistema.upsert({
+    where: { id: 'singleton' },
+    update: {},
+    create: {
+      id: 'singleton',
+      percentualNegrosPadrao: 20,
+      percentualPCDPadrao: 5,
+      baseLegalTexto: `Em observância à Lei Estadual nº 13.182/2014 (Estatuto da Igualdade Racial do Estado da Bahia) e ao Decreto nº 15.353/2014, este certame reserva 20% das vagas para candidatos negros e o percentual mínimo de 5% para pessoas com deficiência (PCD), conforme legislação vigente.`
+    }
+  });
+  console.log('✅ Configuração Global pronta.');
   
   console.log('🏁 Seed finalizado com sucesso.');
 }

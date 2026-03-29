@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 import { ClassificacaoService } from './classificacao.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -29,7 +38,10 @@ export class ClassificacaoController {
 
   @Post('importar')
   @Permissions('CANDIDATOS_IMPORTAR')
-  importar(@Param('editalId') editalId: string, @Body() body: { candidatos: any[] }) {
+  importar(
+    @Param('editalId') editalId: string,
+    @Body() body: { candidatos: any[] },
+  ) {
     return this.classificacaoService.importar(editalId, body.candidatos);
   }
 

@@ -37,7 +37,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
       });
 
       if (res.ok) {
-        const data = await res.json();
+        const text = await res.text();
+        if (!text) {
+          console.warn('API retornou resposta vazia para /usuarios/me');
+          throw new Error('No user data found');
+        }
+        
+        const data = JSON.parse(text);
         const flattenedPermissions = data.role?.permissions?.map((p: any) => p.permission.slug) || [];
         
         const userData = {

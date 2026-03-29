@@ -11,7 +11,9 @@ export class ConvocacaoService {
    * Gera a fila de convocação intercalada para todos os cargos de um edital.
    */
   async gerarFilaConvocacao(editalId: string) {
-    this.logger.log(`Gerando fila de convocação global para edital: ${editalId}`);
+    this.logger.log(
+      `Gerando fila de convocação global para edital: ${editalId}`,
+    );
 
     const edital = await this.prisma.edital.findUnique({
       where: { id: editalId },
@@ -26,7 +28,10 @@ export class ConvocacaoService {
     const configuracoesVagas = await this.prisma.vagaEdital.findMany({
       where: { editalId },
     });
-    const totalVagasDisponiveis = configuracoesVagas.reduce((acc, v) => acc + v.quantidadeVagas, 0);
+    const totalVagasDisponiveis = configuracoesVagas.reduce(
+      (acc, v) => acc + v.quantidadeVagas,
+      0,
+    );
 
     // 2. Buscar TODOS os candidatos do edital
     const candidatos = await this.prisma.classificacaoCandidato.findMany({
@@ -37,21 +42,21 @@ export class ConvocacaoService {
 
     // 3. Criar filas por modalidade (Ordenadas pelas posições específicas)
     const filaAC = candidatos
-      .filter(c => (c as any).concorrenciaAmpla)
+      .filter((c) => (c as any).concorrenciaAmpla)
       .sort((a, b) => (a.posicaoAmpla || 999) - (b.posicaoAmpla || 999));
 
     const filaNegro = candidatos
-      .filter(c => (c as any).concorrenciaNegro)
+      .filter((c) => (c as any).concorrenciaNegro)
       .sort((a, b) => (a.posicaoNegro || 999) - (b.posicaoNegro || 999));
 
     const filaPCD = candidatos
-      .filter(c => (c as any).concorrenciaPCD)
+      .filter((c) => (c as any).concorrenciaPCD)
       .sort((a, b) => (a.posicaoPCD || 999) - (b.posicaoPCD || 999));
 
     let indexAC = 0;
     let indexNegro = 0;
     let indexPCD = 0;
-    
+
     const candidatosConvocados: any[] = [];
     const totalAProcessar = candidatos.length;
 
@@ -88,22 +93,25 @@ export class ConvocacaoService {
         candidatosConvocados.push({
           id: escolhido.id,
           posicaoConvocacao: n,
-          situacao: n <= totalVagasDisponiveis ? 'APROVADO_CONVOCAVEL' : 'CADASTRO_RESERVA',
+          situacao:
+            n <= totalVagasDisponiveis
+              ? 'APROVADO_CONVOCAVEL'
+              : 'CADASTRO_RESERVA',
         });
       }
     }
 
     // 5. Atualizar no banco em lote
     await this.prisma.$transaction(
-      candidatosConvocados.map(c => 
+      candidatosConvocados.map((c) =>
         this.prisma.classificacaoCandidato.update({
           where: { id: c.id },
           data: {
             posicaoConvocacao: c.posicaoConvocacao,
             situacao: c.situacao,
           } as any,
-        })
-      )
+        }),
+      ),
     );
 
     return { success: true, count: candidatosConvocados.length };

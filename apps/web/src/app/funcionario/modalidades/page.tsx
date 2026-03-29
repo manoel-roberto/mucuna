@@ -95,12 +95,12 @@ export default function ModalidadesPage() {
               </div>
               
               <h3 className="text-xl font-black text-slate-900 leading-tight">{c.nome}</h3>
-              <p className="text-xs text-slate-500 line-clamp-2">{c.descricao || 'Sem descrição'}</p>
+              <p className="text-sm text-slate-500 line-clamp-2">{c.descricao || 'Sem descrição'}</p>
               
               <div className="pt-4 flex gap-3">
                 <button 
                   onClick={() => { setFormData({ id: c.id, nome: c.nome, descricao: c.descricao || '' }); setShowModal(true); }}
-                  className="flex-1 px-4 py-2 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-900 hover:text-white transition-all text-xs"
+                  className="flex-1 px-4 py-2 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-900 hover:text-white transition-all text-sm"
                 >
                   Editar
                 </button>
@@ -123,7 +123,7 @@ export default function ModalidadesPage() {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nome da Modalidade</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Nome da Modalidade</label>
                 <input 
                   type="text" 
                   required 
@@ -135,7 +135,7 @@ export default function ModalidadesPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Descrição</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Descrição</label>
                 <textarea 
                   value={formData.descricao}
                   onChange={e => setFormData({ ...formData, descricao: e.target.value })}
@@ -148,7 +148,7 @@ export default function ModalidadesPage() {
                 <button 
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-6 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest hover:text-slate-900"
+                  className="flex-1 px-6 py-4 text-slate-400 font-bold uppercase text-sm tracking-widest hover:text-slate-900"
                 >
                   Cancelar
                 </button>

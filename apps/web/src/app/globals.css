@@ -7,10 +7,10 @@
   --color-support-mucuna: #4F7942;
   --color-surface-mucuna: #F8F9F9;
   
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
-  --font-display: var(--font-montserrat), sans-serif;
+  --font-sans: var(--font-raleway), ui-sans-serif, system-ui;
+  --font-display: var(--font-lora), serif;
   
-  --radius-mucuna: 8px;
+  --radius-mucuna: 24px;
 }
 
 :root {

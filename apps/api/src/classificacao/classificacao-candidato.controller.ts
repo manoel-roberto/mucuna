@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { ClassificacaoService } from './classificacao.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -10,7 +18,7 @@ export class ClassificacaoCandidatoController {
   constructor(private readonly classificacaoService: ClassificacaoService) {}
 
   @Get()
-  // Aberto a quem tiver logado e for candidato, ou admin. 
+  // Aberto a quem tiver logado e for candidato, ou admin.
   // Vou usar uma permissão base ou manter vazio para permitir livre acesso ao usuário sobre seus próprios dados
   findAll(@Req() req: any) {
     return this.classificacaoService.findAllByUsuario(req.user.id);

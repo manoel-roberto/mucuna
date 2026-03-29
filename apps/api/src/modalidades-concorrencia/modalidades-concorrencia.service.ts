@@ -7,9 +7,18 @@ export class ModalidadesConcorrenciaService implements OnModuleInit {
 
   async onModuleInit() {
     const defaultTypes = [
-      { nome: 'Ampla Concorrência', descricao: 'Vagas destinadas à concorrência geral.' },
-      { nome: 'Vagas reservadas para Negros', descricao: 'Vagas destinadas a candidatos que se autodeclaram negros.' },
-      { nome: 'Vagas reservadas para Pessoa com Deficiência', descricao: 'Vagas destinadas a candidatos com deficiência (PcD).' },
+      {
+        nome: 'Ampla Concorrência',
+        descricao: 'Vagas destinadas à concorrência geral.',
+      },
+      {
+        nome: 'Vagas reservadas para Negros',
+        descricao: 'Vagas destinadas a candidatos que se autodeclaram negros.',
+      },
+      {
+        nome: 'Vagas reservadas para Pessoa com Deficiência',
+        descricao: 'Vagas destinadas a candidatos com deficiência (PcD).',
+      },
     ];
 
     for (const type of defaultTypes) {

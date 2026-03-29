@@ -191,7 +191,7 @@ export default function ImportarHabilitadosPage() {
         {step === 1 && (
           <div className="p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-4">
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Selecione o Edital Destino</label>
+              <label className="block text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Selecione o Edital Destino</label>
               <div className="grid grid-cols-1 gap-3">
                 {editais.map(e => (
                   <button
@@ -205,7 +205,7 @@ export default function ImportarHabilitadosPage() {
                   >
                     <div>
                       <span className="block font-black text-slate-900 text-lg">{e.titulo}</span>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{e.ano} • {e.status}</span>
+                      <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{e.ano} • {e.status}</span>
                     </div>
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                       selectedEditalId === e.id ? 'border-emerald-500 bg-emerald-500' : 'border-slate-200'
@@ -243,15 +243,15 @@ export default function ImportarHabilitadosPage() {
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <div>
-                      <h4 className="font-black text-emerald-900 uppercase text-xs tracking-widest mb-1">Processamento Inteligente (CSV)</h4>
+                      <h4 className="font-black text-emerald-900 uppercase text-sm tracking-widest mb-1">Processamento Inteligente (CSV)</h4>
                       <p className="text-sm text-emerald-700 font-bold leading-relaxed">
                         O sistema mapeia as colunas automaticamente pelo cabeçalho. Certifique-se de que o arquivo contenha:<br/>
-                        <code className="bg-white/80 px-1.5 rounded text-emerald-900 font-black text-[10px]">INSCRICAO; CPF; NOME; MODALIDADE; CARGO; AREA; CARREIRA; NIVEL</code>
+                        <code className="bg-white/80 px-1.5 rounded text-emerald-900 font-black text-sm">INSCRICAO; CPF; NOME; MODALIDADE; CARGO; AREA; CARREIRA; NIVEL</code>
                       </p>
                       <a 
                         href="/modelo_importacao.csv" 
                         download="modelo_importacao.csv"
-                        className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-white/40 hover:bg-white/60 text-emerald-900 rounded-lg text-[10px] font-black transition-all border border-emerald-200/50"
+                        className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-white/40 hover:bg-white/60 text-emerald-900 rounded-lg text-sm font-black transition-all border border-emerald-200/50"
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Baixar Arquivo de Exemplo
@@ -272,17 +272,17 @@ export default function ImportarHabilitadosPage() {
                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-sm group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 transition-all">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                   </div>
-                  <span className="block text-xs font-black text-slate-500 uppercase tracking-widest">Upload de Arquivo CSV</span>
+                  <span className="block text-sm font-black text-slate-500 uppercase tracking-widest">Upload de Arquivo CSV</span>
                 </label>
               </div>
             </div>
 
             <div className="space-y-4">
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Dados Coletados / Área de Texto</label>
+              <label className="block text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Dados Coletados / Área de Texto</label>
               <textarea
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
-                className="w-full h-80 p-8 bg-slate-50 border-2 border-slate-100 rounded-[32px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono text-xs font-bold text-slate-700 placeholder:text-slate-300"
+                className="w-full h-80 p-8 bg-slate-50 border-2 border-slate-100 rounded-[32px] outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono text-sm font-bold text-slate-700 placeholder:text-slate-300"
                 placeholder="2026001;123.456.789-00;MANOEL SILVA;1;AMPLA CONCORRENCIA;PROFESSOR;MATEMATICA;MAGISTERIO;SUPERIOR"
               />
             </div>
@@ -290,7 +290,7 @@ export default function ImportarHabilitadosPage() {
             <div className="flex justify-between items-center pt-4">
               <button
                 onClick={() => setStep(1)}
-                className="px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all"
+                className="px-8 py-4 text-slate-400 font-bold uppercase text-sm tracking-widest hover:text-slate-900 transition-all"
               >
                 Voltar
               </button>
@@ -316,13 +316,13 @@ export default function ImportarHabilitadosPage() {
               
               {stats.errors && stats.errors.length > 0 && (
                 <div className="mt-6 p-6 bg-rose-50 border border-rose-100 rounded-3xl text-left max-h-60 overflow-y-auto">
-                  <h4 className="text-xs font-black text-rose-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <h4 className="text-sm font-black text-rose-800 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     Avisos / Erros ({stats.errors.length})
                   </h4>
                   <ul className="space-y-1.5">
                     {stats.errors.map((err, i) => (
-                      <li key={i} className="text-[10px] text-rose-600 font-bold flex gap-2">
+                      <li key={i} className="text-sm text-rose-600 font-bold flex gap-2">
                         <span className="opacity-50">•</span>
                         {err}
                       </li>

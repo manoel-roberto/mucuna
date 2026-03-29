@@ -152,7 +152,7 @@ function ConstrutorContent() {
               <Link href="/funcionario/formularios" className="text-slate-400 hover:text-slate-600 transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7"/></svg>
               </Link>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <span className="text-sm font-black text-slate-400 uppercase tracking-widest">
                 {editId ? 'Editando Modelo' : 'Novo Modelo'}
               </span>
             </div>
@@ -173,18 +173,18 @@ function ConstrutorContent() {
           </div>
           
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pl-1">Vincular/Publicar em Edital</label>
+            <label className="text-sm font-black text-slate-400 uppercase tracking-widest block pl-1">Vincular/Publicar em Edital</label>
             <select 
               value={selectedEditalId}
               onChange={e => setSelectedEditalId(e.target.value)}
-              className="w-full px-4 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs outline-none hover:bg-emerald-600 transition-all cursor-pointer appearance-none shadow-lg"
+              className="w-full px-4 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm outline-none hover:bg-emerald-600 transition-all cursor-pointer appearance-none shadow-lg"
             >
               <option value="">Apenas Salvar Modelo...</option>
               {editais.map(e => (
                 <option key={e.id} value={e.id}>{e.titulo} ({e.ano})</option>
               ))}
             </select>
-            <p className="text-[10px] font-bold text-slate-400 pl-1 leading-tight italic">
+            <p className="text-sm font-bold text-slate-400 pl-1 leading-tight italic">
               {editId ? 'Você pode atualizar o modelo sem alterar os editais já vinculados.' : 'Selecione um edital para disponibilizar este formulário imediatamente.'}
             </p>
           </div>
@@ -201,7 +201,7 @@ function ConstrutorContent() {
             <div className="flex-1 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Rótulo do Campo</label>
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Rótulo do Campo</label>
                   <input 
                     type="text" 
                     value={field.label} 
@@ -211,7 +211,7 @@ function ConstrutorContent() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Tipo de Resposta</label>
+                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Tipo de Resposta</label>
                   <select 
                     value={field.type} 
                     onChange={(e) => updateField(field.id, { type: e.target.value as FieldType })}
@@ -269,7 +269,7 @@ function ConstrutorContent() {
           <button 
             key={btn.type}
             onClick={() => addField(btn.type as FieldType)} 
-            className="px-6 py-3 bg-white border-2 border-slate-50 text-slate-800 hover:border-emerald-500 hover:text-emerald-600 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm"
+            className="px-6 py-3 bg-white border-2 border-slate-50 text-slate-800 hover:border-emerald-500 hover:text-emerald-600 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d={btn.icon}/></svg>
             {btn.label}
@@ -281,7 +281,7 @@ function ConstrutorContent() {
         <button 
           onClick={handlePublish}
           disabled={loading}
-          className="px-10 py-4 bg-slate-900 text-white font-black uppercase text-xs tracking-[.2em] rounded-2xl hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
+          className="px-10 py-4 bg-slate-900 text-white font-black uppercase text-sm tracking-[.2em] rounded-2xl hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
         >
           {loading ? 'Salvando...' : editId ? 'Atualizar Modelo' : 'Publicar Formulário'}
         </button>

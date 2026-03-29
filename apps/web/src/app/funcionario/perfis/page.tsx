@@ -163,7 +163,7 @@ export default function PerfisPage() {
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="bg-primary-mucuna hover:bg-secondary-mucuna text-white px-5 py-3 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center gap-2 transition-all shadow-xl shadow-primary-mucuna/10"
+          className="bg-primary-mucuna hover:bg-secondary-mucuna text-white px-5 py-3 rounded-2xl font-black uppercase text-sm tracking-widest flex items-center gap-2 transition-all shadow-xl shadow-primary-mucuna/10"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/></svg>
           Novo Perfil
@@ -178,7 +178,7 @@ export default function PerfisPage() {
             <div>
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-black text-primary-mucuna uppercase tracking-tight">{role.nome}</h3>
-                <span className="text-[10px] bg-accent-mucuna/10 text-accent-mucuna px-3 py-1 rounded-full uppercase font-black tabular-nums tracking-widest">
+                <span className="text-sm bg-accent-mucuna/10 text-accent-mucuna px-3 py-1 rounded-full uppercase font-black tabular-nums tracking-widest">
                   {role.permissions.length} PERMISÕES
                 </span>
               </div>
@@ -191,7 +191,7 @@ export default function PerfisPage() {
                   </span>
                 ))}
                 {role.permissions.length > 5 && (
-                  <span className="text-[10px] text-slate-400 px-1 py-1">+{role.permissions.length - 5}</span>
+                  <span className="text-sm text-slate-400 px-1 py-1">+{role.permissions.length - 5}</span>
                 )}
               </div>
             </div>
@@ -231,7 +231,7 @@ export default function PerfisPage() {
               <div className="p-8 overflow-y-auto space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Perfil</label>
+                    <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Nome do Perfil</label>
                     <input 
                       type="text" required 
                       placeholder="Ex: Recursos Humanos"
@@ -241,7 +241,7 @@ export default function PerfisPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição</label>
+                    <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Descrição</label>
                     <input 
                       type="text"
                       placeholder="Para que serve este perfil?"
@@ -259,14 +259,14 @@ export default function PerfisPage() {
                        <button 
                          type="button" 
                          onClick={() => setFormData({...formData, permissionIds: []})}
-                         className="text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-red-50"
+                         className="text-sm font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-red-50"
                        >
                          Nenhuma
                        </button>
                        <button 
                          type="button" 
                          onClick={() => setFormData({...formData, permissionIds: allPermissions.map(p => p.id)})}
-                         className="text-[10px] font-bold text-emerald-500 hover:text-emerald-700 transition-colors uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-emerald-50"
+                         className="text-sm font-bold text-emerald-500 hover:text-emerald-700 transition-colors uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-emerald-50"
                        >
                          Tudo (Admin)
                        </button>
@@ -277,12 +277,12 @@ export default function PerfisPage() {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-slate-100 italic">
-                          <th className="py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest pl-4">Módulo / Recurso</th>
-                          <th className="py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-2">Consultar</th>
-                          <th className="py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-2">Criar</th>
-                          <th className="py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-2">Editar</th>
-                          <th className="py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-2">Excluir</th>
-                          <th className="py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-2">Outros / Especial</th>
+                          <th className="py-4 text-sm font-black text-slate-400 uppercase tracking-widest pl-4">Módulo / Recurso</th>
+                          <th className="py-4 text-sm font-black text-slate-400 uppercase tracking-widest text-center px-2">Consultar</th>
+                          <th className="py-4 text-sm font-black text-slate-400 uppercase tracking-widest text-center px-2">Criar</th>
+                          <th className="py-4 text-sm font-black text-slate-400 uppercase tracking-widest text-center px-2">Editar</th>
+                          <th className="py-4 text-sm font-black text-slate-400 uppercase tracking-widest text-center px-2">Excluir</th>
+                          <th className="py-4 text-sm font-black text-slate-400 uppercase tracking-widest text-center px-2">Outros / Especial</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
@@ -331,7 +331,7 @@ export default function PerfisPage() {
                                     </div>
                                   ) : (
                                     <div className="flex items-center justify-center h-full">
-                                      <span className="text-slate-100 text-[10px] font-bold">—</span>
+                                      <span className="text-slate-100 text-sm font-bold">—</span>
                                     </div>
                                   )}
                                 </td>
@@ -353,7 +353,7 @@ export default function PerfisPage() {
                                       {p.nome}
                                     </button>
                                   ))}
-                                  {extras.length === 0 && <span className="text-slate-100 text-[10px] font-bold">—</span>}
+                                  {extras.length === 0 && <span className="text-slate-100 text-sm font-bold">—</span>}
                                 </div>
                               </td>
                             </tr>
@@ -366,8 +366,8 @@ export default function PerfisPage() {
               </div>
 
               <div className="p-8 bg-surface-mucuna border-t border-accent-mucuna/10 flex gap-4">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black uppercase text-xs tracking-widest hover:bg-slate-100 rounded-2xl transition-all">Cancelar</button>
-                <button type="submit" className="flex-[2] py-4 bg-primary-mucuna text-white font-black uppercase text-xs tracking-widest rounded-3xl hover:bg-secondary-mucuna shadow-xl shadow-primary-mucuna/20 transition-all">
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black uppercase text-sm tracking-widest hover:bg-slate-100 rounded-2xl transition-all">Cancelar</button>
+                <button type="submit" className="flex-[2] py-4 bg-primary-mucuna text-white font-black uppercase text-sm tracking-widest rounded-3xl hover:bg-secondary-mucuna shadow-xl shadow-primary-mucuna/20 transition-all">
                    {editingRole ? 'Salvar Alterações' : 'Criar Perfil de Acesso'}
                 </button>
               </div>

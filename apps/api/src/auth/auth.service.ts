@@ -11,17 +11,17 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.prisma.usuario.findUnique({ 
+    const user = await this.prisma.usuario.findUnique({
       where: { email },
-      include: { 
+      include: {
         role: {
           include: {
             permissions: {
-              include: { permission: true }
-            }
-          }
-        } 
-      }
+              include: { permission: true },
+            },
+          },
+        },
+      },
     });
     if (
       user &&
@@ -36,8 +36,9 @@ export class AuthService {
 
   async login(user: any) {
     const payload = { email: user.email, sub: user.id, roleId: user.roleId };
-    const permissions = user.role?.permissions.map((p: any) => p.permission.slug) || [];
-    
+    const permissions =
+      user.role?.permissions.map((p: any) => p.permission.slug) || [];
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -57,7 +58,9 @@ export class AuthService {
 
     // Se for candidato, validar se está na lista de habilitados do edital
     if (!editalId || !numeroInscricao) {
-      throw new Error('Edital e Número de Inscrição são obrigatórios para cadastro.');
+      throw new Error(
+        'Edital e Número de Inscrição são obrigatórios para cadastro.',
+      );
     }
 
     const classificacao = await this.prisma.classificacaoCandidato.findFirst({
@@ -69,7 +72,9 @@ export class AuthService {
     });
 
     if (!classificacao) {
-      throw new Error('Candidato não encontrado ou dados (CPF/Inscrição) incorretos para este edital.');
+      throw new Error(
+        'Candidato não encontrado ou dados (CPF/Inscrição) incorretos para este edital.',
+      );
     }
 
     const existingUser = await this.prisma.usuario.findFirst({
@@ -82,8 +87,10 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const roleCandidato = await this.prisma.role.findUnique({ where: { nome: 'Candidato' } });
-    
+    const roleCandidato = await this.prisma.role.findUnique({
+      where: { nome: 'Candidato' },
+    });
+
     const user = await this.prisma.usuario.create({
       data: {
         nome: name,

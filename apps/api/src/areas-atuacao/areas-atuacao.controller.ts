@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { AreasAtuacaoService } from './areas-atuacao.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -29,7 +39,10 @@ export class AreasAtuacaoController {
 
   @Patch(':id')
   @Permissions('AREAS_EDITAR')
-  update(@Param('id') id: string, @Body() data: { nome?: string; cargoId?: string }) {
+  update(
+    @Param('id') id: string,
+    @Body() data: { nome?: string; cargoId?: string },
+  ) {
     return this.areasAtuacaoService.update(id, data);
   }
 

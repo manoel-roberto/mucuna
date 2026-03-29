@@ -7,8 +7,8 @@
 ---
 
 **Project:** Mucunã
-**Generated:** 2026-03-28 19:27:13
-**Category:** Job Board/Recruitment
+**Generated:** 2026-03-28 21:09:29
+**Category:** Biohacking / Longevity App
 
 ---
 
@@ -18,13 +18,13 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#0F172A` | `--color-primary` |
-| Secondary | `#334155` | `--color-secondary` |
-| CTA/Accent | `#0369A1` | `--color-cta` |
+| Primary | `#3B82F6` | `--color-primary` |
+| Secondary | `#60A5FA` | `--color-secondary` |
+| CTA/Accent | `#F97316` | `--color-cta` |
 | Background | `#F8FAFC` | `--color-background` |
-| Text | `#020617` | `--color-text` |
+| Text | `#1E293B` | `--color-text` |
 
-**Color Notes:** Professional Blue + Success Green + Neutral
+**Color Notes:** Trust Blue (#0066CC) + Green (security) + Neutral
 
 ### Typography
 
@@ -68,7 +68,7 @@
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #0369A1;
+  background: #F97316;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -85,8 +85,8 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #0F172A;
-  border: 2px solid #0F172A;
+  color: #3B82F6;
+  border: 2px solid #3B82F6;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -125,9 +125,9 @@
 }
 
 .input:focus {
-  border-color: #0F172A;
+  border-color: #3B82F6;
   outline: none;
-  box-shadow: 0 0 0 3px #0F172A20;
+  box-shadow: 0 0 0 3px #3B82F620;
 }
 ```
 
@@ -153,17 +153,17 @@
 
 ## Style Guidelines
 
-**Style:** Exaggerated Minimalism
+**Style:** Vibrant & Block-based
 
-**Keywords:** Bold minimalism, oversized typography, high contrast, negative space, loud minimal, statement design
+**Keywords:** Bold, energetic, playful, block layout, geometric shapes, high color contrast, duotone, modern, energetic
 
-**Best For:** Fashion, architecture, portfolios, agency landing pages, luxury brands, editorial
+**Best For:** Startups, creative agencies, gaming, social media, youth-focused, entertainment, consumer
 
-**Key Effects:** font-size: clamp(3rem 10vw 12rem), font-weight: 900, letter-spacing: -0.05em, massive whitespace
+**Key Effects:** Large sections (48px+ gaps), animated patterns, bold hover (color shift), scroll-snap, large type (32px+), 200-300ms
 
 ### Page Pattern
 
-**Pattern Name:** Conversion-Optimized + Feature-Rich
+**Pattern Name:** Feature-Rich Showcase
 
 - **CTA Placement:** Above fold
 - **Section Order:** Hero > Features > CTA
@@ -172,8 +172,8 @@
 
 ## Anti-Patterns (Do NOT Use)
 
-- ❌ Outdated forms
-- ❌ Hidden filters
+- ❌ Flat design without depth
+- ❌ Text-heavy pages
 
 ### Additional Forbidden Patterns
 

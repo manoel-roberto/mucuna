@@ -7,19 +7,19 @@ export class PortalCandidatoService {
 
   async getStatus(cpf: string, numeroInscricao: string) {
     const classificacao = await this.prisma.classificacaoCandidato.findFirst({
-      where: { 
-        cpfCandidato: cpf.replace(/\D/g, ''), 
-        numeroInscricao 
+      where: {
+        cpfCandidato: cpf.replace(/\D/g, ''),
+        numeroInscricao,
       },
       include: {
         edital: {
           include: {
             formularios: {
               include: {
-                modeloFormulario: true
-              }
-            }
-          }
+                modeloFormulario: true,
+              },
+            },
+          },
         },
         cargo: true,
         areaAtuacao: true,
@@ -27,13 +27,15 @@ export class PortalCandidatoService {
         modeloFormulario: true,
         envios: {
           include: { arquivos: true },
-          orderBy: { enviadoEm: 'desc' }
+          orderBy: { enviadoEm: 'desc' },
         },
-      }
+      },
     });
 
     if (!classificacao) {
-      throw new NotFoundException('Candidato não encontrado para os dados informados.');
+      throw new NotFoundException(
+        'Candidato não encontrado para os dados informados.',
+      );
     }
 
     return {
@@ -53,30 +55,41 @@ export class PortalCandidatoService {
       edital: {
         id: classificacao.edital.id,
         titulo: classificacao.edital.titulo,
-        formulariosExigidos: classificacao.edital.formularios.map(f => ({
+        formulariosExigidos: classificacao.edital.formularios.map((f) => ({
           id: f.modeloFormulario.id,
           nome: f.modeloFormulario.nome,
           descricao: f.modeloFormulario.descricao,
           esquema: f.modeloFormulario.esquemaJSON,
           obrigatorio: f.obrigatorio,
-          jaEnviado: classificacao.envios.some(e => e.modeloFormularioId === f.modeloFormulario.id),
-          envio: classificacao.envios.find(e => e.modeloFormularioId === f.modeloFormulario.id)
-        }))
-      }
+          jaEnviado: classificacao.envios.some(
+            (e) => e.modeloFormularioId === f.modeloFormulario.id,
+          ),
+          envio: classificacao.envios.find(
+            (e) => e.modeloFormularioId === f.modeloFormulario.id,
+          ),
+        })),
+      },
     };
   }
 
-  async enviarDocumentos(classificacaoId: string, modeloId: string, respostas: any, arquivos: any[]) {
+  async enviarDocumentos(
+    classificacaoId: string,
+    modeloId: string,
+    respostas: any,
+    arquivos: any[],
+  ) {
     // 1. Busca o envio se já existir
     const existente = await this.prisma.envio.findFirst({
-      where: { 
+      where: {
         classificacaoCandidatoId: classificacaoId,
-        modeloFormularioId: modeloId
-      }
+        modeloFormularioId: modeloId,
+      },
     });
 
     if (existente?.finalizado && existente.statusAvaliacao !== 'REJEITADO') {
-      throw new Error('Este formulário já foi finalizado e não pode mais ser editado.');
+      throw new Error(
+        'Este formulário já foi finalizado e não pode mais ser editado.',
+      );
     }
 
     // 2. Usar Transação para Upsert Manual
@@ -84,12 +97,14 @@ export class PortalCandidatoService {
       if (existente) {
         // Se houver novos arquivos, deletamos os antigos dos mesmos campos antes de criar novos
         if (arquivos.length > 0) {
-          const novosCamposComArquivo = arquivos.map(a => a.originalname.split('.')[0]);
+          const novosCamposComArquivo = arquivos.map(
+            (a) => a.originalname.split('.')[0],
+          );
           await tx.arquivoUpload.deleteMany({
-            where: { 
+            where: {
               envioId: existente.id,
-              campoChave: { in: novosCamposComArquivo }
-            }
+              campoChave: { in: novosCamposComArquivo },
+            },
           });
         }
 
@@ -100,15 +115,15 @@ export class PortalCandidatoService {
             finalizado: false,
             statusAvaliacao: 'PENDENTE',
             arquivos: {
-              create: arquivos.map(a => ({
-                campoChave: a.originalname.split('.')[0], 
+              create: arquivos.map((a) => ({
+                campoChave: a.originalname.split('.')[0],
                 nomeOriginal: a.originalname,
                 caminhoArmazenamento: a.path,
                 tamanhoBytes: a.size,
                 tipoMime: a.mimetype,
-              }))
-            }
-          }
+              })),
+            },
+          },
         });
       }
 
@@ -121,22 +136,22 @@ export class PortalCandidatoService {
           statusAvaliacao: 'PENDENTE',
           finalizado: false,
           arquivos: {
-            create: arquivos.map(a => ({
-              campoChave: a.originalname.split('.')[0], 
+            create: arquivos.map((a) => ({
+              campoChave: a.originalname.split('.')[0],
               nomeOriginal: a.originalname,
               caminhoArmazenamento: a.path,
               tamanhoBytes: a.size,
               tipoMime: a.mimetype,
-            }))
-          }
-        }
+            })),
+          },
+        },
       });
     });
   }
 
   async finalizarEnvio(envioId: string, usuarioId: string) {
     const envio = await this.prisma.envio.findUnique({
-      where: { id: envioId }
+      where: { id: envioId },
     });
 
     if (!envio) throw new Error('Envio não encontrado');
@@ -144,12 +159,12 @@ export class PortalCandidatoService {
     return this.prisma.$transaction(async (tx) => {
       const updatedEnvio = await tx.envio.update({
         where: { id: envioId },
-        data: { finalizado: true }
+        data: { finalizado: true },
       });
 
       await tx.classificacaoCandidato.update({
         where: { id: envio.classificacaoCandidatoId },
-        data: { statusConvocacao: 'DOCUMENTOS_ENVIADOS' }
+        data: { statusConvocacao: 'DOCUMENTOS_ENVIADOS' },
       });
 
       await tx.registroConvocacao.create({
@@ -157,10 +172,11 @@ export class PortalCandidatoService {
           classificacaoCandidatoId: envio.classificacaoCandidatoId,
           meioUtilizado: 'Portal do Candidato',
           prazoDocumentacao: new Date(),
-          observacoes: 'Documentação finalizada e enviada pelo candidato via portal.',
+          observacoes:
+            'Documentação finalizada e enviada pelo candidato via portal.',
           status: 'MUDANCA_FASE',
-          criadoPorId: usuarioId
-        }
+          criadoPorId: usuarioId,
+        },
       });
 
       return updatedEnvio;

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { EditaisService } from './editais.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -54,13 +63,19 @@ export class EditaisController {
 
   @Post(':id/formularios/:modeloId')
   @Permissions('EDITAIS_EDITAR')
-  vincularFormulario(@Param('id') id: string, @Param('modeloId') modeloId: string) {
+  vincularFormulario(
+    @Param('id') id: string,
+    @Param('modeloId') modeloId: string,
+  ) {
     return this.editaisService.vincularFormulario(id, modeloId);
   }
 
   @Delete(':id/formularios/:modeloId')
   @Permissions('EDITAIS_EDITAR')
-  desvincularFormulario(@Param('id') id: string, @Param('modeloId') modeloId: string) {
+  desvincularFormulario(
+    @Param('id') id: string,
+    @Param('modeloId') modeloId: string,
+  ) {
     return this.editaisService.desvincularFormulario(id, modeloId);
   }
 }

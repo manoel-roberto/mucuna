@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Delete, Param, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  Param,
+  UseGuards,
+  Query,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -11,8 +22,12 @@ export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
   @Get('me')
-  getMe(@CurrentUser() user: any) {
-    return this.usuarioService.findOne(user.id);
+  async getMe(@CurrentUser() user: any) {
+    const result = await this.usuarioService.findOne(user.id);
+    if (!result) {
+      throw new UnauthorizedException('Usuário não encontrado');
+    }
+    return result;
   }
 
   @Patch('me')
@@ -26,7 +41,7 @@ export class UsuarioController {
   @Permissions('USUARIOS_LISTAR')
   findAll(
     @Query('roleId') roleId?: string,
-    @Query('perfil') roleName?: string
+    @Query('perfil') roleName?: string,
   ) {
     return this.usuarioService.findAll(roleId, roleName);
   }

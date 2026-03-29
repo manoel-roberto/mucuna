@@ -285,7 +285,7 @@ export default function CargosPage() {
         {loading ? (
           <div className="col-span-full py-20 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Carregando base de cargos...</p>
+            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-sm">Carregando base de cargos...</p>
           </div>
         ) : cargos.length === 0 ? (
           <div className="col-span-full bg-white p-20 rounded-[40px] text-center border-2 border-dashed border-slate-100">
@@ -332,12 +332,12 @@ export default function CargosPage() {
 
               <div className="relative z-10 pt-6 border-t border-slate-50 flex items-center justify-between">
                 <div>
-                   <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Áreas Vinculadas</span>
+                   <span className="block text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Áreas Vinculadas</span>
                    <span className="text-lg font-black text-emerald-600">{cargo._count?.areas || 0}</span>
                 </div>
                 <Link 
                   href={`/funcionario/areas-atuacao?cargoId=${cargo.id}`}
-                  className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-xs font-black hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                  className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-sm font-black hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
                 >
                   Ver Áreas
                 </Link>
@@ -353,7 +353,7 @@ export default function CargosPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-black text-slate-900 italic">Importação em Massa</h2>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Sincronização de Cargos e Áreas</p>
+                <p className="text-sm text-slate-400 font-black uppercase tracking-widest mt-1">Sincronização de Cargos e Áreas</p>
               </div>
               <button onClick={() => setShowImportModal(false)} className="text-slate-200 hover:text-slate-900 transition-all">
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -363,7 +363,7 @@ export default function CargosPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 flex flex-col justify-between">
                 <div>
-                  <p className="text-xs text-emerald-700 font-bold leading-relaxed">
+                  <p className="text-sm text-emerald-700 font-bold leading-relaxed">
                     Use o ponto e vírgula como separador (Compatível com formato Habilitados):<br/>
                     <code className="bg-white px-2 py-1 rounded mt-2 block w-max text-emerald-900 italic">...;CARGO;AREA;CARREIRA;NIVEL;...</code>
                   </p>
@@ -371,7 +371,7 @@ export default function CargosPage() {
                 <a 
                   href="/modelo_cargos_areas.csv" 
                   download 
-                  className="mt-4 text-emerald-700 hover:text-emerald-900 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 underline decoration-2 underline-offset-4"
+                  className="mt-4 text-emerald-700 hover:text-emerald-900 text-sm font-black uppercase tracking-widest flex items-center gap-2 underline decoration-2 underline-offset-4"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                   Baixar Modelo CSV
@@ -383,7 +383,7 @@ export default function CargosPage() {
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mx-auto mb-2 shadow-sm text-slate-400 group-hover:text-emerald-600 transition-all">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                   </div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Subir CSV</span>
+                  <span className="block text-sm font-black text-slate-500 uppercase tracking-widest">Subir CSV</span>
                 </label>
               </div>
             </div>
@@ -391,14 +391,14 @@ export default function CargosPage() {
             <textarea 
               value={importText}
               onChange={e => setImportText(e.target.value)}
-              className="w-full h-64 p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono text-xs font-bold text-slate-700"
+              className="w-full h-64 p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono text-sm font-bold text-slate-700"
               placeholder="Cargo;Area;Carreira;Nivel&#10;Professor;Matemática;Magistério;Superior&#10;Professor;Física;Magistério;Superior&#10;Técnico;Assuntos Educacionais;Técnica;Superior&#10;Assistente;Administração;Técnica;Médio&#10;Analista;Tecnologia da Informação;Técnica;Superior&#10;Bibliotecário;Documentalista;Técnica;Superior&#10;Assistente;Social;Técnica;Superior&#10;Contador;Geral;Técnica;Superior&#10;Professor;Química;Magistério;Superior&#10;Analista;Sistemas;Técnica;Superior&#10;Técnico;Laboratório;Técnica;Médio&#10;Psicólogo;Escolar;Técnica;Superior"
             />
 
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setShowImportModal(false)}
-                className="px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all"
+                className="px-8 py-4 text-slate-400 font-bold uppercase text-sm tracking-widest hover:text-slate-900 transition-all"
               >
                 Cancelar
               </button>
@@ -420,7 +420,7 @@ export default function CargosPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-black text-slate-900">{editMode ? 'Editar' : 'Novo'} Cargo</h2>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Definição Operacional</p>
+                <p className="text-sm text-slate-400 font-black uppercase tracking-widest mt-1">Definição Operacional</p>
               </div>
               <button onClick={() => setShowModal(false)} className="text-slate-200 hover:text-slate-900 transition-all">
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -429,7 +429,7 @@ export default function CargosPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nome do Cargo/Função</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Nome do Cargo/Função</label>
                 <input 
                   type="text" required 
                   value={formData.nome}
@@ -439,7 +439,7 @@ export default function CargosPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Descrição Breve</label>
+                <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Descrição Breve</label>
                 <textarea 
                   rows={4}
                   value={formData.descricao}
@@ -450,7 +450,7 @@ export default function CargosPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all">Cancelar</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-sm tracking-widest hover:text-slate-900 transition-all">Cancelar</button>
                 <button type="submit" className="px-10 py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100">
                   {editMode ? 'Salvar Mudanças' : 'Cadastrar Cargo'}
                 </button>

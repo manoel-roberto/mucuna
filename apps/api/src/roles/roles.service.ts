@@ -24,31 +24,38 @@ export class RolesService {
     });
   }
 
-  async create(data: { nome: string; descricao?: string; permissionIds: string[] }) {
+  async create(data: {
+    nome: string;
+    descricao?: string;
+    permissionIds: string[];
+  }) {
     const { permissionIds, ...roleData } = data;
-    
+
     return this.prisma.role.create({
       data: {
         ...roleData,
         permissions: {
-          create: permissionIds.map(id => ({
-            permissionId: id
-          }))
-        }
+          create: permissionIds.map((id) => ({
+            permissionId: id,
+          })),
+        },
       },
       include: {
-        permissions: true
-      }
+        permissions: true,
+      },
     });
   }
 
-  async update(id: string, data: { nome?: string; descricao?: string; permissionIds?: string[] }) {
+  async update(
+    id: string,
+    data: { nome?: string; descricao?: string; permissionIds?: string[] },
+  ) {
     const { permissionIds, ...roleData } = data;
 
     // Se houver novas permissões, remove as antigas e adiciona as novas (simples)
     if (permissionIds) {
       await this.prisma.rolePermission.deleteMany({
-        where: { roleId: id }
+        where: { roleId: id },
       });
     }
 
@@ -58,26 +65,28 @@ export class RolesService {
         ...roleData,
         ...(permissionIds && {
           permissions: {
-            create: permissionIds.map(pid => ({
-              permissionId: pid
-            }))
-          }
-        })
+            create: permissionIds.map((pid) => ({
+              permissionId: pid,
+            })),
+          },
+        }),
       },
       include: {
-        permissions: true
-      }
+        permissions: true,
+      },
     });
   }
 
   async remove(id: string) {
     // Não permitir deletar perfis que tenham usuários (segurança)
     const usersCount = await this.prisma.usuario.count({
-      where: { roleId: id }
+      where: { roleId: id },
     });
 
     if (usersCount > 0) {
-      throw new Error('Não é possível remover um perfil que possui usuários vinculados.');
+      throw new Error(
+        'Não é possível remover um perfil que possui usuários vinculados.',
+      );
     }
 
     return this.prisma.role.delete({ where: { id } });

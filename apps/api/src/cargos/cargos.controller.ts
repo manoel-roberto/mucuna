@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { CargosService } from './cargos.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -29,7 +38,10 @@ export class CargosController {
 
   @Patch(':id')
   @Permissions('CARGOS_EDITAR')
-  update(@Param('id') id: string, @Body() data: { nome?: string; descricao?: string }) {
+  update(
+    @Param('id') id: string,
+    @Body() data: { nome?: string; descricao?: string },
+  ) {
     return this.cargosService.update(id, data);
   }
 

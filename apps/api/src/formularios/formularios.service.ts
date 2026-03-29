@@ -15,9 +15,9 @@ export class FormulariosService {
   async findOne(id: string) {
     return this.prisma.modeloFormulario.findUnique({
       where: { id },
-      include: { 
-        editais: { include: { edital: true } }
-      }
+      include: {
+        editais: { include: { edital: true } },
+      },
     });
   }
 
@@ -27,8 +27,8 @@ export class FormulariosService {
         nome: data.nome,
         descricao: data.descricao,
         esquemaJSON: data.esquemaJSON,
-        criadoPor: { connect: { id: usuarioId } }
-      }
+        criadoPor: { connect: { id: usuarioId } },
+      },
     });
   }
 
@@ -38,29 +38,33 @@ export class FormulariosService {
       data: {
         nome: data.nome,
         descricao: data.descricao,
-        esquemaJSON: data.esquemaJSON
-      }
+        esquemaJSON: data.esquemaJSON,
+      },
     });
   }
 
-  async vincularAoEdital(editalId: string, modeloId: string, obrigatorio: boolean = true) {
+  async vincularAoEdital(
+    editalId: string,
+    modeloId: string,
+    obrigatorio: boolean = true,
+  ) {
     return this.prisma.editalFormulario.upsert({
-      where: { 
-        editalId_modeloFormularioId: { editalId, modeloFormularioId: modeloId }
+      where: {
+        editalId_modeloFormularioId: { editalId, modeloFormularioId: modeloId },
       },
       create: {
         editalId,
         modeloFormularioId: modeloId,
-        obrigatorio
+        obrigatorio,
       },
-      update: { obrigatorio }
+      update: { obrigatorio },
     });
   }
-  
+
   async listByEdital(editalId: string) {
     return this.prisma.editalFormulario.findMany({
       where: { editalId },
-      include: { modeloFormulario: true }
+      include: { modeloFormulario: true },
     });
   }
 

@@ -67,7 +67,7 @@ export default function CandidatosPage() {
       <div className="bg-white rounded-[32px] shadow-xl shadow-primary-mucuna/5 border border-accent-mucuna/10 overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-surface-mucuna border-b border-accent-mucuna/10">
-            <tr className="text-[10px] uppercase font-black text-primary-mucuna/40 tracking-widest">
+            <tr className="text-sm uppercase font-black text-primary-mucuna/40 tracking-widest">
               <th className="p-6">Nome</th>
               <th className="p-6">Email / CPF</th>
               <th className="p-6">Data de Cadastro</th>
@@ -84,7 +84,7 @@ export default function CandidatosPage() {
                 <td className="p-6 font-bold text-primary-mucuna">{c.nome}</td>
                 <td className="p-6">
                   <div className="text-sm font-medium text-primary-mucuna/80">{c.email}</div>
-                  <div className="text-[10px] font-black text-accent-mucuna/60 uppercase tracking-wider">{c.cpf}</div>
+                  <div className="text-sm font-black text-accent-mucuna/60 uppercase tracking-wider">{c.cpf}</div>
                 </td>
                 <td className="p-6 text-sm font-bold text-primary-mucuna/40">
                   {new Date(c.criadoEm).toLocaleDateString('pt-BR')}

@@ -1,19 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatusEdital, StatusConvocacao } from '@prisma/client';
+import { ConfiguracaoService } from '../configuracao/configuracao.service';
 
 @Injectable()
 export class EditaisService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfiguracaoService,
+  ) {}
 
   async findAll() {
     return this.prisma.edital.findMany({
       orderBy: { criadoEm: 'desc' },
       include: {
         _count: {
-          select: { classificacoes: true, formularios: true }
-        }
-      }
+          select: { classificacoes: true, formularios: true },
+        },
+      },
     });
   }
 
@@ -22,13 +26,18 @@ export class EditaisService {
       where: { id },
       include: {
         formularios: {
-          include: { modeloFormulario: true }
-        }
-      }
+          include: { modeloFormulario: true },
+        },
+        _count: {
+          select: { classificacoes: true, formularios: true },
+        },
+      },
     });
   }
 
   async create(data: any) {
+    const config = await this.configService.get();
+
     return this.prisma.edital.create({
       data: {
         titulo: data.titulo,
@@ -36,10 +45,14 @@ export class EditaisService {
         ano: parseInt(data.ano),
         tipo: data.tipo || null,
         status: data.status || StatusEdital.RASCUNHO,
-        inicioInscricoes: data.inicioInscricoes ? new Date(data.inicioInscricoes) : null,
+        inicioInscricoes: data.inicioInscricoes
+          ? new Date(data.inicioInscricoes)
+          : null,
         fimInscricoes: data.fimInscricoes ? new Date(data.fimInscricoes) : null,
-        prazoEnvioDocumentos: data.prazoEnvioDocumentos ? new Date(data.prazoEnvioDocumentos) : null,
-        
+        prazoEnvioDocumentos: data.prazoEnvioDocumentos
+          ? new Date(data.prazoEnvioDocumentos)
+          : null,
+
         // Controle de Validade
         certameId: data.certameId || null,
         regimeId: data.regimeId || null,
@@ -47,14 +60,30 @@ export class EditaisService {
         numCOPE: data.numCOPE || null,
         autorizacaoDOE: data.autorizacaoDOE || null,
         portariaHomologacao: data.portariaHomologacao || null,
-        dataDOEHomologacao: data.dataDOEHomologacao ? new Date(data.dataDOEHomologacao) : null,
-        dataValidadeOriginal: data.dataValidadeOriginal ? new Date(data.dataValidadeOriginal) : null,
-        dataLimiteProrrogacao: data.dataLimiteProrrogacao ? new Date(data.dataLimiteProrrogacao) : null,
+        dataDOEHomologacao: data.dataDOEHomologacao
+          ? new Date(data.dataDOEHomologacao)
+          : null,
+        dataValidadeOriginal: data.dataValidadeOriginal
+          ? new Date(data.dataValidadeOriginal)
+          : null,
+        dataLimiteProrrogacao: data.dataLimiteProrrogacao
+          ? new Date(data.dataLimiteProrrogacao)
+          : null,
         portariaProrrogacao: data.portariaProrrogacao || null,
-        dataDOEProrrogacao: data.dataDOEProrrogacao ? new Date(data.dataDOEProrrogacao) : null,
-        dataValidadeProrrogada: data.dataValidadeProrrogada ? new Date(data.dataValidadeProrrogada) : null,
+        dataDOEProrrogacao: data.dataDOEProrrogacao
+          ? new Date(data.dataDOEProrrogacao)
+          : null,
+        dataValidadeProrrogada: data.dataValidadeProrrogada
+          ? new Date(data.dataValidadeProrrogada)
+          : null,
         observacaoValidade: data.observacaoValidade || null,
-      }
+
+        // Herdar Configurações Globais
+        percentualNegros:
+          data.percentualNegros ?? config?.percentualNegrosPadrao ?? 20,
+        percentualPCD: data.percentualPCD ?? config?.percentualPCDPadrao ?? 5,
+        baseLegal: data.baseLegal ?? config?.baseLegalTexto ?? '',
+      },
     });
   }
 
@@ -64,19 +93,35 @@ export class EditaisService {
       data: {
         ...data,
         ano: data.ano ? parseInt(data.ano) : undefined,
-        inicioInscricoes: data.inicioInscricoes ? new Date(data.inicioInscricoes) : undefined,
-        fimInscricoes: data.fimInscricoes ? new Date(data.fimInscricoes) : undefined,
-        prazoEnvioDocumentos: data.prazoEnvioDocumentos ? new Date(data.prazoEnvioDocumentos) : undefined,
-        
+        inicioInscricoes: data.inicioInscricoes
+          ? new Date(data.inicioInscricoes)
+          : undefined,
+        fimInscricoes: data.fimInscricoes
+          ? new Date(data.fimInscricoes)
+          : undefined,
+        prazoEnvioDocumentos: data.prazoEnvioDocumentos
+          ? new Date(data.prazoEnvioDocumentos)
+          : undefined,
+
         // Controle de Validade (Updates)
         certameId: data.certameId || undefined,
         regimeId: data.regimeId || undefined,
-        dataDOEHomologacao: data.dataDOEHomologacao ? new Date(data.dataDOEHomologacao) : undefined,
-        dataValidadeOriginal: data.dataValidadeOriginal ? new Date(data.dataValidadeOriginal) : undefined,
-        dataLimiteProrrogacao: data.dataLimiteProrrogacao ? new Date(data.dataLimiteProrrogacao) : undefined,
-        dataDOEProrrogacao: data.dataDOEProrrogacao ? new Date(data.dataDOEProrrogacao) : undefined,
-        dataValidadeProrrogada: data.dataValidadeProrrogada ? new Date(data.dataValidadeProrrogada) : undefined,
-      }
+        dataDOEHomologacao: data.dataDOEHomologacao
+          ? new Date(data.dataDOEHomologacao)
+          : undefined,
+        dataValidadeOriginal: data.dataValidadeOriginal
+          ? new Date(data.dataValidadeOriginal)
+          : undefined,
+        dataLimiteProrrogacao: data.dataLimiteProrrogacao
+          ? new Date(data.dataLimiteProrrogacao)
+          : undefined,
+        dataDOEProrrogacao: data.dataDOEProrrogacao
+          ? new Date(data.dataDOEProrrogacao)
+          : undefined,
+        dataValidadeProrrogada: data.dataValidadeProrrogada
+          ? new Date(data.dataValidadeProrrogada)
+          : undefined,
+      },
     });
   }
 
@@ -87,7 +132,7 @@ export class EditaisService {
   async findFormularios(editalId: string) {
     return this.prisma.editalFormulario.findMany({
       where: { editalId },
-      include: { modeloFormulario: true }
+      include: { modeloFormulario: true },
     });
   }
 
@@ -96,7 +141,7 @@ export class EditaisService {
       where: {
         status: StatusEdital.ATIVO,
       },
-      orderBy: { criadoEm: 'desc' }
+      orderBy: { criadoEm: 'desc' },
     });
   }
 
@@ -105,14 +150,14 @@ export class EditaisService {
       where: {
         editalId_modeloFormularioId: {
           editalId,
-          modeloFormularioId: modeloId
-        }
+          modeloFormularioId: modeloId,
+        },
       },
       update: {},
       create: {
         editalId,
-        modeloFormularioId: modeloId
-      }
+        modeloFormularioId: modeloId,
+      },
     });
   }
 
@@ -121,9 +166,9 @@ export class EditaisService {
       where: {
         editalId_modeloFormularioId: {
           editalId,
-          modeloFormularioId: modeloId
-        }
-      }
+          modeloFormularioId: modeloId,
+        },
+      },
     });
   }
 }

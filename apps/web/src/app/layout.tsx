@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Montserrat } from 'next/font/google';
+import { Inter, Lora, Raleway } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({ 
@@ -7,10 +7,16 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-const montserrat = Montserrat({ 
+const lora = Lora({ 
   subsets: ['latin'],
-  weight: ['700', '900'],
-  variable: '--font-montserrat',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-lora',
+});
+
+const raleway = Raleway({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-raleway',
 });
 
 export const metadata: Metadata = {
@@ -25,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${montserrat.variable}`}>
-      <body className="min-h-screen font-sans">
+    <html lang="pt-BR" className={`${inter.variable} ${lora.variable} ${raleway.variable}`}>
+      <body className="min-h-screen font-raleway font-light bg-slate-50 text-slate-900">
         {children}
       </body>
     </html>

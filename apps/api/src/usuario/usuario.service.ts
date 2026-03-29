@@ -15,17 +15,17 @@ export class UsuarioService {
         email: true,
         cpf: true,
         roleId: true,
-        role: { 
-          select: { 
+        role: {
+          select: {
             nome: true,
             permissions: {
               select: {
                 permission: {
-                  select: { slug: true }
-                }
-              }
-            }
-          } 
+                  select: { slug: true },
+                },
+              },
+            },
+          },
         },
         criadoEm: true,
       },
@@ -35,7 +35,8 @@ export class UsuarioService {
   async findAll(roleId?: string, roleName?: string) {
     const where: any = {};
     if (roleId) where.roleId = roleId;
-    if (roleName) where.role = { nome: { equals: roleName, mode: 'insensitive' } };
+    if (roleName)
+      where.role = { nome: { equals: roleName, mode: 'insensitive' } };
 
     return this.prisma.usuario.findMany({
       where,
@@ -46,7 +47,7 @@ export class UsuarioService {
         cpf: true,
         roleId: true,
         role: {
-          select: { nome: true }
+          select: { nome: true },
         },
         criadoEm: true,
       },
@@ -54,7 +55,13 @@ export class UsuarioService {
     });
   }
 
-  async create(data: { nome: string; email: string; cpf: string; senha?: string; roleId: string }) {
+  async create(data: {
+    nome: string;
+    email: string;
+    cpf: string;
+    senha?: string;
+    roleId: string;
+  }) {
     const password = data.senha || 'Senha123!';
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -66,23 +73,36 @@ export class UsuarioService {
         senhaHash: hashedPassword,
         roleId: data.roleId,
       },
-      select: { 
-        id: true, 
-        nome: true, 
-        email: true, 
+      select: {
+        id: true,
+        nome: true,
+        email: true,
         roleId: true,
-        role: { select: { nome: true } }
+        role: { select: { nome: true } },
       },
     });
   }
 
-  async update(id: string, data: { nome?: string; email?: string; cpf?: string; senha?: string; roleId?: string }) {
+  async update(
+    id: string,
+    data: {
+      nome?: string;
+      email?: string;
+      cpf?: string;
+      senha?: string;
+      roleId?: string;
+    },
+  ) {
     const { senha, ...rest } = data;
     const updateData: any = { ...rest };
-    
+
     // Remover campos que venham como undefined ou null para não sobrescrever o banco
-    Object.keys(updateData).forEach(key => (updateData[key] === undefined || updateData[key] === null) && delete updateData[key]);
-    
+    Object.keys(updateData).forEach(
+      (key) =>
+        (updateData[key] === undefined || updateData[key] === null) &&
+        delete updateData[key],
+    );
+
     if (senha) {
       updateData.senhaHash = await bcrypt.hash(senha, 10);
     }
@@ -96,8 +116,8 @@ export class UsuarioService {
         email: true,
         cpf: true,
         roleId: true,
-        role: { select: { nome: true } }
-      }
+        role: { select: { nome: true } },
+      },
     });
   }
 
