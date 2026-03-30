@@ -52,7 +52,7 @@ function FuncionarioLayoutContent({ children }: { children: React.ReactNode }) {
       <aside 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`hidden md:flex flex-col flex-shrink-0 bg-primary-mucuna text-white relative overflow-hidden transition-all duration-500 ease-in-out z-[100] ${effectiveCollapsed ? 'w-18' : 'w-64'}`}
+        className={`hidden md:flex flex-col flex-shrink-0 bg-primary-mucuna text-white relative overflow-hidden transition-all duration-500 ease-in-out z-[100] ${effectiveCollapsed ? 'w-14' : 'w-64'}`}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div className="absolute top-0 left-0 w-64 h-64 bg-accent-mucuna/10 rounded-full blur-[80px] -ml-32 -mt-32"></div>
@@ -67,7 +67,7 @@ function FuncionarioLayoutContent({ children }: { children: React.ReactNode }) {
           </svg>
         </button>
 
-        <div className={`h-20 flex items-center relative z-10 transition-all duration-500 ${effectiveCollapsed ? 'px-4 justify-center' : 'px-8'}`}>
+        <div className={`h-20 flex items-center relative z-10 transition-all duration-500 ${effectiveCollapsed ? 'px-2 justify-center' : 'px-8'}`}>
           <Link href="/funcionario/dashboard" className="flex flex-col group overflow-hidden">
             <span className={`text-2xl font-black text-white tracking-tighter leading-none uppercase italic group-hover:text-accent-mucuna transition-all duration-500 ${effectiveCollapsed ? 'scale-[0.6] origin-center' : ''}`}>
               M{effectiveCollapsed ? '' : 'ucunã'}<span className="text-accent-mucuna not-italic leading-none">.</span>
@@ -225,7 +225,7 @@ function FuncionarioLayoutContent({ children }: { children: React.ReactNode }) {
           </Link>
         </nav>
 
-        <div className={`transition-all duration-500 ${effectiveCollapsed ? 'p-2' : 'p-4'} relative z-10`}>
+        <div className={`transition-all duration-500 ${effectiveCollapsed ? 'p-1' : 'p-4'} relative z-10`}>
           <div className={`bg-white/5 backdrop-blur-3xl rounded-[24px] border border-white/10 group transition-all hover:bg-white/10 ${effectiveCollapsed ? 'p-2' : 'p-4'}`}>
             <Link href="/funcionario/perfil" className={`flex items-center gap-3 transition-all ${effectiveCollapsed ? 'justify-center mb-0' : 'mb-6 hover:opacity-80'}`}>
               <div className={`rounded-xl bg-gradient-to-br from-accent-mucuna to-support-mucuna flex items-center justify-center text-primary-mucuna font-black shadow-lg group-hover:rotate-12 transition-all duration-500 ${effectiveCollapsed ? 'w-10 h-10 text-lg' : 'w-10 h-10 text-lg'}`}>
