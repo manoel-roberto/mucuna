@@ -180,15 +180,21 @@ export class ConvocacoesService {
       meioUtilizado: string;
       prazoDocumentacao: Date;
       observacoes?: string;
+      avancarParaDocumentacao?: boolean;
     },
     usuarioId: string,
   ) {
     const candidato = await this.prisma.classificacaoCandidato.findUnique({
       where: { id: candidatoId },
     });
-    // Removido o bloqueio obrigatório de modeloFormularioId aqui.
-    // A validação de formulário deve ocorrer apenas quando o candidato for movido
-    // para status que exigem preenchimento (ex: AGUARDANDO_DOCUMENTACAO).
+    
+    if (!candidato) throw new BadRequestException('Candidato não encontrado');
+
+    if (data.avancarParaDocumentacao && !candidato.modeloFormularioId) {
+      throw new BadRequestException(
+        'Não é possível avançar para documentação: O candidato não possui um modelo de formulário vinculado.',
+      );
+    }
 
     const [registro] = await this.prisma.$transaction([
       this.prisma.registroConvocacao.create({
@@ -203,11 +209,20 @@ export class ConvocacoesService {
       }),
       this.prisma.classificacaoCandidato.update({
         where: { id: candidatoId },
-        data: { prazoEnvio: data.prazoDocumentacao },
+        data: { 
+          prazoEnvio: data.prazoDocumentacao,
+          statusConvocacao: data.avancarParaDocumentacao 
+            ? StatusConvocacao.AGUARDANDO_DOCUMENTACAO 
+            : undefined 
+        },
       }),
     ]);
 
-    await this.sincronizarStatus(candidatoId);
+    // Só sincroniza status automaticamente se NÃO estiver avançando manualmente
+    if (!data.avancarParaDocumentacao) {
+      await this.sincronizarStatus(candidatoId);
+    }
+    
     return registro;
   }
 

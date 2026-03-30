@@ -49,6 +49,7 @@ export class ConvocacoesController {
       meioUtilizado: string;
       prazoDocumentacao: string;
       observacoes?: string;
+      avancarParaDocumentacao?: boolean;
     },
     @Request() req: any,
   ) {
@@ -58,6 +59,7 @@ export class ConvocacoesController {
         meioUtilizado: data.meioUtilizado,
         prazoDocumentacao: new Date(data.prazoDocumentacao),
         observacoes: data.observacoes,
+        avancarParaDocumentacao: data.avancarParaDocumentacao,
       },
       req.user.id,
     );

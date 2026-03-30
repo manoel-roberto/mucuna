@@ -79,7 +79,8 @@ export default function ControleConvocacaoPage() {
   const [novoRegistro, setNovoRegistro] = useState({
     meioUtilizado: 'Diário Oficial',
     prazoDocumentacao: '',
-    observacoes: ''
+    observacoes: '',
+    avancarParaDocumentacao: false
   });
   const [savingRecord, setSavingRecord] = useState(false);
   const [viewAvaliacao, setViewAvaliacao] = useState(false);
@@ -192,12 +193,13 @@ export default function ControleConvocacaoPage() {
         body: JSON.stringify({
           meioUtilizado: novoRegistro.meioUtilizado,
           prazoDocumentacao: novoRegistro.prazoDocumentacao,
-          observacoes: novoRegistro.observacoes
+          observacoes: novoRegistro.observacoes,
+          avancarParaDocumentacao: novoRegistro.avancarParaDocumentacao
         })
       });
       if (!res.ok) throw new Error('Falha ao registrar convocação');
       
-      setNovoRegistro({ meioUtilizado: 'Diário Oficial', prazoDocumentacao: '', observacoes: '' });
+      setNovoRegistro({ meioUtilizado: 'Diário Oficial', prazoDocumentacao: '', observacoes: '', avancarParaDocumentacao: false });
       setShowNovoRegistro(false);
       setViewAvaliacao(false);
       setSelectedCandidato(null);
@@ -714,6 +716,28 @@ export default function ControleConvocacaoPage() {
                         className="w-full h-32 px-5 py-4 bg-white border-2 border-slate-100 rounded-[24px] outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 resize-none shadow-sm transition-all"
                       />
                     </div>
+                    
+                    {/* Opções de Automação */}
+                    <div className="bg-white/60 p-5 rounded-[24px] border border-slate-200/60 flex items-center justify-between">
+                       <div className="space-y-1">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block">Automação de Fluxo</label>
+                          <span className="text-[13px] font-bold text-slate-600 block">Avançar para Aguardando Documentação</span>
+                          {!selectedCandidato.modeloFormularioId && (
+                            <span className="text-[9px] font-black text-rose-500 uppercase block">⚠️ Requer formulário vinculado</span>
+                          )}
+                       </div>
+                       <div className="relative inline-flex items-center cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            disabled={!selectedCandidato.modeloFormularioId}
+                            checked={novoRegistro.avancarParaDocumentacao}
+                            onChange={(e) => setNovoRegistro({...novoRegistro, avancarParaDocumentacao: e.target.checked})}
+                          />
+                          <div className={`w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 ${!selectedCandidato.modeloFormularioId ? 'opacity-30 cursor-not-allowed' : ''}`}></div>
+                       </div>
+                    </div>
+
                     <div className="flex justify-end pt-4">
                       <button 
                         type="submit" 
