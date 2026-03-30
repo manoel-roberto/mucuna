@@ -255,7 +255,6 @@ function FuncionarioLayoutContent({ children }: { children: React.ReactNode }) {
                  <h2 className="text-xl font-black text-primary-mucuna tracking-tighter uppercase italic leading-none">
                     {pathname?.split('/').pop()?.replace('-', ' ') || 'Dashboard'}
                  </h2>
-                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] opacity-60">Ambiente Institucional Seguro // Node ID: 00234</p>
               </div>
            </div>
            
