@@ -25,204 +25,146 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col selection:bg-accent-mucuna/30">
-      {/* HERO SECTION - ORGANIC SECURITY STYLE */}
-      <section className="bg-primary-mucuna text-white relative overflow-hidden pt-28 pb-48">
-        <div className="absolute inset-0 bg-[#0A1A12] opacity-20 pointer-events-none"></div>
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-accent-mucuna/20 to-transparent rounded-full blur-[120px] -mr-96 -mt-96 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-support-mucuna/10 to-transparent rounded-full blur-[100px] -ml-72 -mb-72"></div>
+    <div className="min-h-screen bg-[#FDFDFC] flex flex-col selection:bg-accent-mucuna/30">
+      {/* HERO SECTION - CANDIDATE FOCUS */}
+      <section className="bg-primary-mucuna text-white relative overflow-hidden pt-36 pb-48">
+        <div className="absolute inset-0 bg-[#0A1A12] opacity-30 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-gradient-to-br from-accent-mucuna/30 to-transparent rounded-full blur-[140px] -mr-96 -mt-96 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-support-mucuna/10 to-transparent rounded-full blur-[110px] -ml-72 -mb-72"></div>
         
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="flex flex-col items-center text-center space-y-8">
+        <div className="container mx-auto px-6 lg:px-24 relative z-10 text-center lg:text-left">
+          <div className="max-w-4xl space-y-10">
+            <div className="inline-flex items-center gap-3 px-5 py-2 bg-white/5 backdrop-blur-2xl rounded-full border border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+               <span className="w-2 h-2 bg-support-mucuna rounded-full animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.8)]"></span>
+               <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/50">Fluxo de Convocação Ativo</span>
+            </div>
             
-            <h1 className="text-6xl md:text-9xl font-black tracking-tighter animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100 uppercase italic leading-none">
-              Mucunã <span className="text-accent-mucuna not-italic leading-none">UEFS.</span>
+            <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-none uppercase italic animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              Fui convocado,<br /> 
+              <span className="text-accent-mucuna not-italic">e agora?</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-surface-mucuna/40 max-w-2xl mx-auto leading-relaxed font-bold italic animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
-              A transparência técnica encontra a segurança institucional em um ecossistema digital integrado.
+            <p className="text-xl md:text-2xl text-white/50 max-w-2xl font-bold leading-relaxed italic animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
+              Se o seu nome apareceu no Diário Oficial ou na nossa lista, o próximo passo é realizar o cadastro para enviar sua documentação de forma segura.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-6 pt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
-               <Link href="/cadastro" className="group relative px-12 py-5 bg-accent-mucuna text-primary-mucuna font-black uppercase text-xs tracking-[0.3em] rounded-[24px] hover:scale-105 transition-all shadow-2xl shadow-accent-mucuna/20">
-                 <span className="relative z-10">Solicitar Registro</span>
+            <div className="flex flex-wrap justify-center lg:justify-start gap-8 pt-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+               <Link href="/cadastro" className="group relative px-14 py-6 bg-accent-mucuna text-primary-mucuna font-black uppercase text-xs tracking-[0.3em] rounded-[24px] hover:scale-105 transition-all shadow-[0_20px_50px_rgba(176,125,78,0.3)] overflow-hidden">
+                 <span className="relative z-10 italic">Criar Minha Conta</span>
+                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
                </Link>
-               <Link href="/login" className="px-12 py-5 bg-white/5 backdrop-blur-xl text-white font-black uppercase text-xs tracking-[0.3em] rounded-[24px] border border-white/10 hover:bg-white/10 transition-all">
-                 Acessar Portal
+               <Link href="/login" className="px-14 py-6 bg-white/5 backdrop-blur-3xl text-white font-black uppercase text-xs tracking-[0.3em] rounded-[24px] border border-white/10 hover:bg-white/10 transition-all">
+                 Já tenho acesso
                </Link>
             </div>
           </div>
         </div>
-        
-        {/* WAVE DECORATION */}
-        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white to-transparent opacity-20"></div>
       </section>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="container mx-auto px-6 -mt-32 relative z-20 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          {/* LEFT COLUMN: ACTIVE PROCESSES */}
-          <div className="lg:col-span-8 space-y-10">
-            <div className="bg-white/80 backdrop-blur-3xl rounded-[56px] shadow-2xl shadow-primary-mucuna/5 p-12 border border-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
-                 <svg className="w-64 h-64 text-primary-mucuna" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h-2V7h4v10z"/></svg>
-              </div>
-
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 relative z-10">
-                <div className="space-y-2">
-                  <div className="w-12 h-1 bg-accent-mucuna rounded-full opacity-50 mb-4" />
-                  <h2 className="text-4xl font-black text-primary-mucuna tracking-tighter uppercase italic leading-none">Processos <span className="text-accent-mucuna not-italic leading-none">Ativos.</span></h2>
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">Monitoramento em Tempo Real do Ecossistema</p>
-                </div>
-                <div className="flex items-center gap-4 bg-surface-mucuna/50 px-6 py-3 rounded-2xl border border-primary-mucuna/5">
-                   <div className="flex -space-x-2">
-                      {[1,2,3].map(i => <div key={i} className="w-8 h-8 rounded-full bg-primary-mucuna border-2 border-white flex items-center justify-center text-[8px] font-black text-white">U</div>)}
+      {/* STEP BY STEP JOURNEY */}
+      <section className="container mx-auto px-6 lg:px-24 -mt-24 relative z-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           {[
+             { 
+               step: '01', 
+               title: 'Registro', 
+               desc: 'Crie sua conta institucional para vincular sua convocação ao seu perfil digital.',
+               icon: <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+             },
+             { 
+               step: '02', 
+               title: 'Perfil', 
+               desc: 'Preencha seus dados pessoais e fiscais no painel exclusivo do candidato.',
+               icon: <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+             },
+             { 
+               step: '03', 
+               title: 'Documentos', 
+               desc: 'Envie PDFs do diploma, RG e certidões solicitadas pelo sistema.',
+               icon: <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+             }
+           ].map((item, idx) => (
+             <div key={idx} className="bg-white/80 backdrop-blur-3xl p-10 rounded-[48px] border border-white shadow-2xl shadow-primary-mucuna/5 hover:bg-white hover:-translate-y-2 transition-all duration-500 group">
+                <div className="flex items-center justify-between mb-8">
+                   <div className="text-[56px] font-black text-primary-mucuna/5 italic leading-none group-hover:text-accent-mucuna/10 transition-colors uppercase tracking-tighter">{item.step}</div>
+                   <div className="w-16 h-16 bg-surface-mucuna rounded-[20px] flex items-center justify-center text-primary-mucuna group-hover:bg-accent-mucuna group-hover:text-white transition-all duration-500 shadow-inner">
+                      {item.icon}
                    </div>
-                   <span className="text-[9px] font-black text-primary-mucuna/40 uppercase tracking-widest">320 Cand. Online</span>
                 </div>
-              </div>
-
-              {loading ? (
-                <div className="py-24 text-center space-y-6">
-                  <div className="relative w-16 h-16 mx-auto">
-                    <div className="absolute inset-0 border-4 border-accent-mucuna/20 rounded-full"></div>
-                    <div className="absolute inset-0 border-4 border-accent-mucuna border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                  <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Sincronizando com Servidores UEFS...</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {editais.map((edital, idx) => (
-                    <div key={edital.id} 
-                      className="group p-8 bg-surface-mucuna/40 rounded-[32px] border border-transparent hover:border-accent-mucuna/20 hover:bg-white hover:shadow-2xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-8 animate-in fade-in slide-in-from-right-8 duration-700"
-                      style={{ transitionDelay: `${idx * 100}ms` }}
-                    >
-                      <div className="flex items-center gap-8">
-                        <div className="w-20 h-20 bg-white rounded-3xl shadow-inner flex flex-col items-center justify-center border border-primary-mucuna/5 group-hover:scale-110 transition-transform">
-                          <span className="text-[10px] font-black text-accent-mucuna uppercase">{edital.ano}</span>
-                          <span className="text-2xl font-black text-primary-mucuna">#{idx + 1}</span>
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className="text-xl font-black text-primary-mucuna group-hover:text-accent-mucuna transition-colors uppercase tracking-tight italic">{edital.titulo}</h3>
-                          <div className="flex items-center gap-3">
-                             <span className="w-1.5 h-1.5 bg-support-mucuna rounded-full animate-pulse"></span>
-                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Inscrições Abertas p/ Envio</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Link href={`/login`} className="flex items-center gap-4 px-8 py-4 bg-primary-mucuna text-white rounded-2xl hover:bg-secondary-mucuna hover:-translate-y-1 transition-all shadow-xl shadow-primary-mucuna/10 group/btn">
-                          <span className="text-[10px] font-black uppercase tracking-widest">Participar</span>
-                          <svg className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                  {editais.length === 0 && (
-                    <div className="py-24 text-center bg-surface-mucuna/30 rounded-[40px] border-2 border-dashed border-primary-mucuna/5">
-                      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                        <svg className="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                      </div>
-                      <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px] italic underline decoration-accent-mucuna decoration-2 underline-offset-8">Aguardando Publicação de Novos Atos</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* INTEGRITY INFO */}
-          </div>
-
-          {/* RIGHT COLUMN: ACCESS NODES */}
-          <div className="lg:col-span-4 space-y-8">
-            {/* NODE: CANDIDATE Portal */}
-            <div className="bg-white rounded-[56px] shadow-2xl p-12 border border-slate-50 group hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-accent-mucuna/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-              
-              <div className="w-20 h-20 bg-surface-mucuna text-primary-mucuna rounded-[28px] flex items-center justify-center mb-10 border border-accent-mucuna/10 group-hover:bg-primary-mucuna group-hover:text-white group-hover:rotate-6 transition-all duration-500 shadow-lg">
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-              </div>
-              
-              <h3 className="text-3xl font-black text-primary-mucuna leading-none mb-6 uppercase tracking-tighter italic">Candidato<span className="text-accent-mucuna not-italic leading-none">.</span></h3>
-              <p className="text-sm text-slate-400 font-bold leading-relaxed mb-10 italic">Acesse sua área restrita para envio de documentos e acompanhamento de status.</p>
-              
-              <Link href="/login" className="flex items-center justify-between w-full p-6 bg-primary-mucuna text-white font-black uppercase text-[10px] tracking-[0.3em] rounded-[24px] hover:bg-accent-mucuna transition-all shadow-2xl shadow-primary-mucuna/20 overflow-hidden relative">
-                <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
-                <span className="relative z-10">Iniciar Acesso</span>
-                <svg className="w-5 h-5 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </Link>
-            </div>
-
-            {/* NODE: STAFF Portal */}
-            <div className="bg-surface-mucuna/50 backdrop-blur-xl rounded-[56px] shadow-xl p-12 border border-primary-mucuna/5 group hover:-translate-y-2 transition-all duration-500">
-              <div className="w-20 h-20 bg-white text-secondary-mucuna rounded-[28px] flex items-center justify-center mb-10 border border-secondary-mucuna/10 group-hover:bg-secondary-mucuna group-hover:text-white group-hover:-rotate-6 transition-all duration-500 shadow-md">
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              </div>
-              
-              <h3 className="text-3xl font-black text-primary-mucuna leading-none mb-6 uppercase tracking-tighter italic">Funcional<span className="text-secondary-mucuna not-italic leading-none">.</span></h3>
-              <p className="text-sm text-slate-400 font-bold leading-relaxed mb-10 italic">Nódulo de controle administrativo para auditoria e gestão de certames.</p>
-              
-              <Link href="/funcionario/login" className="flex items-center justify-center w-full py-6 bg-secondary-mucuna/10 text-secondary-mucuna border-2 border-secondary-mucuna/20 font-black uppercase text-[10px] tracking-[0.3em] rounded-[24px] hover:bg-secondary-mucuna hover:text-white transition-all">
-                Autenticação Staff
-              </Link>
-            </div>
-
-            {/* ECOSYSTEM STATUS */}
-            <div className="p-10 bg-white rounded-[40px] border border-slate-100 space-y-6">
-               <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-support-mucuna rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-                  <span className="text-[10px] font-black text-primary-mucuna uppercase tracking-widest">Operacionalidade: 100%</span>
-               </div>
-               <div className="h-1.5 w-full bg-surface-mucuna rounded-full overflow-hidden">
-                  <div className="h-full w-[100%] bg-support-mucuna" />
-               </div>
-               <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest italic">Node Status UEFS: Connected</p>
-            </div>
-          </div>
-
+                <h3 className="text-2xl font-black text-primary-mucuna uppercase italic tracking-tighter mb-4">{item.title}</h3>
+                <p className="text-slate-400 font-bold leading-relaxed text-sm italic">{item.desc}</p>
+             </div>
+           ))}
         </div>
-      </div>
+      </section>
 
-      {/* FOOTER - MINIMALIST ORGANIC */}
-      <footer className="mt-auto py-20 bg-primary-mucuna text-white/40 border-t border-white/5 relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-12">
-            <div className="flex items-center gap-6">
-               <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                  <span className="text-xl font-black text-accent-mucuna">M</span>
-               </div>
-               <div>
-                  <h4 className="text-lg font-black text-white italic tracking-tighter uppercase leading-none">Mucunã <span className="text-accent-mucuna not-italic leading-none">UEFS.</span></h4>
-                  <p className="text-[9px] font-black uppercase tracking-widest mt-1">Ecosystem v2.5.0</p>
-               </div>
-            </div>
-            
-            <div className="hidden md:flex gap-16">
-               {[
-                 { label: 'Estrutura', links: ['Editais', 'Resultados', 'Cronograma'] },
-                 { label: 'Suporte', links: ['FAQ', 'Contato', 'Privacidade'] }
-               ].map(group => (
-                 <div key={group.label} className="space-y-4">
-                    <p className="text-[10px] font-black text-white uppercase tracking-[0.4em] mb-6">{group.label}</p>
-                    <ul className="space-y-3">
-                       {group.links.map(l => <li key={l} className="text-[10px] font-black uppercase tracking-widest hover:text-accent-mucuna transition-colors cursor-pointer">{l}</li>)}
-                    </ul>
-                 </div>
-               ))}
-            </div>
+      {/* ACTIVE PROCESSES SECTION */}
+      <section className="container mx-auto px-6 lg:px-24 py-32 space-y-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+           <div className="space-y-3">
+              <div className="w-12 h-1 bg-accent-mucuna rounded-full opacity-30" />
+              <h2 className="text-4xl font-black text-primary-mucuna tracking-tighter uppercase italic leading-none">Editais em <span className="text-accent-mucuna not-italic">Vigência.</span></h2>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">Auditoria de Processos Externos</p>
+           </div>
+           
+           <div className="flex items-center gap-4 bg-surface-mucuna/50 px-6 py-3 rounded-2xl border border-primary-mucuna/5">
+              <div className="w-2 h-2 bg-support-mucuna rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-widest italic">{editais.length} certames disponíveis</span>
+           </div>
+        </div>
 
-            <div className="text-center md:text-right space-y-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] leading-relaxed">Universidade Estadual de <br/> Feira de Santana</p>
-              <div className="h-px w-24 bg-accent-mucuna/20 inline-block md:ml-auto" />
-            </div>
+        {loading ? (
+          <div className="py-24 text-center">
+            <div className="w-12 h-12 border-4 border-accent-mucuna/20 border-t-accent-mucuna rounded-full animate-spin mx-auto mb-6"></div>
+            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Sincronizando editais...</p>
           </div>
-          
-          <div className="mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30 group hover:opacity-100 transition-opacity">
-            <p className="text-[9px] font-black uppercase tracking-[0.5em]">© 2026 Mucunã UEFS. Todos os direitos orgânicos reservados.</p>
-            <div className="flex gap-8">
-               <span className="text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-accent-mucuna transition-colors">Twitter // X</span>
-               <span className="text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-accent-mucuna transition-colors">Linked-In</span>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {editais.map((edital) => (
+              <div key={edital.id} className="group bg-white p-8 rounded-[40px] border border-slate-50 hover:border-accent-mucuna/20 hover:shadow-2xl transition-all duration-500 flex items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-surface-mucuna rounded-2xl flex flex-col items-center justify-center border border-primary-mucuna/5 shadow-inner group-hover:scale-105 transition-transform">
+                    <span className="text-[9px] font-black text-accent-mucuna uppercase">{edital.ano}</span>
+                    <span className="text-lg font-black text-primary-mucuna tracking-tighter">#{edital.id.slice(0,2)}</span>
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black text-primary-mucuna uppercase tracking-tight italic group-hover:text-accent-mucuna transition-colors">{edital.titulo}</h4>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Inscrições abertas</span>
+                  </div>
+                </div>
+                <Link href="/login" className="p-4 bg-primary-mucuna text-white rounded-xl hover:bg-accent-mucuna transition-all shadow-lg active:scale-90">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </Link>
+              </div>
+            ))}
+
+            {editais.length === 0 && (
+               <div className="md:col-span-2 py-24 text-center bg-surface-mucuna/30 rounded-[56px] border-2 border-dashed border-primary-mucuna/5">
+                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.4em] italic leading-loose">Aguardando renovação do ciclo de editais.<br />Verifique o Diário Oficial UEFS regularmente.</p>
+               </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* FOOTER - CLEAN STYLE */}
+      <footer className="mt-auto py-24 bg-primary-mucuna text-white/30 border-t border-white/5 relative overflow-hidden text-center lg:text-left">
+        <div className="container mx-auto px-6 lg:px-24">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-16">
+            <div className="space-y-6">
+               <div className="flex items-center justify-center lg:justify-start gap-4">
+                  <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 italic font-black text-accent-mucuna">M.</div>
+                  <h4 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">Mucunã <span className="text-accent-mucuna not-italic leading-none">UEFS.</span></h4>
+               </div>
+               <p className="text-[10px] font-black uppercase tracking-[0.4em] leading-relaxed max-w-sm mx-auto lg:mx-0">
+                  Transparência institucional e automação de processos acadêmicos integrados.
+               </p>
+            </div>
+
+            <div className="text-[10px] font-black uppercase tracking-[0.5em] space-y-2 opacity-50">
+               <p>© 2026 MUCUNÃ UEFS</p>
+               <div className="h-px w-12 bg-accent-mucuna/30 mx-auto" />
+               <p>Todos os direitos reservados</p>
             </div>
           </div>
         </div>
