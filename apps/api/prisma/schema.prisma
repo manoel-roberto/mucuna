@@ -141,6 +141,7 @@ model ClassificacaoCandidato {
   modalidade          ModalidadeConcorrencia? @relation(fields: [modalidadeId], references: [id])
   modeloFormulario    ModeloFormulario?       @relation(fields: [modeloFormularioId], references: [id])
   nivel               Nivel?                  @relation(fields: [nivelId], references: [id])
+  tipoVaga            String?
   usuario             Usuario?                @relation("UsuarioClassificacao", fields: [usuarioId], references: [id])
   envios              Envio[]
   registrosConvocacao RegistroConvocacao[]
@@ -209,10 +210,27 @@ model VagaEdital {
   vagasNEG           Int                     @default(0)
   vagasPCD           Int                     @default(0)
   totalGeral         Int                     @default(0) // Soma de AC + NEG + PCD
+
+  // Subdivisão por modalidade
+  vagasACImediatas    Int  @default(0)
+  vagasACReserva      Int  @default(0)
+  vagasNEGImediatas   Int  @default(0)
+  vagasNEGReserva     Int  @default(0)
+  vagasPCDImediatas   Int  @default(0)
+  vagasPCDReserva     Int  @default(0)
+
+  // Totais calculados por modalidade (somente leitura, calculados no service)
+  totalACCalculado    Int  @default(0)  // vagasACImediatas + vagasACReserva
+  totalNEGCalculado   Int  @default(0) // vagasNEGImediatas + vagasNEGReserva
+  totalPCDCalculado   Int  @default(0) // vagasPCDImediatas + vagasPCDReserva
   
   // Metas Legislativas (Calculadas pelo sistema para referência)
   vagasNEGEsperadas  Int                     @default(0)
   vagasPCDEsperadas  Int                     @default(0)
+  
+  // Inputs originais (persistidos para auditoria e interface)
+  vagasImediatas     Int                     @default(0)
+  vagasReserva       Int                     @default(0)
   
   modeloFormularioId String?
   criadoEm           DateTime                @default(now())
@@ -360,6 +378,7 @@ enum StatusConvocacao {
   AGUARDANDO_DOCUMENTACAO
   DOCUMENTACAO_PENDENTE
   AGENDAMENTO_APRESENTACAO
+  CONVOCACAO_ENVIADA
 }
 
 enum StatusRegistroConvocacao {

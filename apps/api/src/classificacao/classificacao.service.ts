@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ModalidadesConcorrenciaService } from '../modalidades-concorrencia/modalidades-concorrencia.service';
+import { calcCota } from '../shared/utils/calcCota';
 
 @Injectable()
 export class ClassificacaoService {
@@ -653,6 +654,12 @@ export class ClassificacaoService {
             vagasPorModalidade['ampla'] = v.vagasAC;
             vagasPorModalidade['negro'] = v.vagasNEG;
             vagasPorModalidade['pcd'] = v.vagasPCD;
+            vagasPorModalidade['amplaImediatas'] = v.vagasACImediatas;
+            vagasPorModalidade['amplaReserva'] = v.vagasACReserva;
+            vagasPorModalidade['negroImediatas'] = v.vagasNEGImediatas;
+            vagasPorModalidade['negroReserva'] = v.vagasNEGReserva;
+            vagasPorModalidade['pcdImediatas'] = v.vagasPCDImediatas;
+            vagasPorModalidade['pcdReserva'] = v.vagasPCDReserva;
           } else if (v.modalidadeId) {
             // Modelo legado
             vagasPorModalidade[v.modalidadeId] = v.quantidadeVagas;
@@ -672,6 +679,15 @@ export class ClassificacaoService {
           modeloFormularioNome: grupo.modeloFormularioNome,
           candidatosHabilitados: count,
           disponivel: Math.max(0, grupo.quantidadeVagas - count),
+          // Campos flat para o frontend
+          vagasImediatas: Number(vagasPorModalidade['amplaImediatas'] || 0) + Number(vagasPorModalidade['negroImediatas'] || 0) + Number(vagasPorModalidade['pcdImediatas'] || 0),
+          vagasReserva: Number(vagasPorModalidade['amplaReserva'] || 0) + Number(vagasPorModalidade['negroReserva'] || 0) + Number(vagasPorModalidade['pcdReserva'] || 0),
+          vagasACImediatas: Number(vagasPorModalidade['amplaImediatas'] || 0),
+          vagasACReserva: Number(vagasPorModalidade['amplaReserva'] || 0),
+          vagasNEGImediatas: Number(vagasPorModalidade['negroImediatas'] || 0),
+          vagasNEGReserva: Number(vagasPorModalidade['negroReserva'] || 0),
+          vagasPCDImediatas: Number(vagasPorModalidade['pcdImediatas'] || 0),
+          vagasPCDReserva: Number(vagasPorModalidade['pcdReserva'] || 0),
           vagasPorModalidade,
           detalhesModalidades,
           vagasIds: grupo.vagasIds,
@@ -684,6 +700,11 @@ export class ClassificacaoService {
 
   async analisarCobertura(editalId: string) {
     // 1. Buscar dados fundamentais
+    const edital = await this.prisma.edital.findUnique({
+      where: { id: editalId },
+    });
+    if (!edital) throw new BadRequestException('Edital não encontrado');
+
     const candidatos = await this.prisma.classificacaoCandidato.findMany({
       where: { editalId },
       include: {
@@ -693,121 +714,142 @@ export class ClassificacaoService {
         nivel: true,
       },
     });
+
     const vagas = await this.prisma.vagaEdital.findMany({
       where: { editalId },
-      include: {
-        modalidade: true,
-      },
     });
-    const modalidades = await this.modalidadesConcorrenciaService.findAll();
 
-    // Mapeamento de IDs para categorias de concorrência
-    const getModId = (category: 'ampla' | 'negro' | 'pcd') => {
-      const found = modalidades.find((m) => {
-        const n = this.normalize(m.nome);
-        if (category === 'ampla') return n.includes('ampla');
-        if (category === 'negro') return n.includes('negro');
-        if (category === 'pcd')
-          return n.includes('pcd') || n.includes('deficien');
-        return false;
-      });
-      return found?.id || null;
-    };
+    // 2. Agrupar candidatos por (Cargo, Área, Carreira, Nível)
+    // Isso é necessário porque VagaEdital tem essa granularidade
+    const gruposMap = new Map<string, any[]>();
+    for (const c of candidatos) {
+      const key = `${c.cargoId || 'none'}-${c.areaAtuacaoId || 'none'}-${c.carreiraId || 'none'}-${c.nivelId || 'none'}`;
+      if (!gruposMap.has(key)) gruposMap.set(key, []);
+      gruposMap.get(key)!.push(c);
+    }
 
-    const modAmplaId = getModId('ampla');
-    const modNegroId = getModId('negro');
-    const modPcdId = getModId('pcd');
+    const resultado = [];
 
-    const alertas = [];
-    const chavesVistas = new Set<string>();
+    // 3. Analisar cada grupo
+    for (const [key, candGrupo] of gruposMap.entries()) {
+      const first = candGrupo[0];
+      
+      // Lazy Migration: Se as flags de concorrência estiverm todas false, assumir Ampla
+      for (const c of candGrupo) {
+        if (!c.concorrenciaAmpla && !c.concorrenciaNegro && !c.concorrenciaPCD) {
+           c.concorrenciaAmpla = true;
+        }
+      }
 
-    // 2. Identificar todas as combinações únicas de (Cargo, Área, Carreira, Nível)
-    for (const cand of candidatos) {
-      const baseKey = `${cand.cargoId}-${cand.areaAtuacaoId || null}-${cand.carreiraId || null}-${cand.nivelId || null}`;
-      if (chavesVistas.has(baseKey)) continue;
-      chavesVistas.add(baseKey);
+      const totalCandidatos = candGrupo.length;
+      const candidatosAC = candGrupo.filter((c) => c.concorrenciaAmpla).length;
+      const candidatosNEG = candGrupo.filter((c) => c.concorrenciaNegro).length;
+      const candidatosPCD = candGrupo.filter((c) => c.concorrenciaPCD).length;
 
-      // 3. Para cada combinação, validar as 3 listas independentemente
-      const tiposConcorrencia = [
-        {
-          key: 'concorrenciaAmpla',
-          modId: modAmplaId,
-          label: 'Ampla Concorrência',
-        },
-        { key: 'concorrenciaNegro', modId: modNegroId, label: 'Negros' },
-        { key: 'concorrenciaPCD', modId: modPcdId, label: 'PCD' },
-      ];
+      const vaga = vagas.find(
+        (v) => 
+          v.cargoId === first.cargoId && 
+          v.areaAtuacaoId === first.areaAtuacaoId && 
+          v.carreiraId === first.carreiraId && 
+          v.nivelId === first.nivelId
+      );
 
-      for (const tipo of tiposConcorrencia) {
-        // Quantidade de candidatos nesta categoria específica para este cargo/área
-        const candidatosNaLista = candidatos.filter(
-          (c: any) =>
-            (c.cargoId || null) === (cand.cargoId || null) &&
-            (c.areaAtuacaoId || null) === (cand.areaAtuacaoId || null) &&
-            (c.carreiraId || null) === (cand.carreiraId || null) &&
-            (c.nivelId || null) === (cand.nivelId || null) &&
-            c[tipo.key] === true,
-        ).length;
+      // Metas legislativas (usando percentuais do edital)
+      const negEsperado = calcCota(
+        totalCandidatos,
+        edital.percentualNegros || 0,
+        'negro',
+      );
+      const pcdEsperado = calcCota(
+        totalCandidatos,
+        edital.percentualPCD || 0,
+        'pcd',
+      );
+      const acEsperado = Math.max(
+        0,
+        totalCandidatos - negEsperado - pcdEsperado,
+      );
 
-        if (candidatosNaLista === 0) continue;
+      const inconsistencias = [];
 
-        // Buscar vagas configuradas para esta categoria específica
-        const vagasConfiguradas = vagas
-          .filter(
-            (v) =>
-              v.cargoId === cand.cargoId &&
-              (v.areaAtuacaoId || null) === (cand.areaAtuacaoId || null) &&
-              (v.carreiraId || null) === (cand.carreiraId || null) &&
-              (v.nivelId || null) === (cand.nivelId || null),
-          )
-          .reduce((acc, curr: any) => {
-            if (tipo.key === 'concorrenciaAmpla')
-              return acc + (curr.vagasAC || 0);
-            if (tipo.key === 'concorrenciaNegro')
-              return acc + (curr.vagasNEG || 0);
-            if (tipo.key === 'concorrenciaPCD')
-              return acc + (curr.vagasPCD || 0);
-            return acc;
-          }, 0);
-
-        // Gerar alertas se houver defasagem
-        if (vagasConfiguradas === 0) {
-          alertas.push({
-            tipo: 'FALTANTE',
-            cargoId: cand.cargoId,
-            areaAtuacaoId: cand.areaAtuacaoId || null,
-            modalidadeId: tipo.modId,
-            carreiraId: cand.carreiraId || null,
-            nivelId: cand.nivelId || null,
-            cargo: cand.cargo?.nome || 'Não definido',
-            area: cand.areaAtuacao?.nome || 'Geral',
-            modalidade: tipo.label,
-            carreira: cand.carreira?.nome || 'Não definida',
-            nivel: cand.nivel?.nome || 'Não definido',
-            candidatosAfetados: candidatosNaLista,
-            vagasConfiguradas: 0,
+      if (!vaga) {
+        inconsistencias.push({
+          tipo: 'SEM_VAGA',
+          severidade: 'BLOQUEANTE',
+          mensagem: 'Não existe VagaEdital configurada para este grupo (Cargo/Área/Carreira/Nível)',
+        });
+      } else {
+        if (vaga.vagasImediatas === 0 && totalCandidatos > 0) {
+          inconsistencias.push({
+            tipo: 'SEM_IMEDIATAS',
+            severidade: 'BLOQUEANTE',
+            mensagem: 'Vagas Imediatas configuradas em zero, mas existem candidatos habilitados',
           });
-        } else if (vagasConfiguradas < candidatosNaLista) {
-          alertas.push({
-            tipo: 'INSUFICIENTE',
-            cargoId: cand.cargoId,
-            areaAtuacaoId: cand.areaAtuacaoId || null,
-            modalidadeId: tipo.modId,
-            carreiraId: cand.carreiraId || null,
-            nivelId: cand.nivelId || null,
-            cargo: cand.cargo?.nome || 'Não definido',
-            area: cand.areaAtuacao?.nome || 'Geral',
-            modalidade: tipo.label,
-            carreira: cand.carreira?.nome || 'Não definida',
-            nivel: cand.nivel?.nome || 'Não definido',
-            candidatosAfetados: candidatosNaLista,
-            vagasConfiguradas: vagasConfiguradas,
+        }
+        if (vaga.totalNEGCalculado < negEsperado) {
+          inconsistencias.push({
+            tipo: 'NEG_INSUFICIENTE',
+            severidade: 'BLOQUEANTE',
+            mensagem: `Cota de Negros insuficiente (${vaga.totalNEGCalculado} configuradas < ${negEsperado} exigidas)`,
+          });
+        }
+        if (vaga.totalPCDCalculado < pcdEsperado) {
+          inconsistencias.push({
+            tipo: 'PCD_INSUFICIENTE',
+            severidade: 'BLOQUEANTE',
+            mensagem: `Cota de PCD insuficiente (${vaga.totalPCDCalculado} configuradas < ${pcdEsperado} exigidas)`,
           });
         }
       }
+
+      // Sugestão automática
+      let sugestao = null;
+      if (inconsistencias.length > 0) {
+        sugestao = {
+          vagasImediatas: totalCandidatos,
+          vagasReserva: 0,
+        };
+      }
+
+      // Título amigável
+      const cNome = first.cargo?.nome || 'Cargo';
+      const aNome = first.areaAtuacao?.nome || 'Geral';
+      const detail = [first.carreira?.nome, first.nivel?.nome].filter(Boolean).join(' - ');
+      const fullCargoNome = detail ? `${cNome} (${detail})` : cNome;
+      
+      const itemResultado = {
+        "cargoId": first.cargoId || '',
+        "areaAtuacaoId": first.areaAtuacaoId || '',
+        "carreiraId": first.carreiraId || '',
+        "nivelId": first.nivelId || '',
+        "cargoNome": String(fullCargoNome),
+        "areaNome": String(aNome),
+        "carreiraNome": first.carreira?.nome || null,
+        "nivelNome": first.nivel?.nome || null,
+        "totalCandidatos": Number(totalCandidatos || 0),
+        "candidatosAC": Number(candidatosAC || 0),
+        "candidatosNEG": Number(candidatosNEG || 0),
+        "candidatosPCD": Number(candidatosPCD || 0),
+        "vagaConfigurada": Boolean(!!vaga),
+        "vagasImediatas": Number(vaga?.vagasImediatas || 0),
+        "vagasReserva": Number(vaga?.vagasReserva || 0),
+        "vagasACImediatas": Number(vaga?.vagasACImediatas || 0),
+        "vagasACReserva": Number(vaga?.vagasACReserva || 0),
+        "vagasNEGImediatas": Number(vaga?.vagasNEGImediatas || 0),
+        "vagasNEGReserva": Number(vaga?.vagasNEGReserva || 0),
+        "vagasPCDImediatas": Number(vaga?.vagasPCDImediatas || 0),
+        "vagasPCDReserva": Number(vaga?.vagasPCDReserva || 0),
+        "negEsperado": Number(negEsperado || 0),
+        "pcdEsperado": Number(pcdEsperado || 0),
+        "acEsperado": Number(acEsperado || 0),
+        "inconsistencias": inconsistencias || [],
+        "sugestao": sugestao || null,
+      };
+
+      resultado.push(itemResultado);
     }
 
-    return alertas;
+    return resultado;
   }
 
   async reprocessarSituacaoCandidatos(editalId: string) {
@@ -823,13 +865,12 @@ export class ClassificacaoService {
     // 2. Resetar todos os candidatos deste edital para CADASTRO_RESERVA (Limpeza de segurança)
     await this.prisma.classificacaoCandidato.updateMany({
       where: { editalId },
-      data: { situacao: 'CADASTRO_RESERVA' },
+      data: { situacao: 'CADASTRO_RESERVA', tipoVaga: null },
     });
 
     // 3. Para cada vaga de posição (Cargo/Área), marcar os Top N de cada lista
     for (const vaga of vagas) {
-      // 3.1. Processar Lista de Negros
-      if (vaga.vagasNEG > 0) {
+      if (vaga.totalNEGCalculado > 0) {
         const negrosParaVaga =
           await this.prisma.classificacaoCandidato.findMany({
             where: {
@@ -839,21 +880,29 @@ export class ClassificacaoService {
               carreiraId: vaga.carreiraId || null,
               nivelId: vaga.nivelId || null,
               concorrenciaNegro: true,
-              situacao: 'CADASTRO_RESERVA',
             },
             orderBy: { posicaoNegro: 'asc' },
-            take: vaga.vagasNEG,
+            take: vaga.totalNEGCalculado,
           });
-        if (negrosParaVaga.length > 0) {
+        
+        const imedIds = negrosParaVaga.slice(0, vaga.vagasNEGImediatas).map(c => c.id);
+        const resIds = negrosParaVaga.slice(vaga.vagasNEGImediatas).map(c => c.id);
+
+        if (imedIds.length > 0) {
           await this.prisma.classificacaoCandidato.updateMany({
-            where: { id: { in: negrosParaVaga.map((c) => c.id) } },
-            data: { situacao: 'APROVADO_CONVOCAVEL' },
+            where: { id: { in: imedIds } },
+            data: { situacao: 'APROVADO_CONVOCAVEL', tipoVaga: 'IMEDIATA' },
+          });
+        }
+        if (resIds.length > 0) {
+          await this.prisma.classificacaoCandidato.updateMany({
+            where: { id: { in: resIds } },
+            data: { situacao: 'CADASTRO_RESERVA', tipoVaga: 'RESERVA' },
           });
         }
       }
 
-      // 3.2. Processar Lista de PCD
-      if (vaga.vagasPCD > 0) {
+      if (vaga.totalPCDCalculado > 0) {
         const pcdsParaVaga = await this.prisma.classificacaoCandidato.findMany({
           where: {
             editalId,
@@ -862,21 +911,29 @@ export class ClassificacaoService {
             carreiraId: vaga.carreiraId || null,
             nivelId: vaga.nivelId || null,
             concorrenciaPCD: true,
-            situacao: 'CADASTRO_RESERVA',
           },
           orderBy: { posicaoPCD: 'asc' },
-          take: vaga.vagasPCD,
+          take: vaga.totalPCDCalculado,
         });
-        if (pcdsParaVaga.length > 0) {
+
+        const imedIds = pcdsParaVaga.slice(0, vaga.vagasPCDImediatas).map(c => c.id);
+        const resIds = pcdsParaVaga.slice(vaga.vagasPCDImediatas).map(c => c.id);
+
+        if (imedIds.length > 0) {
           await this.prisma.classificacaoCandidato.updateMany({
-            where: { id: { in: pcdsParaVaga.map((c) => c.id) } },
-            data: { situacao: 'APROVADO_CONVOCAVEL' },
+            where: { id: { in: imedIds } },
+            data: { situacao: 'APROVADO_CONVOCAVEL', tipoVaga: 'IMEDIATA' },
+          });
+        }
+        if (resIds.length > 0) {
+          await this.prisma.classificacaoCandidato.updateMany({
+            where: { id: { in: resIds } },
+            data: { situacao: 'CADASTRO_RESERVA', tipoVaga: 'RESERVA' },
           });
         }
       }
 
-      // 3.3. Processar Lista de Ampla Concorrência
-      if (vaga.vagasAC > 0) {
+      if (vaga.totalACCalculado > 0) {
         const amplaParaVaga = await this.prisma.classificacaoCandidato.findMany(
           {
             where: {
@@ -886,16 +943,25 @@ export class ClassificacaoService {
               carreiraId: vaga.carreiraId || null,
               nivelId: vaga.nivelId || null,
               concorrenciaAmpla: true,
-              situacao: 'CADASTRO_RESERVA',
             },
             orderBy: { posicaoAmpla: 'asc' },
-            take: vaga.vagasAC,
+            take: vaga.totalACCalculado,
           },
         );
-        if (amplaParaVaga.length > 0) {
+
+        const imedIds = amplaParaVaga.slice(0, vaga.vagasACImediatas).map(c => c.id);
+        const resIds = amplaParaVaga.slice(vaga.vagasACImediatas).map(c => c.id);
+
+        if (imedIds.length > 0) {
           await this.prisma.classificacaoCandidato.updateMany({
-            where: { id: { in: amplaParaVaga.map((c) => c.id) } },
-            data: { situacao: 'APROVADO_CONVOCAVEL' },
+            where: { id: { in: imedIds } },
+            data: { situacao: 'APROVADO_CONVOCAVEL', tipoVaga: 'IMEDIATA' },
+          });
+        }
+        if (resIds.length > 0) {
+          await this.prisma.classificacaoCandidato.updateMany({
+            where: { id: { in: resIds } },
+            data: { situacao: 'CADASTRO_RESERVA', tipoVaga: 'RESERVA' },
           });
         }
       }

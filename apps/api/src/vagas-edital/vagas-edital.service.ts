@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ClassificacaoService } from '../classificacao/classificacao.service';
 import { ConfiguracaoService } from '../configuracao/configuracao.service';
+import { calcCota } from '../shared/utils/calcCota';
 
 @Injectable()
 export class VagasEditalService {
@@ -10,28 +11,6 @@ export class VagasEditalService {
     private readonly classificacaoService: ClassificacaoService,
     private readonly configuracaoService: ConfiguracaoService,
   ) {}
-
-  /**
-   * Função centralizada de arredondamento legislativo (UEFS)
-   */
-  calcularVagasCota(
-    total: number,
-    percentual: number,
-    tipo: 'negro' | 'pcd',
-  ): number {
-    if (total === 0) return 0;
-    const resultado = total * (percentual / 100);
-    const inteiro = Math.floor(resultado);
-    const fracao = resultado - inteiro;
-
-    let final = fracao >= 0.5 ? Math.ceil(resultado) : Math.floor(resultado);
-
-    // Regra de Mínimo Obrigatório
-    if (tipo === 'negro' && total >= 5 && final < 1) final = 1;
-    if (tipo === 'pcd' && total >= 20 && final < 1) final = 1;
-
-    return final;
-  }
 
   async findAllByEdital(editalId: string) {
     return this.prisma.vagaEdital.findMany({
@@ -58,17 +37,20 @@ export class VagasEditalService {
       areaAtuacaoId,
       carreiraId,
       nivelId,
-      totalGeral,
-      vagasNEG,
-      vagasPCD,
+      vagasImediatas,
+      vagasReserva,
       justificativa,
       usuarioId,
       modeloFormularioId,
     } = data;
 
-    const numTotal = Number(totalGeral) || 0;
-    const numNeg = Number(vagasNEG) || 0;
-    const numPcd = Number(vagasPCD) || 0;
+    const vImed = Number(vagasImediatas) || 0;
+    const vRes = Number(vagasReserva) || 0;
+    const numTotal = vImed + vRes;
+
+    if (numTotal <= 0) {
+      throw new BadRequestException('O total de vagas deve ser maior que zero.');
+    }
 
     const configGlobal = await this.configuracaoService.get();
     const edital = await this.prisma.edital.findUnique({
@@ -78,11 +60,25 @@ export class VagasEditalService {
     const pNegro = edital?.percentualNegros ?? configGlobal?.percentualNegrosPadrao ?? 20;
     const pPcd = edital?.percentualPCD ?? configGlobal?.percentualPCDPadrao ?? 5;
 
-    const vNegEsp = this.calcularVagasCota(numTotal, pNegro, 'negro');
-    const vPcdEsp = this.calcularVagasCota(numTotal, pPcd, 'pcd');
-    const vAC = numTotal - numNeg - numPcd;
+    // Cálculo das subdivisões por modalidade no BACKEND
+    // Aplicamos a cota sobre o subtotal de imediatas e sobre o subtotal de reserva
+    const vNEGImed = calcCota(vImed, pNegro, 'negro');
+    const vPCDImed = calcCota(vImed, pPcd, 'pcd');
+    const vACImed  = Math.max(0, vImed - vNEGImed - vPCDImed);
 
-    console.log(`[UPSERT_VAGA] Edital: ${editalId}, Cargo: ${cargoId}, Total: ${numTotal}, AC/NEG/PCD: ${vAC}/${numNeg}/${numPcd}`);
+    const vNEGRes = calcCota(vRes, pNegro, 'negro');
+    const vPCDRes = calcCota(vRes, pPcd, 'pcd');
+    const vACRes  = Math.max(0, vRes - vNEGRes - vPCDRes);
+
+    const totalACCalculado = vACImed + vACRes;
+    const totalNEGCalculado = vNEGImed + vNEGRes;
+    const totalPCDCalculado = vPCDImed + vPCDRes;
+
+    // Totais esperados baseados no volume total (para conferência estatística)
+    const vNegEsp = calcCota(numTotal, pNegro, 'negro');
+    const vPcdEsp = calcCota(numTotal, pPcd, 'pcd');
+
+    console.log(`[UPSERT_VAGA] Edital: ${editalId}, Cargo: ${cargoId}, Total: ${numTotal}, Imed: ${vImed}, Res: ${vRes}`);
 
     const record = await this.prisma.vagaEdital.upsert({
       where: {
@@ -95,12 +91,23 @@ export class VagasEditalService {
         },
       },
       update: {
-        vagasAC: vAC,
-        vagasNEG: numNeg,
-        vagasPCD: numPcd,
+        vagasAC: totalACCalculado,
+        vagasNEG: totalNEGCalculado,
+        vagasPCD: totalPCDCalculado,
+        vagasACImediatas: vACImed,
+        vagasACReserva: vACRes,
+        vagasNEGImediatas: vNEGImed,
+        vagasNEGReserva: vNEGRes,
+        vagasPCDImediatas: vPCDImed,
+        vagasPCDReserva: vPCDRes,
+        totalACCalculado,
+        totalNEGCalculado,
+        totalPCDCalculado,
         totalGeral: numTotal,
         vagasNEGEsperadas: vNegEsp,
         vagasPCDEsperadas: vPcdEsp,
+        vagasImediatas: vImed,
+        vagasReserva: vRes,
         modeloFormularioId: modeloFormularioId || null,
         quantidadeVagas: numTotal,
       },
@@ -110,12 +117,23 @@ export class VagasEditalService {
         areaAtuacaoId: areaAtuacaoId || null,
         carreiraId: carreiraId || null,
         nivelId: nivelId || null,
-        vagasAC: vAC,
-        vagasNEG: numNeg,
-        vagasPCD: numPcd,
+        vagasAC: totalACCalculado,
+        vagasNEG: totalNEGCalculado,
+        vagasPCD: totalPCDCalculado,
+        vagasACImediatas: vACImed,
+        vagasACReserva: vACRes,
+        vagasNEGImediatas: vNEGImed,
+        vagasNEGReserva: vNEGRes,
+        vagasPCDImediatas: vPCDImed,
+        vagasPCDReserva: vPCDRes,
+        totalACCalculado,
+        totalNEGCalculado,
+        totalPCDCalculado,
         totalGeral: numTotal,
         vagasNEGEsperadas: vNegEsp,
         vagasPCDEsperadas: vPcdEsp,
+        vagasImediatas: vImed,
+        vagasReserva: vRes,
         modeloFormularioId: modeloFormularioId || null,
         quantidadeVagas: numTotal,
       },
@@ -128,9 +146,12 @@ export class VagasEditalService {
           usuarioId,
           justificativa,
           detalhes: JSON.stringify({
-            totalGeral,
-            vagasNEG,
-            vagasPCD,
+            totalGeral: numTotal,
+            vagasImediatas: vImed,
+            vagasReserva: vRes,
+            ac: totalACCalculado,
+            neg: totalNEGCalculado,
+            pcd: totalPCDCalculado,
             esperadoNEG: vNegEsp,
             esperadoPCD: vPcdEsp,
           }),
@@ -192,55 +213,22 @@ export class VagasEditalService {
 
   async aplicarSugestoes(editalId: string) {
     const analise = await this.classificacaoService.analisarCobertura(editalId);
-    const edital = await this.prisma.edital.findUnique({ where: { id: editalId } });
-    const config = await this.configuracaoService.get();
     
-    const pN = edital?.percentualNegros ?? config?.percentualNegrosPadrao ?? 10;
-    const pP = edital?.percentualPCD ?? config?.percentualPCDPadrao ?? 6;
-
-    const posicoes: Record<string, any> = {};
-
-    for (const alert of analise) {
-      const key = `${alert.cargoId}-${alert.areaAtuacaoId || 'null'}-${alert.carreiraId || 'null'}-${alert.nivelId || 'null'}`;
-      if (!posicoes[key]) {
-        posicoes[key] = {
-          cargoId: alert.cargoId,
-          areaAtuacaoId: alert.areaAtuacaoId || undefined,
-          carreiraId: alert.carreiraId || undefined,
-          nivelId: alert.nivelId || undefined,
-          totalCandidatos: 0,
-          vagasAC: 0,
-          vagasNEG: 0,
-          vagasPCD: 0,
-        };
-      }
-
-      const p = posicoes[key];
-      // O total de candidatos únicos é o máximo encontrado em qualquer modalidade (geralmente Ampla)
-      p.totalCandidatos = Math.max(p.totalCandidatos, alert.candidatosAfetados);
-    }
-
     const results = [];
-    for (const key in posicoes) {
-      const p = posicoes[key];
-      const total = p.totalCandidatos;
-      
-      // Calcular cotas ideais baseado no total de candidatos
-      const vNeg = this.calcularVagasCota(total, pN, 'negro');
-      const vPcd = this.calcularVagasCota(total, pP, 'pcd');
-      
-      const res = await this.upsertPosition({
-        editalId,
-        cargoId: p.cargoId,
-        areaAtuacaoId: p.areaAtuacaoId,
-        carreiraId: p.carreiraId,
-        nivelId: p.nivelId,
-        totalGeral: total,
-        vagasNEG: vNeg,
-        vagasPCD: vPcd,
-        justificativa: 'Aplicação automática via diagnóstico de cobertura.',
-      });
-      results.push(res);
+    for (const item of analise) {
+      if (item.sugestao) {
+        const res = await this.upsertPosition({
+          editalId,
+          cargoId: item.cargoId,
+          areaAtuacaoId: item.areaAtuacaoId || undefined,
+          carreiraId: item.carreiraId || undefined,
+          nivelId: item.nivelId || undefined,
+          vagasImediatas: item.sugestao.vagasImediatas,
+          vagasReserva: item.sugestao.vagasReserva,
+          justificativa: 'Aplicação automática via diagnóstico de cobertura.',
+        });
+        results.push(res);
+      }
     }
 
     await this.classificacaoService.reprocessarSituacaoCandidatos(editalId);

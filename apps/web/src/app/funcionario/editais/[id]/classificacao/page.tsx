@@ -58,9 +58,8 @@ export default function ClassificacaoPage() {
     carreiraId: string;
     nivelId: string;
     modeloFormularioId: string;
-    totalGeral: number;
-    vagasNEG: number;
-    vagasPCD: number;
+    vagasImediatas: number;
+    vagasReserva: number;
     justificativa: string;
   }>({ 
     cargoId: '', 
@@ -68,9 +67,8 @@ export default function ClassificacaoPage() {
     carreiraId: '', 
     nivelId: '', 
     modeloFormularioId: '',
-    totalGeral: 0,
-    vagasNEG: 0,
-    vagasPCD: 0,
+    vagasImediatas: 0,
+    vagasReserva: 0,
     justificativa: ''
   });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -171,20 +169,7 @@ export default function ClassificacaoPage() {
 
   const handleQuickCreateVaga = (item: any) => {
     setEditingId(null);
-    
-    // Calcula as vagas sugeridas baseado no edital e candidatos afetados
     const totalGeral = item.candidatosAfetados || 1;
-    const pN = edital?.percentualNegros || 10;
-    const pP = edital?.percentualPCD || 6;
-
-    const calcSuge = (t: number, p: number, type: 'negro' | 'pcd') => {
-      if (t === 0) return 0;
-      const r = t * (p / 100);
-      let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
-      if (type === 'negro' && t >= 5 && f < 1) f = 1;
-      if (type === 'pcd' && t >= 20 && f < 1) f = 1;
-      return f;
-    };
 
     setNewVaga({
       cargoId: item.cargoId,
@@ -192,9 +177,8 @@ export default function ClassificacaoPage() {
       carreiraId: item.carreiraId || '',
       nivelId: item.nivelId || '',
       modeloFormularioId: item.modeloFormularioId || '',
-      totalGeral: totalGeral,
-      vagasNEG: calcSuge(totalGeral, pN, 'negro'),
-      vagasPCD: calcSuge(totalGeral, pP, 'pcd'),
+      vagasImediatas: totalGeral,
+      vagasReserva: 0,
       justificativa: `Criação automática sugerida para ${item.modalidade || 'concorrência faltante'}.`
     });
     setShowCoverageModal(false);
@@ -234,9 +218,8 @@ export default function ClassificacaoPage() {
       carreiraId: vaga.carreiraId || '',
       nivelId: vaga.nivelId || '',
       modeloFormularioId: vaga.modeloFormularioId || '',
-      totalGeral: vaga.totalGeral || vaga.quantidadeVagas || 0,
-      vagasNEG: vaga.vagasNEG || 0,
-      vagasPCD: vaga.vagasPCD || 0,
+      vagasImediatas: (vaga.vagasACImediatas || 0) + (vaga.vagasNEGImediatas || 0) + (vaga.vagasPCDImediatas || 0),
+      vagasReserva: (vaga.vagasACReserva || 0) + (vaga.vagasNEGReserva || 0) + (vaga.vagasPCDReserva || 0),
       justificativa: ''
     });
     setShowVagasModal(true);
@@ -270,32 +253,6 @@ export default function ClassificacaoPage() {
     fetchData();
   }, [editalId]);
 
-  useEffect(() => {
-    if (showVagasModal && newVaga.totalGeral > 0) {
-      const pN = edital?.percentualNegros || 10;
-      const pP = edital?.percentualPCD || 6;
-      
-      const calcAuto = (t: number, p: number, type: 'negro' | 'pcd') => {
-        const r = t * (p / 100);
-        let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
-        if (type === 'negro' && t >= 5 && f < 1) f = 1;
-        if (type === 'pcd' && t >= 20 && f < 1) f = 1;
-        return f;
-      };
-
-      const vN = calcAuto(newVaga.totalGeral, pN, 'negro');
-      const vP = calcAuto(newVaga.totalGeral, pP, 'pcd');
-
-      // Só atualiza se for diferente para evitar loops
-      if (vN !== newVaga.vagasNEG || vP !== newVaga.vagasPCD) {
-        setNewVaga(prev => ({
-          ...prev,
-          vagasNEG: vN,
-          vagasPCD: vP
-        }));
-      }
-    }
-  }, [newVaga.totalGeral, showVagasModal, edital]);
 
   const handleImport = async () => {
     const lines = importText.trim().split(/\r?\n/);
@@ -464,13 +421,25 @@ export default function ClassificacaoPage() {
     }
   };
 
+  const calcCota = (t: number, p: number, type: 'negro' | 'pcd') => {
+    if (t === 0) return 0;
+    const r = t * (p / 100);
+    let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
+    if (type === 'negro' && t >= 5 && f < 1) f = 1;
+    if (type === 'pcd' && t >= 20 && f < 1) f = 1;
+    return f;
+  };
+
   const handleSaveVaga = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
       
-      if (newVaga.totalGeral <= 0) {
-        alert('Informe o total de vagas para esta especialização.');
+      const pN = edital?.percentualNegros ?? 20;
+      const pP = edital?.percentualPCD ?? 5;
+
+      if ((newVaga.vagasImediatas + newVaga.vagasReserva) <= 0) {
+        alert('Informe a quantidade de vagas (Imediatas ou Reserva).');
         return;
       }
 
@@ -487,9 +456,8 @@ export default function ClassificacaoPage() {
           carreiraId: newVaga.carreiraId,
           nivelId: newVaga.nivelId,
           modeloFormularioId: newVaga.modeloFormularioId || null,
-          totalGeral: newVaga.totalGeral,
-          vagasNEG: newVaga.vagasNEG,
-          vagasPCD: newVaga.vagasPCD,
+          vagasImediatas:    newVaga.vagasImediatas,
+          vagasReserva:      newVaga.vagasReserva,
           justificativa: newVaga.justificativa
         }),
       });
@@ -498,8 +466,8 @@ export default function ClassificacaoPage() {
         setShowVagasModal(false);
         setEditingId(null);
         setNewVaga({ 
-          cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', 
-          modeloFormularioId: '', totalGeral: 0, vagasNEG: 0, vagasPCD: 0, justificativa: '' 
+          cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '',
+          vagasImediatas: 0, vagasReserva: 0, justificativa: '' 
         });
         fetchData();
       } else {
@@ -706,16 +674,45 @@ export default function ClassificacaoPage() {
                 </div>
               </div>
               
-              {v.detalhesModalidades && v.detalhesModalidades.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-50">
-                  {v.detalhesModalidades.map((dm: any) => (
-                    <div key={dm.modalidadeId} className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{dm.modalidadeNome}</span>
-                      <span className="text-sm font-black text-slate-900">{dm.quantidade}</span>
-                    </div>
-                  ))}
+              {v.vagasAC > 0 && (
+                <div className="flex bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
+                  <div className="px-3 py-1.5 flex flex-col items-center border-r border-slate-100 min-w-[50px]">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">AC IMED</span>
+                    <span className="text-sm font-black text-slate-900">{v.vagasACImediatas}</span>
+                  </div>
+                  <div className="px-3 py-1.5 flex flex-col items-center bg-slate-100/50 min-w-[50px]">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">AC RES</span>
+                    <span className="text-sm font-black text-slate-900">{v.vagasACReserva}</span>
+                  </div>
                 </div>
               )}
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                {v.vagasNEG > 0 && (
+                  <div className="flex bg-amber-50 rounded-xl border border-amber-100 overflow-hidden">
+                    <div className="px-2 py-1 flex flex-col items-center border-r border-amber-100">
+                      <span className="text-[7px] font-black text-amber-500 uppercase tracking-tighter">NEG IMED</span>
+                      <span className="text-xs font-black text-amber-700">{v.vagasNEGImediatas}</span>
+                    </div>
+                    <div className="px-2 py-1 flex flex-col items-center bg-amber-100/30">
+                      <span className="text-[7px] font-black text-amber-500 uppercase tracking-tighter">NEG RES</span>
+                      <span className="text-xs font-black text-amber-700">{v.vagasNEGReserva}</span>
+                    </div>
+                  </div>
+                )}
+                {v.vagasPCD > 0 && (
+                  <div className="flex bg-sky-50 rounded-xl border border-sky-100 overflow-hidden">
+                    <div className="px-2 py-1 flex flex-col items-center border-r border-sky-100">
+                      <span className="text-[7px] font-black text-sky-500 uppercase tracking-tighter">PCD IMED</span>
+                      <span className="text-xs font-black text-sky-700">{v.vagasPCDImediatas}</span>
+                    </div>
+                    <div className="px-2 py-1 flex flex-col items-center bg-sky-100/30">
+                      <span className="text-[7px] font-black text-sky-500 uppercase tracking-tighter">PCD RES</span>
+                      <span className="text-xs font-black text-sky-700">{v.vagasPCDReserva}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -771,7 +768,7 @@ export default function ClassificacaoPage() {
             <button 
               onClick={fetchCoverageAnalysis}
               disabled={analyzing}
-              className="px-6 py-3.5 bg-slate-100 text-slate-600 text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-3"
+              className="px-6 py-3.5 bg-slate-100 text-slate-600 text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-3 relative"
             >
               {analyzing ? (
                 <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
@@ -779,6 +776,11 @@ export default function ClassificacaoPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
               )}
               Análise de Vagas
+              {coverageData && coverageData.filter((d: any) => d.inconsistencias?.some((inc: any) => inc.severidade === 'BLOQUEANTE')).length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full px-2 py-0.5 text-[10px] font-black shadow-lg shadow-rose-200">
+                  {coverageData.filter((d: any) => d.inconsistencias?.some((inc: any) => inc.severidade === 'BLOQUEANTE')).length}
+                </span>
+              )}
             </button>
              <button 
               onClick={() => setEditingCandidato({ 
@@ -947,6 +949,13 @@ export default function ClassificacaoPage() {
                             <div className={`w-1 h-1 rounded-full ${c.situacao === 'APROVADO_CONVOCAVEL' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
                             {c.situacao.replace(/_/g, ' ')}
                           </span>
+                          {c.tipoVaga && (
+                            <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                              c.tipoVaga === 'IMEDIATA' ? 'bg-emerald-900 text-white border border-emerald-800 shadow-lg' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                            }`}>
+                              {c.tipoVaga}
+                            </span>
+                          )}
                           {c.posicaoConvocacao && (
                             <span className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">Geral: #{c.posicaoAmpla}</span>
                           )}
@@ -1053,7 +1062,7 @@ export default function ClassificacaoPage() {
                 <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Defina a oferta de especializações para este edital</p>
               </div>
               <button 
-                onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', totalGeral: 0, vagasNEG: 0, vagasPCD: 0, justificativa: '' }); }} 
+                onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', vagasImediatas: 0, vagasReserva: 0, justificativa: '' }); }} 
                 className="text-slate-200 hover:text-slate-900 transition-all"
               >
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1123,183 +1132,112 @@ export default function ClassificacaoPage() {
                   <option value="">Selecione o Modelo de Formulário</option>
                   {modelosFormulario.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}
                 </select>
-                <p className="text-sm text-slate-400 font-bold italic ml-1 opacity-70">O candidato convocado para esta vaga preencherá este formulário eletronicamente.</p>
               </div>
 
-              <div className="pt-4">
-              {/* Painel de Alertas Legislativos */}
-              {(() => {
-                const pNegro = edital?.percentualNegros || 10;
-                const pPcd = edital?.percentualPCD || 6;
-                const total = newVaga.totalGeral || 0;
-                const neg = newVaga.vagasNEG || 0;
-                const pcd = newVaga.vagasPCD || 0;
-                
-                const calcCota = (t: number, p: number, type: 'negro' | 'pcd') => {
-                  if (t === 0) return 0;
-                  const res = t * (p / 100);
-                  const int = Math.floor(res);
-                  const frac = res - int;
-                  let f = frac >= 0.5 ? Math.ceil(res) : Math.floor(res);
-                  if (type === 'negro' && t >= 5 && f < 1) f = 1;
-                  if (type === 'pcd' && t >= 20 && f < 1) f = 1;
-                  return f;
-                };
-
-                const negEsp = calcCota(total, pNegro, 'negro');
-                const pcdEsp = calcCota(total, pPcd, 'pcd');
-                const ampla = total - neg - pcd;
-
-                const alerts = [];
-                let hasBlockingError = false;
-
-                // Validações Negros
-                if (total >= 5 && neg === 0) {
-                  alerts.push({ type: 'ERROR', msg: `Com ${total} vagas, é obrigatório reservar vagas para Negros (Mínimo: ${negEsp}).` });
-                  hasBlockingError = true;
-                } else if (neg < negEsp) {
-                  alerts.push({ type: 'ERROR', msg: `Vagas para Negros abaixo do mínimo exigido (Esperado: ${negEsp}).` });
-                  hasBlockingError = true;
-                } else if (neg > negEsp && negEsp > 0) {
-                  alerts.push({ type: 'WARNING', msg: `Vagas para Negros acima do percentual legal de ${pNegro}%. (Esperado: ${negEsp}).` });
-                }
-
-                // Validações PCD
-                if (total >= 20 && pcd === 0) {
-                  alerts.push({ type: 'ERROR', msg: `Com ${total} vagas, é obrigatório reservar vagas para PCD (Mínimo: ${pcdEsp}).` });
-                  hasBlockingError = true;
-                } else if (pcd < pcdEsp) {
-                  alerts.push({ type: 'ERROR', msg: `Vagas para PCD abaixo do mínimo exigido (Esperado: ${pcdEsp}).` });
-                  hasBlockingError = true;
-                } else if (pcd > pcdEsp && pcdEsp > 0) {
-                  alerts.push({ type: 'WARNING', msg: `Vagas para PCD acima do percentual legal de ${pPcd}%. (Esperado: ${pcdEsp}).` });
-                }
-
-                // Validação Consistência
-                if (ampla < 0) {
-                  alerts.push({ type: 'ERROR', msg: 'A soma de Negros e PCD não pode superar o Total Geral.' });
-                  hasBlockingError = true;
-                }
-
-                return (
-                  <div className="space-y-4">
-                    {alerts.length > 0 && (
-                      <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-3">
-                        <h5 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                           Validação Legislativa
-                        </h5>
-                        <div className="space-y-2">
-                          {alerts.map((a, i) => (
-                            <div key={i} className={`text-[11px] font-bold flex items-start gap-2 ${a.type === 'ERROR' ? 'text-rose-600' : 'text-amber-600'}`}>
-                              <span className="mt-0.5">•</span>
-                              {a.msg}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      {/* Total Geral */}
-                      <div className="bg-slate-900 p-6 rounded-[32px] shadow-xl shadow-slate-200">
-                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-2">Total Geral</label>
-                        <input 
-                          type="number" min="0" required
-                          value={newVaga.totalGeral}
-                          onChange={e => {
-                            const val = parseInt(e.target.value) || 0;
-                            const pN = edital?.percentualNegros || 10;
-                            const pP = edital?.percentualPCD || 6;
-                            
-                            const calcExt = (t: number, p: number, type: 'negro' | 'pcd') => {
-                              if (t === 0) return 0;
-                              const r = t * (p / 100);
-                              let f = (r - Math.floor(r)) >= 0.5 ? Math.ceil(r) : Math.floor(r);
-                              if (type === 'negro' && t >= 5 && f < 1) f = 1;
-                              if (type === 'pcd' && t >= 20 && f < 1) f = 1;
-                              return f;
-                            };
-
-                            setNewVaga({
-                              ...newVaga,
-                              totalGeral: val,
-                              vagasNEG: calcExt(val, pN, 'negro'),
-                              vagasPCD: calcExt(val, pP, 'pcd')
-                            });
-                          }}
-                          className="w-full bg-transparent border-none outline-none font-black text-3xl text-white p-0 tabular-nums focus:text-emerald-400 transition-colors"
-                        />
-                      </div>
-
-                      {/* Negros */}
-                      <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm transition-all hover:border-amber-200">
-                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">Negros ({pNegro}%)</label>
-                        <input 
-                          type="number" min="0" required
-                          value={newVaga.vagasNEG}
-                          onChange={e => setNewVaga({...newVaga, vagasNEG: parseInt(e.target.value) || 0})}
-                          className="w-full bg-transparent border-none outline-none font-black text-3xl text-slate-900 p-0 tabular-nums focus:text-amber-600 transition-colors"
-                        />
-                        <div className="text-[9px] font-black text-amber-500 uppercase mt-2 opacity-70">Esperado: {negEsp}</div>
-                      </div>
-
-                      {/* PCD */}
-                      <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm transition-all hover:border-sky-200">
-                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">PCD ({pPcd}%)</label>
-                        <input 
-                          type="number" min="0" required
-                          value={newVaga.vagasPCD}
-                          onChange={e => setNewVaga({...newVaga, vagasPCD: parseInt(e.target.value) || 0})}
-                          className="w-full bg-transparent border-none outline-none font-black text-3xl text-slate-900 p-0 tabular-nums focus:text-sky-600 transition-colors"
-                        />
-                        <div className="text-[9px] font-black text-sky-500 uppercase mt-2 opacity-70">Esperado: {pcdEsp}</div>
-                      </div>
-
-                      {/* Ampla */}
-                      <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 flex flex-col justify-center">
-                        <label className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1 opacity-50">Ampla (Resto)</label>
-                        <div className="font-black text-3xl text-slate-400 tabular-nums">{Math.max(0, ampla)}</div>
-                        <div className="text-[9px] font-black text-slate-300 uppercase mt-2">Automático</div>
-                      </div>
-                    </div>
-
-                    {alerts.some(a => a.type === 'WARNING') && (
-                      <div className="pt-4 space-y-2 animate-in fade-in slide-in-from-top-2 duration-500">
-                        <label className="text-sm font-black text-amber-600 uppercase tracking-widest pl-1">Justificativa para Divergência Legislativa</label>
-                        <textarea 
-                          required
-                          value={newVaga.justificativa || ''}
-                          onChange={e => setNewVaga({...newVaga, justificativa: e.target.value})}
-                          placeholder="Informe o motivo técnico/legal para não seguir o percentual exato..."
-                          className="w-full px-5 py-4 bg-amber-50/30 border border-amber-100 rounded-2xl outline-none focus:border-amber-500 font-bold text-sm text-slate-700 min-h-[100px] transition-all"
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center pt-8 border-t border-slate-200">
-                      <button 
-                        type="button"
-                        onClick={() => { setShowVagasModal(false); setEditingId(null); }}
-                        className="text-sm font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-all font-display"
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        type="submit"
-                        disabled={hasBlockingError}
-                        className={`px-10 py-5 text-sm font-black uppercase tracking-[0.2em] rounded-[24px] shadow-xl transition-all active:scale-95 font-display ${
-                          hasBlockingError 
-                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200 shadow-none' 
-                            : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200/50'
-                        }`}
-                      >
-                        {editingId ? 'Confirmar Alterações' : 'Publicar Vagas'}
-                      </button>
-                    </div>
+              <div className="pt-4 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Vagas Imediatas</label>
+                    <input 
+                      type="number" min="0"
+                      value={newVaga.vagasImediatas}
+                      onChange={e => setNewVaga({...newVaga, vagasImediatas: parseInt(e.target.value) || 0})}
+                      className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-black text-sm text-slate-700 shadow-sm transition-all"
+                    />
                   </div>
-                );
-              })()}
+                  <div className="space-y-2">
+                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest pl-1">Cadastro de Reserva</label>
+                    <input 
+                      type="number" min="0"
+                      value={newVaga.vagasReserva}
+                      onChange={e => setNewVaga({...newVaga, vagasReserva: parseInt(e.target.value) || 0})}
+                      className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-black text-sm text-slate-700 shadow-sm transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Tabela de Conferência Somente Leitura */}
+                {(() => {
+                  const pN = edital?.percentualNegros ?? 20;
+                  const pP = edital?.percentualPCD ?? 5;
+                  const calcCota = (t: number, p: number, type: string) => {
+                    const res = t * (p / 100);
+                    const int = Math.floor(res);
+                    const frac = res - int;
+                    let f = frac >= 0.5 ? Math.ceil(res) : Math.floor(res);
+                    if (type === 'negro' && t >= 5 && f < 1) f = 1;
+                    if (type === 'pcd' && t >= 20 && f < 1) f = 1;
+                    return f;
+                  };
+                  const negImed = calcCota(newVaga.vagasImediatas, pN, 'negro');
+                  const pcdImed = calcCota(newVaga.vagasImediatas, pP, 'pcd');
+                  const acImed  = newVaga.vagasImediatas - negImed - pcdImed;
+                  const negRes  = calcCota(newVaga.vagasReserva, pN, 'negro');
+                  const pcdRes  = calcCota(newVaga.vagasReserva, pP, 'pcd');
+                  const acRes   = newVaga.vagasReserva - negRes - pcdRes;
+
+                  return (
+                    <div className="overflow-hidden rounded-[24px] border border-slate-200/60 shadow-inner bg-white">
+                      <table className="w-full text-[11px] text-left">
+                        <thead className="bg-slate-50 text-slate-400 uppercase font-black border-b border-slate-100">
+                          <tr>
+                            <th className="px-5 py-3">Modalidade</th>
+                            <th className="px-5 py-3 text-center">Imediatas</th>
+                            <th className="px-5 py-3 text-center">Reserva</th>
+                            <th className="px-5 py-3 text-center">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          <tr>
+                            <td className="px-5 py-3 font-bold text-slate-600">Ampla Concorrência</td>
+                            <td className="px-5 py-3 text-center font-black text-slate-900">{acImed}</td>
+                            <td className="px-5 py-3 text-center font-black text-slate-900">{acRes}</td>
+                            <td className="px-5 py-3 text-center font-black text-slate-900 bg-slate-50/50">{acImed + acRes}</td>
+                          </tr>
+                          <tr className="bg-amber-50/30 font-bold">
+                            <td className="px-5 py-3 text-amber-700">Negros ({pN}%)</td>
+                            <td className="px-5 py-3 text-center font-black text-amber-600">{negImed}</td>
+                            <td className="px-5 py-3 text-center font-black text-amber-600">{negRes}</td>
+                            <td className="px-5 py-3 text-center font-black text-amber-600 bg-amber-100/20">{negImed + negRes}</td>
+                          </tr>
+                          <tr className="bg-sky-50/30 font-bold">
+                            <td className="px-5 py-3 text-sky-700">PCD ({pP}%)</td>
+                            <td className="px-5 py-3 text-center font-black text-sky-600">{pcdImed}</td>
+                            <td className="px-5 py-3 text-center font-black text-sky-600">{pcdRes}</td>
+                            <td className="px-5 py-3 text-center font-black text-sky-600 bg-sky-100/20">{pcdImed + pcdRes}</td>
+                          </tr>
+                          <tr className="bg-slate-900 text-white font-black">
+                            <td className="px-5 py-3 border-t border-slate-800">Geral</td>
+                            <td className="px-5 py-3 text-center border-t border-slate-800">{newVaga.vagasImediatas}</td>
+                            <td className="px-5 py-3 text-center border-t border-slate-800">{newVaga.vagasReserva}</td>
+                            <td className="px-5 py-3 text-center border-t border-slate-800 text-emerald-400">{newVaga.vagasImediatas + newVaga.vagasReserva}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+
+                <div className="bg-slate-900 p-6 rounded-[32px] shadow-xl flex justify-between items-center mt-4">
+                  <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Total Geral de Vagas</span>
+                  <span className="text-3xl font-black text-white tabular-nums font-display">{newVaga.vagasImediatas + newVaga.vagasReserva}</span>
+                </div>
+
+                <div className="flex justify-between items-center pt-8 border-t border-slate-200">
+                  <button 
+                    type="button"
+                    onClick={() => { setShowVagasModal(false); setEditingId(null); }}
+                    className="text-sm font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-all font-display"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-10 py-5 bg-emerald-600 text-white text-sm font-black uppercase tracking-[0.2em] rounded-[24px] shadow-xl hover:bg-emerald-700 transition-all active:scale-95 font-display shadow-emerald-200/50"
+                  >
+                    {editingId ? 'Confirmar Alterações' : 'Publicar Vagas'}
+                  </button>
+                </div>
               </div>
             </form>
 
@@ -1350,7 +1288,7 @@ export default function ClassificacaoPage() {
             
             <div className="flex justify-end pt-4">
                 <button 
-                  onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', totalGeral: 0, vagasNEG: 0, vagasPCD: 0, justificativa: '' }); }} 
+                  onClick={() => { setShowVagasModal(false); setEditingId(null); setNewVaga({ cargoId: '', areaAtuacaoId: '', carreiraId: '', nivelId: '', modeloFormularioId: '', vagasImediatas: 0, vagasReserva: 0, justificativa: '' }); }} 
                   className="px-10 py-5 bg-slate-900 text-white font-black uppercase text-sm tracking-[.2em] rounded-[24px] hover:bg-emerald-600 transition-all shadow-2xl"
                 >
                   Concluir Configuração
@@ -1446,7 +1384,7 @@ export default function ClassificacaoPage() {
               <div className="flex justify-between items-start border-b border-slate-50 pb-8">
                 <div>
                   <h2 className="text-3xl font-black text-slate-900 font-display italic">Diagnóstico de Cobertura</h2>
-                  <p className="text-sm text-slate-400 font-bold uppercase tracking-[.2em] mt-2">Identificação de inconsistências em cargos e modalidades</p>
+                  <p className="text-sm text-slate-400 font-bold uppercase tracking-[.2em] mt-2">Identificação de inconsistências e conferência legislativa</p>
                 </div>
                 <button onClick={() => setShowCoverageModal(false)} className="p-2 bg-slate-50 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1472,44 +1410,126 @@ export default function ClassificacaoPage() {
                 </div>
               ) : (
                 <div className="space-y-10">
-                   <div className={`p-8 rounded-[32px] flex items-center gap-8 ${coverageData.some((d: any) => d.tipo === 'FALTANTE') ? 'bg-rose-50 border border-rose-100' : 'bg-amber-50 border border-amber-100'}`}>
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl ${coverageData.some((d: any) => d.tipo === 'FALTANTE') ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
-                         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                      </div>
-                      <div className="flex-1">
-                         <h4 className="text-lg font-black text-slate-900 font-display">Conflitos Encontrados</h4>
-                         <p className="text-slate-500 text-sm font-bold">Existem {coverageData.length} inconsistências que impossibilitam a classificação automática completa.</p>
-                      </div>
-                   </div>
+                   {coverageData.some((d: any) => d.inconsistencias?.some((inc: any) => inc.severidade === 'BLOQUEANTE')) && (
+                     <div className="p-8 rounded-[32px] flex items-center gap-8 bg-rose-50 border border-rose-100">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl bg-rose-600 text-white">
+                           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <div className="flex-1">
+                           <h4 className="text-lg font-black text-slate-900 font-display">Inconsistências Bloqueantes</h4>
+                           <p className="text-slate-500 text-sm font-bold">Existem {coverageData.filter((d: any) => d.inconsistencias?.some((inc: any) => inc.severidade === 'BLOQUEANTE')).length} grupos com erros que impedem a classificação correta.</p>
+                        </div>
+                     </div>
+                   )}
 
                    <div className="space-y-6">
-                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-[.3em] pl-1">Relatório de Inconsistências</h3>
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className="grid grid-cols-1 gap-6">
                         {coverageData.map((item: any, idx: number) => (
-                          <div key={idx} className="bg-slate-50 p-8 rounded-[40px] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500">
-                             <div className="space-y-2 max-w-md">
-                                <div className={`inline-block px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter ${item.tipo === 'FALTANTE' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
-                                   {item.tipo === 'FALTANTE' ? 'Não Ofertado' : 'Impacto Mínimo Não Atingido'}
+                          <div key={idx} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm transition-all duration-500">
+                             <div className="border-b border-slate-50 pb-6 mb-6">
+                                <h3 className="text-xl font-black text-slate-900 font-display uppercase tracking-tight">{item.cargoNome} / {item.areaNome}</h3>
+                                <div className="flex items-center gap-4 mt-3">
+                                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
+                                      {item.totalCandidatos} Candidatos Habilitados
+                                   </div>
+                                   <div className="flex items-center gap-2">
+                                      <span className="text-[9px] font-bold text-slate-300 uppercase">{item.candidatosAC} AC</span>
+                                      <span className="text-[9px] font-bold text-slate-300 uppercase italic">/</span>
+                                      <span className="text-[9px] font-bold text-slate-300 uppercase">{item.candidatosNEG} NEG</span>
+                                      <span className="text-[9px] font-bold text-slate-300 uppercase italic">/</span>
+                                      <span className="text-[9px] font-bold text-slate-300 uppercase">{item.candidatosPCD} PCD</span>
+                                   </div>
                                 </div>
-                                <div className="text-xl font-black text-slate-900 font-display leading-tight">{item.cargo} / {item.area}</div>
-                                <div className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none">{item.modalidade}</div>
                              </div>
-                             
-                             <div className="flex items-center gap-10">
-                                <div className="text-center min-w-[60px]">
-                                   <div className="text-[9px] font-black text-slate-300 uppercase mb-1">Vagas</div>
-                                   <div className="text-2xl font-black text-slate-900 font-display tabular-nums">{item.vagasConfiguradas}</div>
+
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-6">
+                                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[.2em] flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                                      Status da Configuração
+                                   </h4>
+                                   
+                                   <div className="grid grid-cols-3 gap-3">
+                                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                                         <div className="text-[8px] font-black text-slate-400 uppercase mb-1">Ampla</div>
+                                         <div className="text-sm font-black text-slate-900">{(item.vagasACImediatas || 0) + (item.vagasACReserva || 0)}</div>
+                                      </div>
+                                      <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 text-center">
+                                         <div className="text-[8px] font-black text-amber-500 uppercase mb-1">Negros</div>
+                                         <div className="text-sm font-black text-amber-600 font-display">{(item.vagasNEGImediatas || 0) + (item.vagasNEGReserva || 0)}</div>
+                                      </div>
+                                      <div className="bg-sky-50 p-4 rounded-2xl border border-sky-100 text-center">
+                                         <div className="text-[8px] font-black text-sky-500 uppercase mb-1">PCD</div>
+                                         <div className="text-sm font-black text-sky-600 font-display">{(item.vagasPCDImediatas || 0) + (item.vagasPCDReserva || 0)}</div>
+                                      </div>
+                                   </div>
+
+                                   <div className="flex items-center justify-between bg-slate-900 rounded-2xl px-6 py-4">
+                                      <span className="text-[10px] font-black text-white uppercase tracking-widest">Requisito Legal</span>
+                                      <div className="flex gap-4">
+                                         <span className="text-[10px] font-black text-amber-400 uppercase tracking-tighter">NEG ≥ {item.negEsperado || 0}</span>
+                                         <span className="text-[10px] font-black text-sky-400 uppercase tracking-tighter">PCD ≥ {item.pcdEsperado || 0}</span>
+                                      </div>
+                                   </div>
                                 </div>
-                                <div className="text-center min-w-[60px]">
-                                   <div className="text-[9px] font-black text-slate-300 uppercase mb-1">Candidatos</div>
-                                   <div className="text-2xl font-black text-slate-900 font-display tabular-nums">{item.candidatosAfetados}</div>
+
+                                <div className="space-y-4">
+                                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[.2em] flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-rose-400"></div>
+                                      Conclusões do Diagnóstico
+                                   </h4>
+                                   <div className="space-y-3">
+                                      {item.inconsistencias?.map((inc: any, i: number) => (
+                                        <div key={i} className={`flex items-start gap-4 p-4 rounded-2xl border transition-all ${inc.severidade === 'BLOQUEANTE' ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
+                                           <div className={`mt-0.5 w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 ${inc.severidade === 'BLOQUEANTE' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                              {inc.severidade === 'BLOQUEANTE' ? (
+                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12"/></svg>
+                                              ) : (
+                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                              )}
+                                           </div>
+                                           <div>
+                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">{inc.tipo}</div>
+                                              <p className="text-xs font-bold leading-relaxed">{inc.mensagem}</p>
+                                           </div>
+                                        </div>
+                                      ))}
+                                   </div>
+
+                                   {item.sugestao && (
+                                     <div className="flex gap-2 pt-2">
+                                        <button 
+                                          onClick={() => {
+                                            setNewVaga({
+                                              cargoId: item.cargoId,
+                                              areaAtuacaoId: item.areaAtuacaoId || '',
+                                              carreiraId: '',
+                                              nivelId: '',
+                                              modeloFormularioId: '',
+                                              vagasImediatas: item.sugestao.vagasImediatas,
+                                              vagasReserva: item.sugestao.vagasReserva,
+                                              justificativa: 'Correção sugerida pelo Diagnosis de Cobertura.'
+                                            });
+                                            setShowCoverageModal(false);
+                                            setShowVagasModal(true);
+                                          }}
+                                          className="flex-1 px-4 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-slate-200"
+                                        >
+                                          Corrigir com Sugestão
+                                        </button>
+                                        <button 
+                                          onClick={() => {
+                                            const v = vagasEstatisticas.find(ve => ve.cargoId === item.cargoId && ve.areaAtuacaoId === item.areaAtuacaoId);
+                                            if (v) handleEditVaga(v);
+                                            else handleQuickCreateVaga(item);
+                                          }}
+                                          className="px-4 py-3 bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:text-slate-900 transition-all"
+                                        >
+                                          Editar Manualmente
+                                        </button>
+                                     </div>
+                                   )}
                                 </div>
-                                <button 
-                                  onClick={() => handleQuickCreateVaga(item)}
-                                  className="px-6 py-3.5 bg-white border border-slate-200 text-sm font-black uppercase tracking-widest text-slate-600 rounded-2xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm"
-                                >
-                                  Corrigir
-                                </button>
                              </div>
                           </div>
                         ))}
@@ -1521,7 +1541,7 @@ export default function ClassificacaoPage() {
               <div className="flex justify-between items-center pt-8 border-t border-slate-50">
                 <button 
                   onClick={() => setShowCoverageModal(false)}
-                  className="px-8 py-4 text-slate-400 font-black uppercase text-sm tracking-widest hover:text-slate-900 transition-all"
+                  className="px-8 py-4 text-slate-400 font-black uppercase text-sm tracking-widest hover:text-slate-900 transition-all font-display italic"
                 >
                   Fechar Diagnóstico
                 </button>
@@ -1585,7 +1605,18 @@ export default function ClassificacaoPage() {
                 </div>
 
                 <div className="bg-slate-50/50 p-8 rounded-[32px] border border-slate-100 space-y-6">
-                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4 pl-1">Pontuação e Posicionamento</h3>
+                    <div className="flex items-center justify-between mb-4 pl-1">
+                       <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Pontuação e Posicionamento</h3>
+                       {editingCandidato.tipoVaga && (
+                         <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border ${
+                           editingCandidato.tipoVaga === 'IMEDIATA' 
+                             ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' 
+                             : 'bg-amber-50 text-amber-600 border-amber-100 shadow-sm'
+                         }`}>
+                           {editingCandidato.tipoVaga === 'IMEDIATA' ? 'Vaga Imediata' : 'Cadastro de Reserva'}
+                         </div>
+                       )}
+                    </div>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-white p-5 rounded-2xl border border-slate-200">
                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter block mb-1">Nota</label>

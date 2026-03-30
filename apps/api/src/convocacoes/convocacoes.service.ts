@@ -185,11 +185,9 @@ export class ConvocacoesService {
     const candidato = await this.prisma.classificacaoCandidato.findUnique({
       where: { id: candidatoId },
     });
-    if (!candidato?.modeloFormularioId) {
-      throw new BadRequestException(
-        'Não é possível registrar convocação: O candidato não possui um modelo de formulário vinculado.',
-      );
-    }
+    // Removido o bloqueio obrigatório de modeloFormularioId aqui.
+    // A validação de formulário deve ocorrer apenas quando o candidato for movido
+    // para status que exigem preenchimento (ex: AGUARDANDO_DOCUMENTACAO).
 
     const [registro] = await this.prisma.$transaction([
       this.prisma.registroConvocacao.create({
@@ -244,15 +242,10 @@ export class ConvocacoesService {
       const registroRecente = candidato.registrosConvocacao[0];
       switch (registroRecente.status) {
         case StatusRegistroConvocacao.AGUARDANDO_RESPOSTA:
-          // Move diretamente para Aguardando Documentação se não estiver em um status final/avançado
-          if (
-            (
-              [
-                StatusConvocacao.AGUARDANDO_CONVOCACAO,
-                StatusConvocacao.CONVOCADO,
-              ] as StatusConvocacao[]
-            ).includes(candidato.statusConvocacao)
-          ) {
+          // Move para CONVOCACAO_ENVIADA se for o primeiro contato
+          if (candidato.statusConvocacao === StatusConvocacao.AGUARDANDO_CONVOCACAO) {
+            novoStatusPrincipal = StatusConvocacao.CONVOCACAO_ENVIADA;
+          } else if (candidato.statusConvocacao === StatusConvocacao.CONVOCADO) {
             novoStatusPrincipal = StatusConvocacao.AGUARDANDO_DOCUMENTACAO;
           }
           break;

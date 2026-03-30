@@ -42,16 +42,18 @@ interface CandidatoConvocacao {
   modeloFormulario?: { nome: string; esquemaJSON: any };
   envios: any[];
   registrosConvocacao: RegistroConvocacao[];
+  tipoVaga?: 'IMEDIATA' | 'RESERVA';
 }
 
 const KANBAN_COLUMNS = [
-  { id: 'AGUARDANDO_CONVOCACAO', title: 'Aguardando convocação', color: 'bg-slate-100 text-slate-600 border-slate-200' },
-  { id: 'AGUARDANDO_DOCUMENTACAO', title: 'Aguardando documentação', color: 'bg-sky-50 text-sky-600 border-sky-200' },
-  { id: 'DOCUMENTOS_ENVIADOS', title: 'Análise de documentação', color: 'bg-amber-50 text-amber-600 border-amber-200' },
-  { id: 'DOCUMENTACAO_PENDENTE', title: 'Documentação pendente (reenvio)', color: 'bg-orange-50 text-orange-600 border-orange-200' },
-  { id: 'AGENDAMENTO_APRESENTACAO', title: 'Agendamento de apresentação', color: 'bg-purple-50 text-purple-600 border-purple-200' },
+  { id: 'AGUARDANDO_CONVOCACAO', title: 'Aguardando conv.', color: 'bg-slate-100 text-slate-600 border-slate-200' },
+  { id: 'CONVOCACAO_ENVIADA', title: 'Convocação enviada', color: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
+  { id: 'AGUARDANDO_DOCUMENTACAO', title: 'Aguardando docs', color: 'bg-sky-50 text-sky-600 border-sky-200' },
+  { id: 'DOCUMENTOS_ENVIADOS', title: 'Análise de docs', color: 'bg-amber-50 text-amber-600 border-amber-200' },
+  { id: 'DOCUMENTACAO_PENDENTE', title: 'Pendência (reenvio)', color: 'bg-orange-50 text-orange-600 border-orange-200' },
+  { id: 'AGENDAMENTO_APRESENTACAO', title: 'Agendamento / Apres.', color: 'bg-purple-50 text-purple-600 border-purple-200' },
   { id: 'EFETIVADO', title: 'Concluído', color: 'bg-emerald-50 text-emerald-600 border-emerald-200', collapsible: true },
-  { id: 'DESCLASSIFICADOS', title: 'Desclassificado', color: 'bg-rose-50 text-rose-600 border-rose-200', collapsible: true }
+  { id: 'DESCLASSIFICADOS', title: 'Desistência / reprov.', color: 'bg-rose-50 text-rose-600 border-rose-200', collapsible: true }
 ];
 
 export default function ControleConvocacaoPage() {
@@ -254,16 +256,24 @@ export default function ControleConvocacaoPage() {
   const formatStatus = (s: string) => s?.replace(/_/g, ' ') || '';
 
   const getCandidatosByCol = (colId: string) => {
+    let filtered = [];
     if (colId === 'DESCLASSIFICADOS') {
-      return candidatos.filter(c => ['DESISTENTE', 'PRAZO_EXPIRADO', 'SEM_RESPOSTA', 'REPROVADO'].includes(c.statusConvocacao));
+      filtered = candidatos.filter(c => ['DESISTENTE', 'PRAZO_EXPIRADO', 'SEM_RESPOSTA', 'REPROVADO'].includes(c.statusConvocacao));
+    } else if (colId === 'AGUARDANDO_DOCUMENTACAO') {
+      filtered = candidatos.filter(c => c.statusConvocacao === 'AGUARDANDO_DOCUMENTACAO' || c.statusConvocacao === 'CONVOCADO');
+    } else if (colId === 'AGENDAMENTO_APRESENTACAO') {
+      filtered = candidatos.filter(c => c.statusConvocacao === 'AGENDAMENTO_APRESENTACAO' || c.statusConvocacao === 'APROVADO');
+    } else {
+      filtered = candidatos.filter(c => c.statusConvocacao === colId);
     }
-    if (colId === 'AGUARDANDO_DOCUMENTACAO') {
-      return candidatos.filter(c => c.statusConvocacao === 'AGUARDANDO_DOCUMENTACAO' || c.statusConvocacao === 'CONVOCADO');
-    }
-    if (colId === 'AGENDAMENTO_APRESENTACAO') {
-      return candidatos.filter(c => c.statusConvocacao === 'AGENDAMENTO_APRESENTACAO' || c.statusConvocacao === 'APROVADO');
-    }
-    return candidatos.filter(c => c.statusConvocacao === colId);
+
+    return filtered.sort((a, b) => {
+      // Prioridade: IMEDIATA > RESERVA
+      if (a.tipoVaga === 'IMEDIATA' && b.tipoVaga === 'RESERVA') return -1;
+      if (a.tipoVaga === 'RESERVA' && b.tipoVaga === 'IMEDIATA') return 1;
+      // Se igual, mantém ordem original (ou por posição se preferir)
+      return (a.posicaoConvocacao || 999) - (b.posicaoConvocacao || 999);
+    });
   };
 
   if (loading && candidatos.length === 0) return (
@@ -355,8 +365,19 @@ export default function ControleConvocacaoPage() {
                           draggable
                           onDragStart={(e) => handleDragStart(e, c.id)}
                           onClick={() => setSelectedCandidato(c)}
-                          className={`bg-white p-5 rounded-[24px] shadow-sm border-2 transition-all duration-300 cursor-grab active:cursor-grabbing hover:shadow-xl hover:scale-[1.02] group relative ${isExpired ? 'border-rose-100 shadow-rose-50' : 'border-transparent hover:border-emerald-200 shadow-slate-200/50'}`}
+                          className={`bg-white p-5 rounded-[24px] shadow-sm border-2 transition-all duration-300 cursor-grab active:cursor-grabbing hover:shadow-xl hover:scale-[1.02] group relative ${
+                            isExpired ? 'border-rose-100 shadow-rose-50' : 
+                            c.tipoVaga === 'RESERVA' ? 'border-amber-200/60 shadow-amber-50/50' :
+                            'border-transparent hover:border-emerald-200 shadow-slate-200/50'
+                          }`}
                         >
+                          {c.tipoVaga && (
+                            <div className={`absolute top-4 right-4 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border shadow-sm ${
+                              c.tipoVaga === 'IMEDIATA' ? 'bg-emerald-900 border-emerald-800 text-white' : 'bg-amber-100 border-amber-200 text-amber-700'
+                            }`}>
+                              {c.tipoVaga}
+                            </div>
+                          )}
                           <div className="flex justify-between items-start mb-3">
                              <div className="flex flex-wrap items-center gap-1.5">
                                <div className="flex flex-col">
