@@ -14,6 +14,7 @@ export class UsuarioService {
         nome: true,
         email: true,
         cpf: true,
+        matricula: true,
         roleId: true,
         role: {
           select: {
@@ -45,6 +46,7 @@ export class UsuarioService {
         nome: true,
         email: true,
         cpf: true,
+        matricula: true,
         roleId: true,
         role: {
           select: { nome: true },
@@ -59,6 +61,7 @@ export class UsuarioService {
     nome: string;
     email: string;
     cpf: string;
+    matricula?: string;
     senha?: string;
     roleId: string;
   }) {
@@ -70,6 +73,7 @@ export class UsuarioService {
         nome: data.nome,
         email: data.email,
         cpf: data.cpf,
+        matricula: data.matricula,
         senhaHash: hashedPassword,
         roleId: data.roleId,
       },
@@ -77,6 +81,7 @@ export class UsuarioService {
         id: true,
         nome: true,
         email: true,
+        matricula: true,
         roleId: true,
         role: { select: { nome: true } },
       },
@@ -89,6 +94,7 @@ export class UsuarioService {
       nome?: string;
       email?: string;
       cpf?: string;
+      matricula?: string;
       senha?: string;
       roleId?: string;
     },
@@ -115,6 +121,7 @@ export class UsuarioService {
         nome: true,
         email: true,
         cpf: true,
+        matricula: true,
         roleId: true,
         role: { select: { nome: true } },
       },

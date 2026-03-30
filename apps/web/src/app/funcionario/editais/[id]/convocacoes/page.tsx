@@ -522,302 +522,373 @@ export default function ControleConvocacaoPage() {
         </div>
       </div>
 
-      {/* MODAL DE HISTÓRICO */}
+      {/* MODAL DE DETALHES DO CANDIDATO (HISTÓRICO) */}
       {selectedCandidato && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4 z-[100] animate-in fade-in zoom-in-95 duration-500">
-           <div className="bg-white rounded-[40px] shadow-2xl max-w-2xl w-full p-10 space-y-8 max-h-[90vh] overflow-y-auto border border-white/20">
-              <div className="flex justify-between items-start border-b border-slate-100 pb-8">
-                <div className="flex-1 pr-6">
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">{selectedCandidato.nomeCandidato}</h2>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 mt-6">
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">CPF / INSCRIÇÃO</span>
-                      <span className="text-sm font-bold text-slate-700">{selectedCandidato.cpfCandidato} • {selectedCandidato.numeroInscricao}</span>
+        <div className="fixed inset-0 bg-primary-mucuna/40 backdrop-blur-2xl flex items-center justify-center p-4 z-[100] animate-in fade-in zoom-in-95 duration-500">
+           <div className="bg-white/90 backdrop-blur-3xl rounded-[48px] shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] border border-white overflow-hidden">
+              
+              {/* Header com Design Premium */}
+              <div className="relative p-10 pb-6 shrink-0 bg-gradient-to-br from-surface-mucuna/50 to-white">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-accent-mucuna/5 rounded-full -mr-20 -mt-20 blur-3xl" />
+                
+                <div className="flex justify-between items-start relative z-10">
+                  <div className="flex-1 pr-8">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-mucuna/10 border border-accent-mucuna/10 rounded-full mb-3">
+                      <div className="w-1.5 h-1.5 bg-accent-mucuna rounded-full animate-pulse" />
+                      <span className="text-[9px] font-black text-accent-mucuna uppercase tracking-widest">Painel do Candidato</span>
                     </div>
-                    {selectedCandidato.emailCandidato && (
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">E-MAIL COMPLETO</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedCandidato.emailCandidato}</span>
-                      </div>
-                    )}
-                    {(selectedCandidato.telefoneCandidato || selectedCandidato.celularCandidato) && (
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">TEL / CELULAR</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedCandidato.telefoneCandidato || '-'} / {selectedCandidato.celularCandidato || '-'}</span>
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">OCUPAÇÃO VINCULADA</span>
-                      <span className="text-sm font-bold text-slate-700">{selectedCandidato.cargo?.nome} {selectedCandidato.areaAtuacao && `• ${selectedCandidato.areaAtuacao.nome}`}</span>
-                    </div>
-                    {(selectedCandidato.carreira || selectedCandidato.nivel) && (
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">CARREIRA / NÍVEL</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedCandidato.carreira?.nome || '-'} • {selectedCandidato.nivel?.nome || '-'}</span>
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">NOTA FINAL</span>
-                      <span className="text-sm font-black text-emerald-600">{selectedCandidato.nota?.toFixed(2) || '0.00'}</span>
+                    <h2 className="text-3xl font-black text-primary-mucuna tracking-tighter italic uppercase leading-none">{selectedCandidato.nomeCandidato}</h2>
+                    
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest bg-primary-mucuna text-white border border-primary-mucuna/10 shadow-lg shadow-primary-mucuna/10">Posição: {selectedCandidato.posicaoConvocacao || selectedCandidato.posicaoAmpla}º</span>
+                      <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest bg-accent-mucuna/10 text-accent-mucuna border border-accent-mucuna/10">
+                        {selectedCandidato.modalidade?.nome || (
+                          selectedCandidato.concorrenciaPCD ? 'Vaga PCD' : 
+                          selectedCandidato.concorrenciaNegro ? 'Vaga Negro' : 'Ampla Concorrência'
+                        )}
+                      </span>
                     </div>
                   </div>
                   
-                  {selectedCandidato.enderecoCandidato && (
-                    <div className="mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">ENDEREÇO DE CONTATO</span>
-                      <span className="text-sm font-medium text-slate-600 italic">"{selectedCandidato.enderecoCandidato}"</span>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-2 mt-6">
-                    <span className="px-3 py-1 rounded-xl text-sm font-black uppercase bg-indigo-50 text-indigo-600 border border-indigo-100">Posição: {selectedCandidato.posicaoConvocacao || selectedCandidato.posicaoAmpla}º</span>
-                    <span className="px-3 py-1 rounded-xl text-sm font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      {selectedCandidato.modalidade?.nome || (
-                        selectedCandidato.concorrenciaPCD ? 'PCD' : 
-                        selectedCandidato.concorrenciaNegro ? 'Negro' : 'Ampla Concorrência'
-                      )}
-                    </span>
-                  </div>
+                  <button 
+                    onClick={() => { setSelectedCandidato(null); setViewAvaliacao(false); }} 
+                    className="p-3 bg-white shadow-xl shadow-primary-mucuna/5 border border-primary-mucuna/5 rounded-2xl text-slate-300 hover:text-primary-mucuna transition-all hover:scale-110 group"
+                  >
+                    <svg className="w-6 h-6 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
                 </div>
-                <button onClick={() => { setSelectedCandidato(null); setViewAvaliacao(false); }} className="text-slate-300 hover:text-slate-900 transition-all p-2 bg-slate-50 rounded-2xl">
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
               </div>
 
-              {viewAvaliacao && selectedCandidato.envios?.[0] ? (
-                <div className="animate-in fade-in slide-in-from-right-8 duration-500">
-                  <div className="mb-8">
-                    <button 
-                      onClick={() => setViewAvaliacao(false)}
-                      className="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-all hover:-translate-x-1"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                      Voltar ao Histórico
-                    </button>
+              {/* Corpo do Modal com Scroll Customizado */}
+              <div className="flex-1 overflow-y-auto px-10 pb-10 pt-4 custom-scrollbar-thick space-y-10">
+                
+                {/* Grade de Informações com Tratamento de Overflow */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                  
+                  {/* Bloco 1: Identificação */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-primary-mucuna/5 flex items-center justify-center text-primary-mucuna/40">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                      </div>
+                      <span className="text-[11px] font-black text-primary-mucuna/40 uppercase tracking-[0.2em]">Identificação</span>
+                    </div>
+                    
+                    <div className="space-y-4 pl-11">
+                      <div className="group">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-accent-mucuna transition-colors">CPF / Nº Inscrição</span>
+                        <span className="text-sm font-bold text-slate-700 block tracking-tight">{selectedCandidato.cpfCandidato} <span className="text-slate-300 mx-2">•</span> {selectedCandidato.numeroInscricao}</span>
+                      </div>
+                      <div className="group overflow-hidden">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-accent-mucuna transition-colors">E-mail Completo</span>
+                        <span className="text-sm font-bold text-slate-700 block truncate hover:whitespace-normal transition-all underline decoration-accent-mucuna/20 underline-offset-4" title={selectedCandidato.emailCandidato || ''}>
+                          {selectedCandidato.emailCandidato || 'Não informado'}
+                        </span>
+                      </div>
+                      <div className="group">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-accent-mucuna transition-colors">Telefones</span>
+                        <span className="text-sm font-bold text-slate-700 block whitespace-nowrap">
+                          {selectedCandidato.celularCandidato || selectedCandidato.telefoneCandidato ? (
+                             `${selectedCandidato.celularCandidato || ''} ${selectedCandidato.telefoneCandidato ? `/ ${selectedCandidato.telefoneCandidato}` : ''}`
+                          ) : 'Não informado'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <AvaliacaoFormulario 
-                    envio={selectedCandidato.envios[0]} 
-                    esquema={selectedCandidato.modeloFormulario?.esquemaJSON}
-                    editalId={editalId}
-                    candidatoId={selectedCandidato.id}
-                    onSave={fetchData}
-                    onClose={() => setViewAvaliacao(false)}
-                  />
+
+                  {/* Bloco 2: Cargo e Desempenho */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-primary-mucuna/5 flex items-center justify-center text-primary-mucuna/40">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                      </div>
+                      <span className="text-[11px] font-black text-primary-mucuna/40 uppercase tracking-[0.2em]">Cargo & Desempenho</span>
+                    </div>
+
+                    <div className="space-y-4 pl-11">
+                      <div className="group overflow-hidden">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-accent-mucuna transition-colors">Atribuição / Área</span>
+                        <span className="text-sm font-bold text-slate-700 block leading-tight truncate hover:whitespace-normal transition-all" title={`${selectedCandidato.cargo?.nome} ${selectedCandidato.areaAtuacao?.nome || ''}`}>
+                          {selectedCandidato.cargo?.nome} {selectedCandidato.areaAtuacao && `/ ${selectedCandidato.areaAtuacao.nome}`}
+                        </span>
+                      </div>
+                      <div className="group">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-accent-mucuna transition-colors">Carreira / Nível</span>
+                        <span className="text-sm font-bold text-slate-700 block uppercase tracking-tighter italic">
+                          {selectedCandidato.carreira?.nome || 'Padrão'} <span className="text-slate-300 mx-2">•</span> {selectedCandidato.nivel?.nome || 'Superior'}
+                        </span>
+                      </div>
+                      <div className="group">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-accent-mucuna transition-colors">Nota Final</span>
+                        <span className="text-xl font-black text-emerald-600 block tabular-nums leading-none mt-1 group-hover:scale-110 transition-transform origin-left">
+                          {selectedCandidato.nota?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ) : !showNovoRegistro ? (
-                <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between bg-slate-50 p-6 rounded-[32px] border border-slate-200/60 shadow-inner">
-                      <div className="space-y-4 flex-1 mr-4">
-                        <div className="space-y-1">
-                          <span className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                            Status Atual
-                          </span>
-                          <span className={`text-base font-black uppercase block text-slate-800`}>
-                            {formatStatus(selectedCandidato.statusConvocacao)}
-                          </span>
+
+                {/* Bloco de Endereço Estilizado */}
+                {selectedCandidato.enderecoCandidato && (
+                  <div className="group bg-surface-mucuna/40 p-6 rounded-[32px] border border-primary-mucuna/5 shadow-inner hover:bg-white transition-all duration-500">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 group-hover:text-accent-mucuna">Residência / Contato Físico</span>
+                    <span className="text-sm font-bold text-slate-600 italic leading-relaxed">"{selectedCandidato.enderecoCandidato}"</span>
+                  </div>
+                )}
+
+                {/* Sub-modais e Fluxos (Avaliação ou Novo Registro) */}
+                {viewAvaliacao && selectedCandidato.envios?.[0] ? (
+                  <div className="animate-in fade-in slide-in-from-right-8 duration-500 bg-surface-mucuna/20 p-8 rounded-[40px] border border-primary-mucuna/5">
+                    <div className="mb-8">
+                      <button 
+                        onClick={() => setViewAvaliacao(false)}
+                        className="group flex items-center gap-3 text-xs font-black uppercase tracking-widest text-primary-mucuna/40 hover:text-primary-mucuna transition-all"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md group-hover:-translate-x-1 transition-transform">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         </div>
+                        Voltar ao Histórico
+                      </button>
+                    </div>
+                    <AvaliacaoFormulario 
+                      envio={selectedCandidato.envios[0]} 
+                      esquema={selectedCandidato.modeloFormulario?.esquemaJSON}
+                      editalId={editalId}
+                      candidatoId={selectedCandidato.id}
+                      onSave={fetchData}
+                      onClose={() => setViewAvaliacao(false)}
+                    />
+                  </div>
+                ) : !showNovoRegistro ? (
+                  /* Modo Histórico e Controle */
+                  <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-500">
+                    
+                    {/* Barra de Status e Ações Modernizada */}
+                    <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+                      <div className="flex-1 bg-primary-mucuna/5 p-8 rounded-[36px] border border-primary-mucuna/10 flex flex-col justify-between group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -mr-12 -mt-12 blur-2xl" />
                         
-                        <div className="space-y-2">
-                          <span className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                            <svg className="w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            Modelo de Formulário
-                          </span>
-                          <div className="flex items-center gap-3">
-                            <select 
-                              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 transition-all flex-1"
-                              value={selectedCandidato.modeloFormularioId || ''}
-                              disabled={updatingForm}
-                              onChange={(e) => handleVincularFormulario(selectedCandidato.id, e.target.value)}
-                            >
-                               <option value="">Selecione um formulário...</option>
-                               {editalFormularios.map((f: any) => (
-                                 <option key={f.id} value={f.id}>
-                                   {f.nome}
-                                 </option>
-                               ))}
-                            </select>
-                            {updatingForm && <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>}
+                        <div className="space-y-4">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.2em] flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                              Status Administrativo
+                            </span>
+                            <span className="text-xl font-black uppercase block text-primary-mucuna italic tracking-tighter">
+                              {formatStatus(selectedCandidato.statusConvocacao)}
+                            </span>
                           </div>
-                          {!selectedCandidato.modeloFormularioId && (
-                            <p className="text-[9px] font-black text-rose-500 uppercase animate-pulse mt-1">⚠️ Obrigatório para Convocar</p>
-                          )}
+                          
+                          <div className="space-y-2 pt-4 border-t border-primary-mucuna/10">
+                            <span className="text-[10px] font-black text-primary-mucuna/40 uppercase tracking-[0.2em] flex items-center gap-2">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                              Formulário de Vinculação
+                            </span>
+                            <div className="flex items-center gap-3">
+                              <select 
+                                className="bg-white border-none rounded-2xl px-6 py-4 text-sm font-bold text-primary-mucuna outline-none focus:ring-2 focus:ring-accent-mucuna/50 transition-all flex-1 shadow-sm appearance-none cursor-pointer"
+                                value={selectedCandidato.modeloFormularioId || ''}
+                                disabled={updatingForm}
+                                onChange={(e) => handleVincularFormulario(selectedCandidato.id, e.target.value)}
+                              >
+                                 <option value="">Nenhum formulário vinculado...</option>
+                                 {editalFormularios.map((f: any) => (
+                                   <option key={f.id} value={f.id}>{f.nome}</option>
+                                 ))}
+                              </select>
+                              {updatingForm && <div className="w-5 h-5 border-3 border-accent-mucuna/20 border-t-accent-mucuna rounded-full animate-spin shrink-0"></div>}
+                            </div>
+                            {!selectedCandidato.modeloFormularioId && (
+                              <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mt-2 bg-rose-50 px-3 py-1 rounded-lg inline-block">⚠️ Requer formulário para avançar</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex flex-col gap-2 shrink-0">
-                        <button 
-                          onClick={() => handleReverterConvocacao(selectedCandidato.id)}
-                          className="px-5 py-3 text-rose-600 hover:bg-rose-50 text-sm font-black uppercase tracking-widest rounded-2xl transition-all border border-rose-200 shadow-sm"
-                        >
-                          Desfazer
-                        </button>
+                      <div className="flex flex-col gap-3 min-w-[240px]">
                         <button 
                           onClick={() => setShowNovoRegistro(true)}
-                          className="px-8 py-4 bg-slate-100 text-slate-600 font-black rounded-[20px] hover:bg-slate-200 transition-all flex items-center gap-2.5 text-[11px] uppercase tracking-widest group"
+                          className="group relative px-8 py-5 bg-primary-mucuna text-white font-black rounded-[24px] hover:bg-secondary-mucuna transition-all flex items-center justify-center gap-3 text-xs uppercase tracking-widest shadow-xl shadow-primary-mucuna/10 active:scale-95"
                         >
-                          <svg className="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/></svg>
-                          Novo Registro
+                          <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+                          <svg className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
+                          <span className="relative z-10">Novo Registro</span>
                         </button>
+
                         {selectedCandidato.envios?.length > 0 && (
                           <button 
                             onClick={() => setViewAvaliacao(true)}
-                            className="px-8 py-4 bg-slate-900 text-white font-black rounded-[20px] hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-2.5 text-[11px] uppercase tracking-widest group"
+                            className="px-8 py-5 bg-accent-mucuna text-white font-black rounded-[24px] hover:bg-accent-mucuna/90 transition-all shadow-xl shadow-accent-mucuna/10 flex items-center justify-center gap-3 text-xs uppercase tracking-widest active:scale-95"
                           >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Avaliar Documentos
                           </button>
                         )}
-                        {selectedCandidato.statusConvocacao === 'AGENDAMENTO_APRESENTACAO' && (
-                          <button 
-                            onClick={() => {
-                              if (confirm('Deseja marcar este candidato como EFETIVADO (Concluído)?')) {
-                                handleDrop(null, 'EFETIVADO', selectedCandidato.id);
-                                setSelectedCandidato(null);
-                              }
-                            }}
-                            className="px-8 py-4 bg-emerald-600 text-white font-black rounded-[20px] hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center gap-2.5 text-[11px] uppercase tracking-widest group"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-                            Concluir Processo
-                          </button>
-                        )}
+                        
+                        <div className="h-px bg-primary-mucuna/5 my-2" />
+                        
+                        <button 
+                          onClick={() => handleReverterConvocacao(selectedCandidato.id)}
+                          className="px-8 py-4 text-rose-600/40 hover:text-rose-600 hover:bg-rose-50 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2"
+                        >
+                          Remover do Painel
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="pl-6 border-l-4 border-slate-100 space-y-10 py-4 relative">
-                    {selectedCandidato.registrosConvocacao.length === 0 ? (
-                      <div className="text-sm font-bold text-slate-400 italic bg-slate-50 p-6 rounded-[28px] border border-dashed border-slate-200 text-center uppercase tracking-widest">Nenhum evento registrado ainda.</div>
-                    ) : (
-                      selectedCandidato.registrosConvocacao.map((reg, index) => (
-                        <div key={reg.id} className="relative">
-                          <div className="absolute -left-[30px] w-4 h-4 bg-white border-4 border-emerald-500 rounded-full mt-2 ring-8 ring-emerald-50 shadow-sm"></div>
-                          <div className="bg-white border border-slate-100 rounded-[28px] p-7 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300">
-                            <div className="flex justify-between items-start mb-4">
-                              <div>
-                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">Meio / Fase</span>
-                                <span className="text-sm font-black text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">{reg.meioUtilizado}</span>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest block mb-1">Data/Hora</span>
-                                <span className="text-sm font-black text-slate-700">{new Date(reg.dataConvocacao).toLocaleString('pt-BR')}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-4">
-                              {reg.prazoDocumentacao && (
-                                <div className="flex items-center gap-2 bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
-                                  <svg className="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                  <p className="text-[11px] font-black text-indigo-700 uppercase"><strong className="opacity-60">Prazo Final:</strong> {new Date(reg.prazoDocumentacao).toLocaleDateString('pt-BR')}</p>
-                                </div>
-                              )}
-                              {reg.observacoes && (
-                                <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-[20px] border border-slate-100 leading-relaxed font-bold italic">
-                                  "{reg.observacoes}"
-                                </div>
-                              )}
+                    {/* Timeline de Eventos com Estética Orgânica */}
+                    <div className="space-y-8">
+                       <div className="flex items-center gap-4">
+                         <span className="text-[11px] font-black text-primary-mucuna/30 uppercase tracking-[0.3em]">Timeline de Eventos</span>
+                         <div className="h-px flex-1 bg-primary-mucuna/5" />
+                       </div>
+
+                       <div className="relative pl-8 space-y-12">
+                         <div className="absolute left-[3px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-emerald-500 via-primary-mucuna/10 to-transparent" />
+                         
+                         {selectedCandidato.registrosConvocacao.length === 0 ? (
+                           <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-primary-mucuna/5 rounded-[40px] bg-surface-mucuna/20 gap-4">
+                             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary-mucuna/10">
+                               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                             </div>
+                             <span className="text-xs font-black text-primary-mucuna/20 uppercase tracking-[0.2em] italic">Aguardando gatilhos operacionais...</span>
+                           </div>
+                         ) : (
+                           selectedCandidato.registrosConvocacao.map((reg) => (
+                             <div key={reg.id} className="relative group">
+                               <div className="absolute -left-[30px] w-5 h-5 bg-white border-4 border-emerald-500 rounded-full mt-1.5 ring-4 ring-emerald-50 shadow-sm z-10 transition-transform group-hover:scale-125" />
+                               
+                               <div className="bg-white border border-primary-mucuna/5 rounded-[36px] p-8 shadow-sm hover:shadow-2xl hover:border-accent-mucuna/20 transition-all duration-500 animate-in fade-in slide-in-from-left-4">
+                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                                   <div className="flex items-center gap-4">
+                                     <div className="px-5 py-2 bg-primary-mucuna/5 rounded-full border border-primary-mucuna/5">
+                                       <span className="text-xs font-black text-primary-mucuna uppercase tracking-widest">{reg.meioUtilizado}</span>
+                                     </div>
+                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                                     <span className="text-[11px] font-black text-slate-400 tabular-nums uppercase">{new Date(reg.dataConvocacao).toLocaleString('pt-BR')}</span>
+                                   </div>
+                                 </div>
+                                 
+                                 <div className="space-y-4">
+                                   {reg.prazoDocumentacao && (
+                                     <div className="inline-flex items-center gap-3 bg-indigo-50/50 px-4 py-2 rounded-2xl border border-indigo-100/50">
+                                       <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                       <span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest">Vencimento: {new Date(reg.prazoDocumentacao).toLocaleDateString('pt-BR')}</span>
+                                     </div>
+                                   )}
+                                   {reg.observacoes && (
+                                     <div className="text-[13px] text-slate-600 bg-surface-mucuna/30 p-6 rounded-[24px] border border-primary-mucuna/5 leading-relaxed font-bold italic shadow-inner">
+                                       "{reg.observacoes}"
+                                     </div>
+                                   )}
+                                 </div>
+                               </div>
+                             </div>
+                           ))
+                         )}
+                       </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Formulário de Novo Registro (Redesenhado) */
+                  <div className="animate-in slide-in-from-right-8 duration-500 space-y-8">
+                    <div className="flex items-center justify-between">
+                      <button 
+                        onClick={() => setShowNovoRegistro(false)}
+                        className="group flex items-center gap-3 text-xs font-black uppercase tracking-widest text-primary-mucuna/40 hover:text-primary-mucuna transition-all"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md group-hover:-translate-x-1 transition-transform">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        </div>
+                        Cancelar Operação
+                      </button>
+                      <h3 className="text-base font-black text-primary-mucuna uppercase tracking-[0.2em] italic">Registrar Nova Ação</h3>
+                    </div>
+                    
+                    <form onSubmit={handleSalvarRegistro} className="space-y-8 bg-surface-mucuna/20 p-10 rounded-[48px] border border-primary-mucuna/5 shadow-inner">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2 group">
+                          <label className="text-[10px] font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Meio de Contato / Fase</label>
+                          <div className="relative">
+                            <select 
+                              required
+                              value={novoRegistro.meioUtilizado}
+                              onChange={(e) => setNovoRegistro({...novoRegistro, meioUtilizado: e.target.value})}
+                              className="w-full px-8 py-5 bg-white border-none rounded-[24px] outline-none focus:ring-2 focus:ring-accent-mucuna/50 font-black text-sm text-primary-mucuna shadow-sm appearance-none cursor-pointer transition-all uppercase italic"
+                            >
+                              <option>Diário Oficial</option>
+                              <option>E-mail</option>
+                              <option>Ligação Telefônica</option>
+                              <option>WhatsApp / SMS</option>
+                              <option>Carta / Correios</option>
+                              <option>Devolução c/ Pendência</option>
+                              <option>Agendamento Confirmado</option>
+                              <option>Outro</option>
+                            </select>
+                            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7"/></svg>
                             </div>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="animate-in slide-in-from-right-8 duration-500">
-                  <div className="mb-8">
-                    <button 
-                      onClick={() => setShowNovoRegistro(false)}
-                      className="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-all hover:-translate-x-1"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                      Voltar ao Histórico
-                    </button>
-                  </div>
-                  <form onSubmit={handleSalvarRegistro} className="space-y-6 bg-slate-50 p-8 rounded-[36px] border border-slate-200/60 shadow-inner">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <div className="space-y-2 group">
+                          <label className="text-[10px] font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Prazo de Resposta / Ação</label>
+                          <input 
+                            type="datetime-local" 
+                            required
+                            value={novoRegistro.prazoDocumentacao}
+                            onChange={(e) => setNovoRegistro({...novoRegistro, prazoDocumentacao: e.target.value})}
+                            className="w-full px-8 py-5 bg-white border-none rounded-[24px] outline-none focus:ring-2 focus:ring-accent-mucuna/50 font-black text-sm text-primary-mucuna shadow-sm transition-all"
+                          />
+                        </div>
                       </div>
-                      <h3 className="text-base font-black text-slate-900 uppercase tracking-widest">Novo Evento de Convocação</h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] pl-1">Meio ou Fase</label>
-                        <select 
-                          required
-                          value={novoRegistro.meioUtilizado}
-                          onChange={(e) => setNovoRegistro({...novoRegistro, meioUtilizado: e.target.value})}
-                          className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-[20px] outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 appearance-none shadow-sm transition-all"
-                        >
-                          <option>Diário Oficial</option>
-                          <option>E-mail</option>
-                          <option>Ligação Telefônica</option>
-                          <option>WhatsApp / SMS</option>
-                          <option>Carta / Correios</option>
-                          <option>Devolução c/ Pendência</option>
-                          <option>Agendamento Confirmado</option>
-                          <option>Outro</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] pl-1">Prazo para Ação</label>
-                        <input 
-                          type="datetime-local" 
-                          required
-                          value={novoRegistro.prazoDocumentacao}
-                          onChange={(e) => setNovoRegistro({...novoRegistro, prazoDocumentacao: e.target.value})}
-                          className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-[20px] outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 shadow-sm transition-all"
+
+                      <div className="space-y-2 group">
+                        <label className="text-[10px] font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Notas e Detalhamento Administrativo</label>
+                        <textarea 
+                          value={novoRegistro.observacoes}
+                          onChange={(e) => setNovoRegistro({...novoRegistro, observacoes: e.target.value})}
+                          placeholder="Descreva o andamento da convocação ou detalhes da pendência observada..."
+                          className="w-full h-32 px-8 py-6 bg-white border-none rounded-[32px] outline-none focus:ring-2 focus:ring-accent-mucuna/50 font-bold text-sm text-slate-700 resize-none shadow-sm transition-all italic"
                         />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] pl-1">Observações ou Pendências</label>
-                      <textarea 
-                        value={novoRegistro.observacoes}
-                        onChange={(e) => setNovoRegistro({...novoRegistro, observacoes: e.target.value})}
-                        placeholder="Ex: Faltou comprovante de residência. Detalhes do agendamento..."
-                        className="w-full h-32 px-5 py-4 bg-white border-2 border-slate-100 rounded-[24px] outline-none focus:border-emerald-500 font-bold text-sm text-slate-700 resize-none shadow-sm transition-all"
-                      />
-                    </div>
-                    
-                    {/* Opções de Automação */}
-                    <div className="bg-white/60 p-5 rounded-[24px] border border-slate-200/60 flex items-center justify-between">
-                       <div className="space-y-1">
-                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block">Automação de Fluxo</label>
-                          <span className="text-[13px] font-bold text-slate-600 block">Avançar para Aguardando Documentação</span>
-                          {!selectedCandidato.modeloFormularioId && (
-                            <span className="text-[9px] font-black text-rose-500 uppercase block">⚠️ Requer formulário vinculado</span>
-                          )}
-                       </div>
-                       <div className="relative inline-flex items-center cursor-pointer group">
-                          <input 
-                            type="checkbox" 
-                            className="sr-only peer"
-                            disabled={!selectedCandidato.modeloFormularioId}
-                            checked={novoRegistro.avancarParaDocumentacao}
-                            onChange={(e) => setNovoRegistro({...novoRegistro, avancarParaDocumentacao: e.target.checked})}
-                          />
-                          <div className={`w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 ${!selectedCandidato.modeloFormularioId ? 'opacity-30 cursor-not-allowed' : ''}`}></div>
-                       </div>
-                    </div>
+                      
+                      {/* Automação de Status */}
+                      <div className="bg-white/60 p-6 rounded-[32px] border border-primary-mucuna/5 flex items-center justify-between group hover:bg-white transition-all duration-500">
+                         <div className="space-y-1">
+                            <span className="text-[13px] font-black text-primary-mucuna uppercase tracking-tighter block group-hover:text-accent-mucuna transition-colors">Avançar Fluxo Automaticamente</span>
+                            <span className="text-[11px] font-bold text-slate-400 block tracking-tight">Mover candidato para coluna "Aguardando Documentação" ao salvar</span>
+                            {!selectedCandidato.modeloFormularioId && (
+                              <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest mt-1 block">⚠️ Requer formulário vinculado</span>
+                            )}
+                         </div>
+                         <div className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              className="sr-only peer"
+                              disabled={!selectedCandidato.modeloFormularioId}
+                              checked={novoRegistro.avancarParaDocumentacao}
+                              onChange={(e) => setNovoRegistro({...novoRegistro, avancarParaDocumentacao: e.target.checked})}
+                            />
+                            <div className={`w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent-mucuna ${!selectedCandidato.modeloFormularioId ? 'opacity-30 cursor-not-allowed' : ''}`}></div>
+                         </div>
+                      </div>
 
-                    <div className="flex justify-end pt-4">
-                      <button 
-                        type="submit" 
-                        disabled={savingRecord}
-                        className="px-10 py-5 bg-emerald-600 text-white font-black uppercase text-[12px] tracking-[0.25em] rounded-[24px] hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-200 flex items-center gap-3 disabled:opacity-50"
-                      >
-                        {savingRecord ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        ) : 'Salvar Registro'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
+                      <div className="flex justify-end pt-4">
+                        <button 
+                          type="submit" 
+                          disabled={savingRecord}
+                          className="group relative px-12 py-5 bg-primary-mucuna text-white font-black uppercase text-[11px] tracking-[0.3em] rounded-[24px] hover:bg-secondary-mucuna transition-all shadow-2xl shadow-primary-mucuna/30 hover:-translate-y-1 disabled:opacity-50"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-accent-mucuna to-support-mucuna opacity-0 group-hover:opacity-10 transition-opacity" />
+                          <span className="relative z-10 flex items-center gap-3">
+                            {savingRecord ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Confirmar Registro'}
+                          </span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
            </div>
         </div>
       )}

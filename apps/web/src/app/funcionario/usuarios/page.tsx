@@ -15,6 +15,7 @@ interface Usuario {
   nome: string;
   email: string;
   cpf: string;
+  matricula?: string;
   roleId: string;
   role: {
     nome: string;
@@ -34,6 +35,7 @@ export default function UsuariosPage() {
     nome: '',
     email: '',
     cpf: '',
+    matricula: '',
     roleId: '',
     senha: '',
   });
@@ -87,6 +89,7 @@ export default function UsuariosPage() {
       nome: '', 
       email: '', 
       cpf: '', 
+      matricula: '',
       roleId: roles[0]?.id || '', 
       senha: '' 
     });
@@ -100,6 +103,7 @@ export default function UsuariosPage() {
       nome: u.nome,
       email: u.email,
       cpf: u.cpf,
+      matricula: u.matricula || '',
       roleId: u.roleId,
       senha: '', // Senha vazia por padrão na edição
     });
@@ -183,7 +187,7 @@ export default function UsuariosPage() {
             <thead>
               <tr className="bg-surface-mucuna/50 border-b border-primary-mucuna/5">
                 <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Funcionário</th>
-                <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Contato & Identidade</th>
+                <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Matrícula & Identidade</th>
                 <th className="p-8 text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Perfil de Acesso</th>
                 <th className="p-8 text-right text-sm uppercase font-black text-primary-mucuna/40 tracking-[0.3em]">Ações</th>
               </tr>
@@ -200,13 +204,21 @@ export default function UsuariosPage() {
                       </div>
                       <div>
                         <div className="font-black text-primary-mucuna text-lg leading-tight uppercase tracking-tighter italic">{u.nome}</div>
-                        <div className="text-sm text-accent-mucuna font-black uppercase tracking-widest mt-0.5">Membro Integrante</div>
+                        <div className="text-sm text-accent-mucuna font-black uppercase tracking-widest mt-0.5">{u.email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="p-8">
-                    <div className="text-sm font-bold text-slate-600 mb-1">{u.email}</div>
-                    <div className="inline-block px-2 py-0.5 bg-slate-100 rounded-md text-sm font-black text-slate-400 uppercase tracking-tighter leading-none">{u.cpf}</div>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Matrícula:</span>
+                        <span className="text-sm font-black text-primary-mucuna tabular-nums italic">{u.matricula || '---'}</span>
+                      </div>
+                      <div className="inline-flex items-center gap-2">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">CPF:</span>
+                        <span className="px-2 py-0.5 bg-slate-100 rounded-md text-[11px] font-black text-slate-500 uppercase tracking-tighter tabular-nums">{u.cpf}</span>
+                      </div>
+                    </div>
                   </td>
                   <td className="p-8">
                     <span className={`px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-[0.15em] shadow-sm ${
@@ -272,6 +284,27 @@ export default function UsuariosPage() {
                 />
               </div>
               <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Perfil de Permissão</label>
+                <div className="relative">
+                  <select 
+                    value={formData.roleId}
+                    onChange={e => setFormData({...formData, roleId: e.target.value})}
+                    className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer text-sm"
+                  >
+                    <option value="" disabled>Selecione um perfil orgânico</option>
+                    {roles.map(role => (
+                      <option key={role.id} value={role.id}>{role.nome}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 group">
                 <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">CPF</label>
                 <input 
                   type="text" required 
@@ -279,6 +312,16 @@ export default function UsuariosPage() {
                   onChange={e => setFormData({...formData, cpf: e.target.value})}
                   className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
                   placeholder="000.000.000-00"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Matrícula (Institucional)</label>
+                <input 
+                  type="text"
+                  value={formData.matricula}
+                  onChange={e => setFormData({...formData, matricula: e.target.value})}
+                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                  placeholder="Ex: 2024.1234"
                 />
               </div>
             </div>
@@ -294,25 +337,6 @@ export default function UsuariosPage() {
                 placeholder={editMode ? "Mantenha em branco p/ não alterar" : "Mínimo 6 caracteres"}
               />
               {editMode && <p className="text-[9px] font-black text-accent-mucuna mt-2 uppercase tracking-tight italic">* Preencha apenas para redefinir a credencial.</p>}
-            </div>
-
-            <div className="space-y-2 group">
-              <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna transition-colors">Perfil de Permissão</label>
-              <div className="relative">
-                <select 
-                  value={formData.roleId}
-                  onChange={e => setFormData({...formData, roleId: e.target.value})}
-                  className="w-full px-8 py-5 bg-surface-mucuna/50 border border-transparent rounded-[24px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner appearance-none cursor-pointer text-sm"
-                >
-                  <option value="" disabled>Selecione um perfil orgânico</option>
-                  {roles.map(role => (
-                    <option key={role.id} value={role.id}>{role.nome}</option>
-                  ))}
-                </select>
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-accent-mucuna">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7"/></svg>
-                </div>
-              </div>
             </div>
           </div>
 

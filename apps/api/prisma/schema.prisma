@@ -12,6 +12,7 @@ model Usuario {
   nome                  String
   cpf                   String                   @unique
   email                 String                   @unique
+  matricula             String?                  @unique
   senhaHash             String
   roleId                String?
   role                  Role?                    @relation(fields: [roleId], references: [id])

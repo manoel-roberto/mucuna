@@ -33,8 +33,14 @@ export class UsuarioController {
   @Patch('me')
   updateMe(@CurrentUser() user: any, @Body() data: any) {
     // Garantir que o usuário só altere seus próprios dados permitidos
-    const { nome, email, cpf, senha } = data;
-    return this.usuarioService.update(user.id, { nome, email, cpf, senha });
+    const { nome, email, cpf, matricula, senha } = data;
+    return this.usuarioService.update(user.id, {
+      nome,
+      email,
+      cpf,
+      matricula,
+      senha,
+    });
   }
 
   @Get()
