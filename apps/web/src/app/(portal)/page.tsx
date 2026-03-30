@@ -132,44 +132,6 @@ export default function Home() {
             </div>
 
             {/* INTEGRITY INFO */}
-            <div className="bg-primary-mucuna rounded-[56px] p-16 text-white shadow-3xl relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-mucuna rounded-full blur-[100px] opacity-10 -mr-48 -mt-48 group-hover:opacity-20 transition-opacity duration-1000"></div>
-               <div className="relative z-10 grid md:grid-cols-2 gap-16 items-center">
-                  <div className="space-y-8">
-                     <div className="w-16 h-1.5 bg-accent-mucuna rounded-full" />
-                     <h3 className="text-4xl font-black uppercase tracking-tighter leading-none italic">Escudo de <span className="text-accent-mucuna not-italic">Integridade.</span></h3>
-                     <p className="text-surface-mucuna/50 font-bold leading-relaxed text-lg">
-                       O sistema Mucunã utiliza protocolos de criptografia institucional para garantir que cada registro e documento enviado seja auditável e imutável.
-                     </p>
-                     <div className="flex gap-4">
-                        <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                           <svg className="w-6 h-6 text-accent-mucuna" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-                        </div>
-                        <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                           <svg className="w-6 h-6 text-support-mucuna" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                        </div>
-                     </div>
-                  </div>
-                  <div className="bg-white/5 backdrop-blur-3xl rounded-[40px] p-10 border border-white/10 space-y-6">
-                     <div className="space-y-2">
-                        <p className="text-xs font-black text-accent-mucuna uppercase tracking-widest">Snapshot Institucional</p>
-                        <div className="h-px bg-white/10" />
-                     </div>
-                     <div className="space-y-4">
-                        {[
-                          { label: 'Candidatos Habilitados', val: '2.4k' },
-                          { label: 'Documentos Auditados', val: '18.2k' },
-                          { label: 'Editais Concluídos', val: '42' }
-                        ].map(stat => (
-                          <div key={stat.label} className="flex justify-between items-end">
-                             <span className="text-[10px] font-black uppercase tracking-widest text-surface-mucuna/40">{stat.label}</span>
-                             <span className="text-2xl font-black text-surface-mucuna tracking-tighter">{stat.val}</span>
-                          </div>
-                        ))}
-                     </div>
-                  </div>
-               </div>
-            </div>
           </div>
 
           {/* RIGHT COLUMN: ACCESS NODES */}
