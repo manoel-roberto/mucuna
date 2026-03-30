@@ -699,8 +699,84 @@ export default function EditaisPage() {
               </div>
             </div>
           </div>
+          
+          {/* Seção 5: Vigência e Prorrogação */}
+          <div className="col-span-full border-t border-primary-mucuna/5 pt-10">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-sm font-black text-accent-mucuna uppercase tracking-[0.3em]">05. Vigência e Prorrogação</span>
+              <div className="h-px flex-1 bg-primary-mucuna/5" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Validade Original do Edital</label>
+                <input 
+                  type="date"
+                  value={formData.dataValidadeOriginal}
+                  onChange={e => setFormData({...formData, dataValidadeOriginal: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Data Limite Pedir Prorrogação</label>
+                <input 
+                  type="date"
+                  value={formData.dataLimiteProrrogacao}
+                  onChange={e => setFormData({...formData, dataLimiteProrrogacao: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nº Portaria de Prorrogação</label>
+                <input 
+                  type="text"
+                  value={formData.portariaProrrogacao}
+                  onChange={e => setFormData({...formData, portariaProrrogacao: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                  placeholder="Ex: 001/2024"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">D.O.E. da Prorrogação</label>
+                <input 
+                  type="date"
+                  value={formData.dataDOEProrrogacao}
+                  onChange={e => setFormData({...formData, dataDOEProrrogacao: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Nova Validade (Prorrogada)</label>
+                <input 
+                  type="date"
+                  value={formData.dataValidadeProrrogada}
+                  onChange={e => setFormData({...formData, dataValidadeProrrogada: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-black text-primary-mucuna shadow-inner"
+                />
+              </div>
+              <div className="space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Autorização D.O.E.</label>
+                <input 
+                  type="text"
+                  value={formData.autorizacaoDOE}
+                  onChange={e => setFormData({...formData, autorizacaoDOE: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner"
+                  placeholder="Página / Número"
+                />
+              </div>
+              <div className="col-span-full space-y-2 group">
+                <label className="text-xs font-black text-primary-mucuna/60 uppercase tracking-widest pl-2 group-focus-within:text-accent-mucuna">Observações de Validade</label>
+                <textarea 
+                  rows={2}
+                  value={formData.observacaoValidade}
+                  onChange={e => setFormData({...formData, observacaoValidade: e.target.value})}
+                  className="w-full px-8 py-4 bg-surface-mucuna/50 border border-transparent rounded-[20px] outline-none focus:bg-white focus:border-accent-mucuna transition-all font-bold text-primary-mucuna shadow-inner resize-none italic"
+                  placeholder="Notas adicionais sobre a vigência do certame..."
+                />
+              </div>
+            </div>
+          </div>
 
-          {/* Seção 5: Status e Publicação */}
+          {/* Seção 6: Status e Publicação */}
           <div className="col-span-full border-t border-primary-mucuna/10 pt-10 flex flex-col md:flex-row gap-8 items-center">
              <div className="flex-1 w-full space-y-2">
                 <label className="text-sm font-black text-primary-mucuna/40 uppercase tracking-widest pl-4">Estágio de Publicação</label>
