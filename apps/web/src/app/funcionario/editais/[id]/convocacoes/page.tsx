@@ -92,7 +92,9 @@ export default function ControleConvocacaoPage() {
     targetColId: string,
     msg: string,
     initialValue: string,
-    finalStatus: string
+    finalStatus: string,
+    showObservacao?: boolean,
+    isDesclassificacao?: boolean
   } | null>(null);
   const [prazoValue, setPrazoValue] = useState('');
   const [prazoObservacao, setPrazoObservacao] = useState('');
@@ -857,7 +859,7 @@ export default function ControleConvocacaoPage() {
                 )}
               </div>
 
-              {(prazoConfig?.showObservacao || prazoConfig?.isDesclassificacao || col.id === 'AGENDAMENTO_APRESENTACAO') && (
+              {(prazoConfig?.showObservacao || prazoConfig?.isDesclassificacao || prazoConfig?.targetColId === 'AGENDAMENTO_APRESENTACAO') && (
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Observações (Opcional)</label>
                   <textarea 
