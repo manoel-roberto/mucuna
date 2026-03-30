@@ -9,7 +9,6 @@ export function Header() {
         </Link>
         <div className="flex flex-col">
           <Link href="/" className="text-xl font-black text-primary-mucuna tracking-tighter uppercase italic leading-none hover:text-accent-mucuna transition-colors">Mucunã <span className="text-accent-mucuna not-italic leading-none">.</span></Link>
-          <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.4em] mt-1">UEFS Network Node</span>
         </div>
       </div>
       
