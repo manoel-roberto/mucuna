@@ -13,6 +13,7 @@ export class ConvocacoesService {
         statusConvocacao: {
           in: [
             StatusConvocacao.AGUARDANDO_CONVOCACAO,
+            StatusConvocacao.CONVOCACAO_ENVIADA,
             StatusConvocacao.CONVOCADO,
             StatusConvocacao.AGUARDANDO_DOCUMENTACAO,
             StatusConvocacao.DOCUMENTOS_ENVIADOS,
