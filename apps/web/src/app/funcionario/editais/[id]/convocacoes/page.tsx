@@ -85,6 +85,19 @@ export default function ControleConvocacaoPage() {
   const [savingRecord, setSavingRecord] = useState(false);
   const [viewAvaliacao, setViewAvaliacao] = useState(false);
 
+  // Prazo Modal States
+  const [showPrazoModal, setShowPrazoModal] = useState(false);
+  const [prazoConfig, setPrazoConfig] = useState<{
+    candidatoId: string,
+    targetColId: string,
+    msg: string,
+    initialValue: string,
+    finalStatus: string
+  } | null>(null);
+  const [prazoValue, setPrazoValue] = useState('');
+  const [prazoObservacao, setPrazoObservacao] = useState('');
+  const [isProcessingMove, setIsProcessingMove] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, [editalId]);
@@ -123,14 +136,20 @@ export default function ControleConvocacaoPage() {
 
     let finalStatus = targetColId;
     let observacao = 'Movimentação no Kanban';
-    let prazo: string | null = null;
 
     if (targetColId === 'DESCLASSIFICADOS') {
-      const motivo = prompt('Motivo da desclassificação?\n1 - Desistente\n2 - Prazo Expirado\n3 - Sem Resposta', '1');
-      if (motivo === '1') finalStatus = 'DESISTENTE';
-      else if (motivo === '2') finalStatus = 'PRAZO_EXPIRADO';
-      else if (motivo === '3') finalStatus = 'SEM_RESPOSTA';
-      else return; // user cancelled
+      setPrazoConfig({
+        candidatoId,
+        targetColId,
+        msg: 'Selecione o motivo da desclassificação:',
+        initialValue: '',
+        finalStatus: 'DESISTENTE', // default
+        isDesclassificacao: true
+      });
+      setPrazoValue('');
+      setPrazoObservacao('');
+      setShowPrazoModal(true);
+      return;
     }
 
     if (targetColId === 'AGUARDANDO_DOCUMENTACAO' || targetColId === 'DOCUMENTOS_ENVIADOS' || targetColId === 'DOCUMENTACAO_PENDENTE' || targetColId === 'AGENDAMENTO_APRESENTACAO' || targetColId === 'EFETIVADO') {
@@ -141,24 +160,34 @@ export default function ControleConvocacaoPage() {
     }
 
     if (targetColId === 'AGUARDANDO_DOCUMENTACAO' || targetColId === 'DOCUMENTACAO_PENDENTE' || targetColId === 'AGENDAMENTO_APRESENTACAO') {
-      const msgPrompt = targetColId === 'AGENDAMENTO_APRESENTACAO' 
+      const msg = targetColId === 'AGENDAMENTO_APRESENTACAO' 
         ? 'Defina a data e hora para a APRESENTAÇÃO do candidato:' 
         : 'Defina o prazo final para entrega da documentação:';
 
-      prazo = prompt(msgPrompt, candidato.prazoEnvio?.slice(0, 16).replace('T', ' ') || '');
-      if (prazo === null) return; 
-      
-      if (targetColId === 'DOCUMENTACAO_PENDENTE') {
-        const pendencia = prompt('Resumo das pendências para o histórico:', '');
-        if (pendencia) observacao = `PENDÊNCIA: ${pendencia}`;
-      } else if (targetColId === 'AGENDAMENTO_APRESENTACAO') {
-        observacao = `AGENDAMENTO: Candidato aprovado na fase de documentos e movido para apresentação.`;
-      }
+      setPrazoConfig({
+        candidatoId,
+        targetColId,
+        msg,
+        initialValue: candidato.prazoEnvio?.slice(0, 16) || '',
+        finalStatus,
+        showObservacao: targetColId === 'DOCUMENTACAO_PENDENTE'
+      });
+      setPrazoValue(candidato.prazoEnvio?.slice(0, 16) || '');
+      setPrazoObservacao('');
+      setShowPrazoModal(true);
+      return;
     }
 
-    // Optimistic UI update
+    await executarMovimentacao(candidatoId, finalStatus, observacao, null);
+  };
+
+  const executarMovimentacao = async (candidatoId: string, finalStatus: string, observacao: string, prazo: string | null) => {
+    const candidato = candidatos.find(c => c.id === candidatoId);
+    if (!candidato) return;
+
     const previous = [...candidatos];
     const parsedPrazo = (prazo && !isNaN(Date.parse(prazo))) ? new Date(prazo).toISOString() : (candidato.prazoEnvio || undefined);
+    
     setCandidatos(prev => prev.map(c => c.id === candidatoId ? { ...c, statusConvocacao: finalStatus, prazoEnvio: parsedPrazo } : c));
 
     try {
@@ -176,6 +205,29 @@ export default function ControleConvocacaoPage() {
       alert('Erro ao mover candidato.');
       setCandidatos(previous);
     }
+  };
+
+  const handleConfirmarPrazo = async () => {
+    if (!prazoConfig) return;
+    setIsProcessingMove(true);
+    
+    let observacao = prazoObservacao || 'Movimentação no Kanban';
+    let status = prazoConfig.finalStatus;
+    
+    if (prazoConfig.isDesclassificacao) {
+      status = prazoValue; // O seletor de desclassificação usará o prazoValue para o status
+      observacao = `DESCLASSIFICAÇÃO: ${prazoObservacao || 'Sem observações'}`;
+    } else if (prazoConfig.targetColId === 'DOCUMENTACAO_PENDENTE') {
+      if (prazoObservacao) observacao = `PENDÊNCIA: ${prazoObservacao}`;
+    } else if (prazoConfig.targetColId === 'AGENDAMENTO_APRESENTACAO') {
+      observacao = `AGENDAMENTO: Candidato aprovado na fase de documentos e movido para apresentação. ${prazoObservacao}`;
+    }
+
+    await executarMovimentacao(prazoConfig.candidatoId, status, observacao, prazoConfig.isDesclassificacao ? null : prazoValue);
+    setShowPrazoModal(false);
+    setPrazoConfig(null);
+    setPrazoObservacao('');
+    setIsProcessingMove(false);
   };
 
   const handleSalvarRegistro = async (e: React.FormEvent) => {
@@ -764,6 +816,76 @@ export default function ControleConvocacaoPage() {
                   </form>
                 </div>
               )}
+           </div>
+        </div>
+      )}
+
+      {/* MODAL DE DEFINIÇÃO DE PRAZO */}
+      {showPrazoModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-2xl flex items-center justify-center p-4 z-[200] animate-in fade-in duration-300">
+           <div className="bg-white rounded-[40px] shadow-2xl max-w-md w-full p-10 space-y-8 animate-in zoom-in-95 duration-500 border border-white/20">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-[24px] flex items-center justify-center shadow-inner border border-indigo-100">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">{prazoConfig?.targetColId === 'AGENDAMENTO_APRESENTACAO' ? 'Agendamento' : 'Novo Prazo'}</h3>
+                <p className="text-sm font-bold text-slate-500 leading-relaxed uppercase tracking-widest">{prazoConfig?.msg}</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">
+                  {prazoConfig?.isDesclassificacao ? 'Motivo' : 'Data e Hora do Prazo'}
+                </label>
+                {prazoConfig?.isDesclassificacao ? (
+                  <select 
+                    className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[28px] outline-none focus:border-rose-500 font-bold text-lg text-slate-700 shadow-inner transition-all appearance-none"
+                    value={prazoValue}
+                    onChange={(e) => setPrazoValue(e.target.value)}
+                  >
+                    <option value="">Selecione um motivo...</option>
+                    <option value="DESISTENTE">Desistente</option>
+                    <option value="PRAZO_EXPIRADO">Prazo Expirado</option>
+                    <option value="SEM_RESPOSTA">Sem Resposta</option>
+                  </select>
+                ) : (
+                  <input 
+                    type="datetime-local" 
+                    className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[28px] outline-none focus:border-indigo-500 font-black text-lg text-slate-700 shadow-inner transition-all text-center"
+                    value={prazoValue}
+                    onChange={(e) => setPrazoValue(e.target.value)}
+                  />
+                )}
+              </div>
+
+              {(prazoConfig?.showObservacao || prazoConfig?.isDesclassificacao || col.id === 'AGENDAMENTO_APRESENTACAO') && (
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Observações (Opcional)</label>
+                  <textarea 
+                    className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[28px] outline-none focus:border-indigo-500 font-bold text-sm text-slate-700 shadow-inner transition-all resize-none"
+                    placeholder="Detalhes adicionais para o histórico..."
+                    rows={3}
+                    value={prazoObservacao}
+                    onChange={(e) => setPrazoObservacao(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 pt-4">
+                <button 
+                  onClick={handleConfirmarPrazo}
+                  disabled={!prazoValue || isProcessingMove}
+                  className={`w-full py-5 text-white font-black uppercase text-[12px] tracking-[0.25em] rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50 ${prazoConfig?.isDesclassificacao ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'}`}
+                >
+                  {isProcessingMove ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Confirmar Ação'}
+                </button>
+                <button 
+                  onClick={() => { setShowPrazoModal(false); setPrazoConfig(null); }}
+                  disabled={isProcessingMove}
+                  className="w-full py-4 text-slate-400 hover:text-slate-900 font-black uppercase text-[11px] tracking-widest transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
            </div>
         </div>
       )}
