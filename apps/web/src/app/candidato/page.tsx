@@ -301,7 +301,7 @@ export default function CandidatoPage() {
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] pl-4">Comunicação Link</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] pl-4">Telefone</label>
                 <input 
                   type="text"
                   value={contatoData.telefone}
