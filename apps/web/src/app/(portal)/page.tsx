@@ -34,10 +34,6 @@ export default function Home() {
         
         <div className="container mx-auto px-6 relative z-10">
           <div className="flex flex-col items-center text-center space-y-8">
-            <div className="inline-flex items-center gap-3 px-6 py-2.5 bg-white/5 backdrop-blur-2xl rounded-full border border-white/10 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <span className="w-2 h-2 bg-accent-mucuna rounded-full shadow-[0_0_12px_rgba(176,125,78,0.8)] animate-pulse"></span>
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-surface-mucuna/60">Sistema de Convocação Orgânica</span>
-            </div>
             
             <h1 className="text-6xl md:text-9xl font-black tracking-tighter animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100 uppercase italic leading-none">
               Mucunã <span className="text-accent-mucuna not-italic leading-none">UEFS.</span>
