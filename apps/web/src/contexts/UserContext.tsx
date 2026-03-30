@@ -13,6 +13,7 @@ interface User {
 interface UserContextType {
   user: User | null;
   loading: boolean;
+  isMounted: boolean;
   hasPermission: (permission: string) => boolean;
   refreshUser: () => Promise<void>;
 }
@@ -20,24 +21,9 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('user');
-      try {
-        return stored ? JSON.parse(stored) : null;
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  });
-  
-  const [loading, setLoading] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !localStorage.getItem('user');
-    }
-    return true;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   const fetchUser = async () => {
     const token = localStorage.getItem('token');
@@ -73,17 +59,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
       } else {
-        // Se o token for inválido, limpa tudo
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
       }
     } catch (e) {
       console.error('Erro ao sincronizar usuário com API', e);
-      // Fallback para o localStorage se a API falhar
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (err) {}
       }
     } finally {
       setLoading(false);
@@ -91,14 +77,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchUser();
+    setIsMounted(true);
+    const init = async () => {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+          setLoading(false);
+        } catch (e) {}
+      }
+      await fetchUser();
+    };
+    init();
   }, []);
 
   const hasPermission = (permission: string) => {
-    if (!user) return false;
+    if (!isMounted || !user) return false;
     return (
-      user.permissions.includes(permission) || 
-      user.permissions.includes('ADMIN') || 
+      user.permissions?.includes(permission) || 
+      user.permissions?.includes('ADMIN') || 
       user.roleName === 'Administrador'
     );
   };
@@ -109,7 +106,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, hasPermission, refreshUser }}>
+    <UserContext.Provider value={{ user, loading, isMounted, hasPermission, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

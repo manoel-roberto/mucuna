@@ -17,7 +17,7 @@ export default function FuncionarioLayout({ children }: { children: React.ReactN
 function FuncionarioLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, hasPermission } = useUser();
+  const { user, hasPermission, isMounted } = useUser();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -33,6 +33,15 @@ function FuncionarioLayoutContent({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen bg-primary-mucuna">
         {children}
+      </div>
+    );
+  }
+
+  // Evita erro de hidratação e discrepância de permissões na primeira carga
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#FDFDFC] flex items-center justify-center">
+         <div className="w-10 h-10 border-4 border-accent-mucuna border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
